@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "installations": {
+    "claude": {
+      "package:get_it": {
+        "skills": [
+          {
+            "name": "get-it-expert",
+            "installedAt": "2026-10-03T12:06:14.601697Z",
+            "contentHash": "4TT+QU3L9qJYu9WiLz23Mg==",
+            "path": "skills/get-it-expert"
+          }
+        ]
+      }
+    },
+    "generic": {
+      "package:get_it": {
+        "skills": [
+          {
+            "name": "get-it-expert",
+            "installedAt": "2026-10-03T12:06:14.602686Z",
+            "contentHash": "tqKIqqAbxkjtppdclaqEqA==",
+            "path": "skills/get-it-expert"
+          }
+        ]
+      }
+    }
+  },
+  "suggestedRepos": [
+    "https://github.com/dart-lang/skills.git",
+    "https://github.com/flutter/agent-plugins.git"
+  ]
+}
