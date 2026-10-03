@@ -337,5 +337,115 @@
   },
   "onbHomeEnterHint": "Wpisz adres i wyszukaj albo dotknij mapy, aby wskazać dom.",
   "shelterDistanceLabel": "Odległość",
-  "commonClear": "Wyczyść"
+  "commonClear": "Wyczyść",
+  "reportRateLimitedFor": "Wysłano zbyt wiele zgłoszeń w krótkim czasie. Spróbuj ponownie za {minutes} min.",
+  "@reportRateLimitedFor": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "incidentDetectedAt": "Wykryto {date} ({ago})",
+  "@incidentDetectedAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "ago": {
+        "type": "String"
+      }
+    }
+  },
+  "mapZoomIn": "Przybliż",
+  "mapZoomOut": "Oddal",
+  "mapAllIncidents": "Wszystkie ({count})",
+  "@mapAllIncidents": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "incidentsTitle": "Problemy w okolicy",
+  "incidentsEmpty": "Brak aktywnych problemów w widocznym obszarze mapy.",
+  "incidentsHint": "Problemy w obszarze widocznym na mapie, od najbardziej wiarygodnych.",
+  "reportTypePowerOutageDesc": "Brak zasilania w domu, budynku lub na ulicy",
+  "reportTypePowerOutageHint": "np. Cała ulica bez światła od 14:30, sąsiednie bloki też",
+  "reportTypeWaterOutageDesc": "Z kranów nie leci woda albo jest jej bardzo mało",
+  "reportTypeWaterOutageHint": "np. Brak wody w całym budynku od rana",
+  "reportTypeFuelShortageDesc": "Stacja nie ma paliwa lub są bardzo długie kolejki",
+  "reportTypeFuelShortageHint": "np. Stacja przy rondzie — brak benzyny, kolejka ok. 30 aut",
+  "reportTypeRoadBlockedDesc": "Droga jest zablokowana albo nie da się przejechać",
+  "reportTypeRoadBlockedHint": "np. Powalone drzewo blokuje oba pasy",
+  "reportTypeShelterIssueDesc": "Schron jest zamknięty, pełny albo niedostępny",
+  "reportTypeShelterIssueHint": "np. Wejście do schronu zamknięte, brak informacji",
+  "reportTypeOtherThreatDesc": "Inna sytuacja zagrażająca mieszkańcom",
+  "reportTypeOtherThreatHint": "Opisz krótko, co widzisz i gdzie dokładnie",
+  "verificationPowerYes": "Mam prąd",
+  "verificationPowerNo": "Nie mam prądu",
+  "verificationWaterYes": "Mam wodę",
+  "verificationWaterNo": "Nie mam wody",
+  "verificationFuelYes": "Paliwo jest",
+  "verificationFuelNo": "Brak paliwa",
+  "verificationRoadYes": "Przejezdna",
+  "verificationRoadNo": "Nieprzejezdna",
+  "verificationShelterYes": "Schron dostępny",
+  "verificationShelterNo": "Niedostępny",
+  "previewTitle": "Podgląd ekranów",
+  "previewSub": "Ekrany ze stałymi danymi — bez backendu",
+  "previewHint": "Stałe dane demo (awaria prądu na Jeżycach, 96%). Nic nie trafia do backendu.",
+  "previewVerification": "Pytanie weryfikacyjne",
+  "previewScreens": "Ekrany",
+  "previewQuestionPower": "Brak prądu",
+  "previewQuestionWater": "Brak wody",
+  "previewQuestionGeneric": "Pytanie ogólne (TAK / NIE)",
+  "verificationCardLabel": "Pytanie o Twoją okolicę",
+  "fuelPb95": "Benzyna 95",
+  "fuelPb98": "Benzyna 98",
+  "fuelDiesel": "Diesel",
+  "fuelLpg": "LPG",
+  "occupancyPlenty": "Dużo miejsc",
+  "occupancyLimited": "Mało miejsc",
+  "occupancyFull": "Pełny",
+  "occupancyUnknown": "Brak danych o miejscach",
+  "fuelStationTitle": "Stacja paliw",
+  "fuelStationFuels": "Dostępność paliw",
+  "fuelStationShortage": "Brak części paliw",
+  "fuelStationOk": "Paliwa dostępne",
+  "fuelStationNoData": "Brak danych o paliwach",
+  "fuelStationConfirm": "Potwierdź stan na stacji",
+  "fuelStationConfirmTitle": "Które paliwa są teraz dostępne?",
+  "fuelStationConfirmHint": "Zaznacz paliwa, które można teraz zatankować. Jeśli czegoś brakuje, użyj „Zgłoś brak paliwa”.",
+  "fuelStationConfirmed": "Dziękujemy za potwierdzenie stanu paliw.",
+  "fuelStationAddress": "Adres",
+  "fuelStationLastConfirmed": "Ostatnie potwierdzenie",
+  "shelterOccupancy": "Zapełnienie",
+  "shelterAvailability": "Tryb otwarcia",
+  "shelterConfirmOccupancy": "Ile jest miejsc?",
+  "reportObjectFuelTitle": "Która stacja?",
+  "reportObjectShelterTitle": "Który schron?",
+  "reportObjectHint": "Zaznaczyliśmy najbliższy obiekt — zmień, jeśli chodzi o inny.",
+  "reportObjectNone": "Nie znaleźliśmy takich obiektów w pobliżu Twojej pozycji.",
+  "reportFuelTypesTitle": "Czego brakuje?",
+  "reportFuelTypesRequired": "Zaznacz co najmniej jedno paliwo.",
+  "verificationPoiLabel": "Pytanie dotyczy obiektu",
+  "incidentPoiTitle": "Dotyczy obiektu",
+  "incidentMissingFuels": "Brakuje: {fuels}",
+  "@incidentMissingFuels": {
+    "placeholders": {
+      "fuels": {
+        "type": "String"
+      }
+    }
+  },
+  "incidentAreaObject": "Zgłoszenie dotyczy jednego obiektu — bez strefy na mapie.",
+  "proceduresTitle": "Co robić",
+  "timelineTitle": "Historia",
+  "previewQuestionFuel": "Brak paliwa (pytanie o stację)",
+  "fuelStationConfirmSend": "Potwierdź dostępne paliwa",
+  "fuelStationReport": "Zgłoś brak paliwa",
+  "shelterReport": "Zgłoś problem ze schronem",
+  "reportObjectMapHint": "Zaznaczyliśmy najbliższy obiekt — dotknij innego na mapie, aby zmienić.",
+  "reportObjectChangeHint": "Dotknij innego obiektu na mapie, aby zmienić wybór."
 }

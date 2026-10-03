@@ -13,10 +13,10 @@ import "package:tarcza_polska/data/mock/demo_scenario.dart";
 import "package:tarcza_polska/data/mock/mock_backend.dart";
 import "package:tarcza_polska/data/mock/mock_repositories.dart";
 import "package:tarcza_polska/data/remote/api/export.dart";
-import "package:tarcza_polska/data/remote/citizen_api.dart";
 import "package:tarcza_polska/data/remote/device_registrar.dart";
 import "package:tarcza_polska/data/remote/dio_factory.dart";
 import "package:tarcza_polska/data/remote/interceptors/auth_interceptor.dart";
+import "package:tarcza_polska/data/remote/interceptors/etag_cache_interceptor.dart";
 import "package:tarcza_polska/data/remote/remote_repositories.dart";
 import "package:tarcza_polska/data/repositories/location_repository.dart";
 import "package:tarcza_polska/data/repositories/repositories.dart";
@@ -64,7 +64,9 @@ void _registerMocks() {
     ..registerLazySingleton<ReportRepository>(() => MockReportRepository(backend, getIt()))
     ..registerLazySingleton<VerificationRepository>(() => MockVerificationRepository(backend))
     ..registerLazySingleton<ShelterRepository>(() => MockShelterRepository(backend))
-    ..registerLazySingleton<AlertRepository>(() => MockAlertRepository(backend));
+    ..registerLazySingleton<AlertRepository>(() => MockAlertRepository(backend))
+    ..registerLazySingleton<FuelStationRepository>(() => MockFuelStationRepository(backend))
+    ..registerLazySingleton<GuidanceRepository>(() => MockGuidanceRepository(backend));
 }
 
 void _registerRemote() {
@@ -78,16 +80,16 @@ void _registerRemote() {
     tokenStorage: getIt(),
     pushTokenProvider: push.getToken,
   );
-  final dio = createDio(AppConfig.apiBaseUrl)
-    ..interceptors.insert(
-      0,
-      AuthInterceptor(tokenStorage: getIt(), registrar: registrar, retryDio: bareDio),
-    );
-  final api = CitizenApi(dio);
+  final dio = createDio(AppConfig.apiBaseUrl);
+  dio.interceptors
+    ..insert(0, AuthInterceptor(tokenStorage: getIt(), registrar: registrar, retryDio: bareDio))
+    // Przed `ErrorInterceptor` — `304` ma zostać zamienione na odpowiedź z cache.
+    ..insert(dio.interceptors.length - 1, EtagCacheInterceptor());
+  final api = TarczaApi(dio);
 
   getIt
     ..registerSingleton<DeviceRegistrar>(registrar)
-    ..registerSingleton<CitizenApi>(api)
+    ..registerSingleton<TarczaApi>(api)
     ..registerLazySingleton<DeviceRepository>(
       () => RemoteDeviceRepository(api, registrar, getIt()),
     )
@@ -96,5 +98,7 @@ void _registerRemote() {
     ..registerLazySingleton<ReportRepository>(() => RemoteReportRepository(api))
     ..registerLazySingleton<VerificationRepository>(() => RemoteVerificationRepository(api))
     ..registerLazySingleton<ShelterRepository>(() => RemoteShelterRepository(api))
-    ..registerLazySingleton<AlertRepository>(() => RemoteAlertRepository(api));
+    ..registerLazySingleton<AlertRepository>(() => RemoteAlertRepository(api))
+    ..registerLazySingleton<FuelStationRepository>(() => RemoteFuelStationRepository(api))
+    ..registerLazySingleton<GuidanceRepository>(() => RemoteGuidanceRepository(api));
 }

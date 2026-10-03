@@ -29,7 +29,7 @@ class AlertsView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.alertsTitle)),
+      appBar: TarczaAppBar(title: Text(l10n.alertsTitle)),
       body: BlocBuilder<AlertsCubit, AlertsState>(
         builder: (context, state) {
           if (state.status == AlertsStatus.initial || state.status == AlertsStatus.loading) {

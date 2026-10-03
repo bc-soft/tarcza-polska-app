@@ -29,6 +29,9 @@ abstract class Incident with _$Incident {
     required IncidentType type,
     required String typeLabel,
     required IncidentStatus status,
+
+    /// Etykieta statusu z backendu; `null` w danych mockowych — UI ma etykietę zapasową.
+    String? statusLabel,
     required ConfidenceLevel confidenceLevel,
     required String confidenceLabel,
 
@@ -39,7 +42,17 @@ abstract class Incident with _$Incident {
     DateTime? lastConfirmedAt,
     required Community community,
     String? summary,
-    required GeoArea area,
+
+    /// `null`, dopóki zasięg nie jest wyznaczony (status `detected`). Na mapie taki
+    /// incydent przychodzi jako `Point` (centroid zgłoszeń).
+    GeoArea? area,
+
+    /// `point` — dotyczy jednego obiektu ([poi]); geometria to `Point`, bez poligonu.
+    @Default(ReportScope.area) ReportScope scope,
+    PoiRef? poi,
+
+    /// Brakujące paliwa (tylko `fuel_shortage`).
+    @Default(<FuelType>[]) List<FuelType> fuelTypes,
   }) = _Incident;
 }
 
@@ -48,7 +61,9 @@ abstract class Shelter with _$Shelter {
   const factory Shelter({
     required String id,
     required String name,
-    required String address,
+
+    /// Schrony dodane ręcznie przez operatora mogą nie mieć adresu.
+    String? address,
     required LatLng location,
     required ShelterStatus status,
     required String statusLabel,
@@ -58,6 +73,11 @@ abstract class Shelter with _$Shelter {
 
     /// Tylko w wariancie „najbliższe” (`?lat&lng`).
     double? distanceMeters,
+    @Default(ShelterOccupancy.unknown) ShelterOccupancy occupancy,
+    String? occupancyLabel,
+
+    /// Tryb otwarcia z rejestru krajowego (Całodobowo / Na żądanie / …) — niezależny od statusu.
+    String? availabilityLabel,
   }) = _Shelter;
 }
 
@@ -78,12 +98,80 @@ abstract class Alert with _$Alert {
   }) = _Alert;
 }
 
+/// Obiekt, którego dotyczy zgłoszenie / pytanie punktowe (stacja paliw, schron).
+@freezed
+abstract class PoiRef with _$PoiRef {
+  const factory PoiRef({
+    required PoiKind kind,
+    required String id,
+    required String name,
+    LatLng? location,
+  }) = _PoiRef;
+}
+
+@freezed
+abstract class FuelStatus with _$FuelStatus {
+  const factory FuelStatus({
+    required FuelType type,
+    required String label,
+    required FuelAvailability status,
+    required String statusLabel,
+    DateTime? confirmedAt,
+  }) = _FuelStatus;
+}
+
+/// Stacja paliw z dostępnością każdego paliwa (zgłoszenia punktowe `fuel_shortage`).
+@freezed
+abstract class FuelStation with _$FuelStation {
+  const factory FuelStation({
+    required String id,
+    required String name,
+    String? brand,
+    String? address,
+    required LatLng location,
+    @Default(<FuelStatus>[]) List<FuelStatus> fuels,
+
+    /// Co najmniej jedno paliwo zgłoszone jako niedostępne.
+    @Default(false) bool shortage,
+    @Default(<FuelType>[]) List<FuelType> missingFuelTypes,
+    DateTime? lastConfirmedAt,
+    @Default(0) int confirmationCount,
+    double? distanceMeters,
+  }) = _FuelStation;
+}
+
+/// Wpis osi czasu incydentu (`GET /incidents/{id}/timeline`) — `label` gotowy po polsku.
+@freezed
+abstract class IncidentTimelineEntry with _$IncidentTimelineEntry {
+  const factory IncidentTimelineEntry({
+    required String type,
+    required String label,
+    required DateTime at,
+    @Default(<String, dynamic>{}) Map<String, dynamic> details,
+  }) = _IncidentTimelineEntry;
+}
+
+/// Procedura „co robić” (`GET /procedures?type=`).
+@freezed
+abstract class Procedure with _$Procedure {
+  const factory Procedure({
+    required String id,
+    required String title,
+    required String summary,
+    @Default(<String>[]) List<String> steps,
+    @Default(<IncidentType>[]) List<IncidentType> appliesTo,
+    @Default(0) int priority,
+  }) = _Procedure;
+}
+
 /// Element warstwy mapy (`properties.kind`).
 @freezed
 sealed class MapFeature with _$MapFeature {
   const factory MapFeature.incident(Incident incident) = IncidentFeature;
 
   const factory MapFeature.shelter(Shelter shelter) = ShelterFeature;
+
+  const factory MapFeature.fuelStation(FuelStation station) = FuelStationFeature;
 
   const factory MapFeature.alert(Alert alert) = AlertFeature;
 }
@@ -97,6 +185,9 @@ abstract class VerificationQuestion with _$VerificationQuestion {
     required String typeLabel,
     required String question,
     required String context,
+
+    /// Obiekt, o który pytamy (może to być sąsiednia stacja, nie ta zgłoszona).
+    PoiRef? poi,
     @Default(VerificationAnswer.values) List<VerificationAnswer> options,
     required DateTime sentAt,
     required DateTime expiresAt,
@@ -117,21 +208,56 @@ abstract class VerificationResult with _$VerificationResult {
   }) = _VerificationResult;
 }
 
+@freezed
+abstract class FuelTypeOption with _$FuelTypeOption {
+  const factory FuelTypeOption({required FuelType type, required String label}) = _FuelTypeOption;
+}
+
 /// Typ zgłoszenia z etykietą (`GET /reports/types`).
 @freezed
 abstract class ReportTypeOption with _$ReportTypeOption {
-  const factory ReportTypeOption({required IncidentType type, required String label}) =
-      _ReportTypeOption;
+  const factory ReportTypeOption({
+    required IncidentType type,
+    required String label,
+    @Default(ReportScope.area) ReportScope scope,
+    PoiKind? poiKind,
+    @Default(<FuelTypeOption>[]) List<FuelTypeOption> fuelTypes,
+  }) = _ReportTypeOption;
+
+  const ReportTypeOption._();
+
+  bool get isPoint => scope == ReportScope.point && poiKind != null;
 }
+
+const _defaultFuelTypes = <FuelTypeOption>[
+  FuelTypeOption(type: FuelType.pb95, label: "Benzyna 95"),
+  FuelTypeOption(type: FuelType.pb98, label: "Benzyna 98"),
+  FuelTypeOption(type: FuelType.diesel, label: "Olej napędowy"),
+  FuelTypeOption(type: FuelType.lpg, label: "LPG"),
+];
+
+/// Typy, których mieszkańcy nie zgłaszają z aplikacji (decyzja produktowa); incydenty tych
+/// typów z backendu nadal pokazujemy na mapie.
+const hiddenReportTypes = {IncidentType.roadBlocked};
 
 /// Wbudowana lista typów (te same wartości i etykiety co `GET /reports/types`) —
 /// używana, zanim przyjdzie odpowiedź z backendu albo gdy zapytanie się nie uda.
 const defaultReportTypes = <ReportTypeOption>[
   ReportTypeOption(type: IncidentType.powerOutage, label: "Brak prądu"),
   ReportTypeOption(type: IncidentType.waterOutage, label: "Brak wody"),
-  ReportTypeOption(type: IncidentType.fuelShortage, label: "Brak paliwa"),
-  ReportTypeOption(type: IncidentType.roadBlocked, label: "Nieprzejezdna droga"),
-  ReportTypeOption(type: IncidentType.shelterIssue, label: "Problem ze schronem"),
+  ReportTypeOption(
+    type: IncidentType.fuelShortage,
+    label: "Brak paliwa",
+    scope: ReportScope.point,
+    poiKind: PoiKind.fuelStation,
+    fuelTypes: _defaultFuelTypes,
+  ),
+  ReportTypeOption(
+    type: IncidentType.shelterIssue,
+    label: "Problem ze schronem",
+    scope: ReportScope.point,
+    poiKind: PoiKind.shelter,
+  ),
   ReportTypeOption(type: IncidentType.otherThreat, label: "Inne zagrożenie"),
 ];
 
@@ -142,6 +268,8 @@ abstract class ReportReceipt with _$ReportReceipt {
     required String reportId,
     String? h3Cell,
     required DateTime createdAt,
+    @Default(ReportScope.area) ReportScope scope,
+    PoiRef? poi,
   }) = _ReportReceipt;
 }
 
@@ -153,6 +281,9 @@ abstract class ReportIncidentRef with _$ReportIncidentRef {
     required IncidentStatus status,
     required ConfidenceLevel confidenceLevel,
     required double confidenceScore,
+    String? typeLabel,
+    String? statusLabel,
+    String? confidenceLabel,
   }) = _ReportIncidentRef;
 }
 
@@ -162,6 +293,7 @@ abstract class ReportStatus with _$ReportStatus {
   const factory ReportStatus({
     required String reportId,
     required IncidentType type,
+    String? typeLabel,
     required DateTime createdAt,
     ReportIncidentRef? incident,
   }) = _ReportStatus;
@@ -176,6 +308,10 @@ abstract class DeviceProfile with _$DeviceProfile {
     LatLng? lastLocation,
     String? h3Cell,
     DateTime? locationUpdatedAt,
+    LocationSource? locationSource,
+
+    /// `preferences.locationRefresh` — zgoda na przypomnienia `location_refresh`.
+    @Default(true) bool locationRefresh,
   }) = _DeviceProfile;
 }
 

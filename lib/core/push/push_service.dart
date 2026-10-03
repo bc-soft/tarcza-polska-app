@@ -33,33 +33,46 @@ Future<void> firebaseBackgroundHandler(RemoteMessage message) async {
   // Celowo pusto: pytanie/alert i tak pobieramy przez polling po otwarciu.
 }
 
+/// FCM (Android) / APNs przez FCM (iOS). Konfiguracja: `ios/Runner/GoogleService-Info.plist`,
+/// `android/app/google-services.json`. Gdy Firebase nie wstanie (brak pliku), działa jak
+/// [NoopPushService] — aplikacja zostaje na pollingu.
 class FirebasePushService implements PushService {
   FirebasePushService(this._local);
 
   final LocalNotifications _local;
   final _events = StreamController<PushEvent>.broadcast();
   final _subscriptions = <StreamSubscription<Object?>>[];
+  bool _available = false;
 
   FirebaseMessaging get _fcm => FirebaseMessaging.instance;
 
   @override
   Future<void> init() async {
-    await Firebase.initializeApp();
+    await _local.init();
+    _subscriptions.add(_local.taps.listen(_events.add));
+    try {
+      await Firebase.initializeApp();
+    } on Object catch (e) {
+      debugPrint("Firebase niedostępny — zostaje polling: $e");
+      return;
+    }
+    _available = true;
     FirebaseMessaging.onBackgroundMessage(firebaseBackgroundHandler);
+    // Na pierwszym planie system też pokazuje baner; aplikacja dodatkowo od razu otwiera ekran.
     await _fcm.setForegroundNotificationPresentationOptions(alert: true, sound: true);
     _subscriptions
       ..add(FirebaseMessaging.onMessage.listen(_handle))
-      ..add(FirebaseMessaging.onMessageOpenedApp.listen(_handle))
-      ..add(_local.taps.listen(_events.add));
+      ..add(FirebaseMessaging.onMessageOpenedApp.listen((m) => _handle(m, opened: true)));
   }
 
-  void _handle(RemoteMessage message) {
-    final event = PushEvent.fromData(message.data);
+  void _handle(RemoteMessage message, {bool opened = false}) {
+    final event = PushEvent.fromData(message.data, opened: opened);
     if (event != null) _events.add(event);
   }
 
   @override
   Future<bool> requestPermission() async {
+    if (!_available) return await _local.requestPermission();
     final settings = await _fcm.requestPermission();
     return settings.authorizationStatus == AuthorizationStatus.authorized ||
         settings.authorizationStatus == AuthorizationStatus.provisional;
@@ -67,9 +80,20 @@ class FirebasePushService implements PushService {
 
   @override
   Future<String?> getToken() async {
+    if (!_available) return null;
     try {
-      if (defaultTargetPlatform == TargetPlatform.iOS && await _fcm.getAPNSToken() == null) {
-        return null; // Symulator / brak APNs — token FCM nie powstanie.
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        // Token APNs przychodzi asynchronicznie po `registerForRemoteNotifications` —
+        // bez niego FCM nie wyda tokena. Czekamy chwilę zamiast od razu zwracać `null`.
+        for (var i = 0; i < 20 && await _fcm.getAPNSToken() == null; i++) {
+          await Future<void>.delayed(const Duration(milliseconds: 500));
+        }
+        if (await _fcm.getAPNSToken() == null) {
+          // Najczęściej: brak zespołu Apple Developer w podpisie (DEVELOPMENT_TEAM) albo
+          // brak capability Push Notifications — wtedy zostaje polling.
+          debugPrint("Brak tokena APNs — push niedostępny, działa polling.");
+          return null;
+        }
       }
       return await _fcm.getToken();
     } on Object catch (e) {
@@ -79,15 +103,19 @@ class FirebasePushService implements PushService {
   }
 
   @override
-  Stream<String> get onTokenRefresh => _fcm.onTokenRefresh;
+  Stream<String> get onTokenRefresh => _available ? _fcm.onTokenRefresh : const Stream.empty();
 
   @override
   Stream<PushEvent> get events => _events.stream;
 
   @override
   Future<PushEvent?> initialEvent() async {
-    final message = await _fcm.getInitialMessage();
-    return message == null ? null : PushEvent.fromData(message.data);
+    if (_available) {
+      final message = await _fcm.getInitialMessage();
+      final event = message == null ? null : PushEvent.fromData(message.data, opened: true);
+      if (event != null) return event;
+    }
+    return await _local.launchEvent();
   }
 }
 

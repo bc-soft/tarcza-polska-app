@@ -3,8 +3,9 @@
 /// Przykłady:
 /// ```bash
 /// fvm flutter run                                    # tryb mock (domyślny)
+/// fvm flutter run --dart-define-from-file=dart_defines/remote.json   # backend (ngrok)
 /// fvm flutter run --dart-define=USE_MOCKS=false \
-///   --dart-define=API_BASE_URL=http://localhost      # prawdziwy backend
+///   --dart-define=API_BASE_URL=http://localhost      # lokalny backend
 /// fvm flutter run --dart-define=USE_MOCKS=false \
 ///   --dart-define=ENABLE_PUSH=true                   # + Firebase (wymaga plików konfiguracyjnych)
 /// ```
@@ -12,10 +13,11 @@ abstract final class AppConfig {
   /// `true` — repozytoria `Mock*` i scenariusz demo; `false` — `Remote*` (Retrofit).
   static const bool useMocks = bool.fromEnvironment("USE_MOCKS", defaultValue: true);
 
-  /// Adres backendu (bez prefiksu `/api/v1`).
+  /// Adres backendu (bez prefiksu `/api/v1` i bez końcowego `/`).
+  /// Domyślnie wspólny tunel ngrok zespołu backendu.
   static const String apiBaseUrl = String.fromEnvironment(
     "API_BASE_URL",
-    defaultValue: "http://localhost",
+    defaultValue: "https://6d88-213-241-25-155.ngrok-free.app",
   );
 
   /// Włącza Firebase Cloud Messaging. Wymaga `google-services.json` /

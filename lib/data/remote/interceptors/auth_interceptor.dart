@@ -1,4 +1,5 @@
 import "package:dio/dio.dart";
+import "package:flutter/foundation.dart";
 
 import "package:tarcza_polska/core/storage/token_storage.dart";
 import "package:tarcza_polska/data/remote/device_registrar.dart";
@@ -40,9 +41,19 @@ class AuthInterceptor extends QueuedInterceptor {
     if (!unauthorized || _isPublic(options) || options.extra[_retriedKey] == true) {
       return handler.next(err);
     }
+    final data = err.response?.data;
+    final error = data is Map ? data["error"] : null;
+    debugPrint("API 401 ${options.method} ${options.path} (${error is Map ? error["code"] : ""})");
     try {
-      await _tokenStorage.clear();
-      await _registrar.register();
+      // Równoległe żądania wysłane ze starym tokenem dostają 401 jednocześnie. Jeśli inne
+      // już zarejestrowało urządzenie (token się zmienił), tylko ponawiamy — bez kolejnego
+      // `POST /devices` (inaczej każde żądanie tworzyłoby nowe urządzenie).
+      final sentWith = options.headers["Authorization"];
+      final current = await _tokenStorage.readToken();
+      if (current == null || sentWith == "Bearer $current") {
+        await _tokenStorage.clear();
+        await _registrar.register();
+      }
       final token = await _tokenStorage.readToken();
       options
         ..extra[_retriedKey] = true

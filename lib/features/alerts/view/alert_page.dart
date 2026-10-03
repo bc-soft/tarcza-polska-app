@@ -7,20 +7,38 @@ import "package:tarcza_polska/app/di/injection.dart";
 import "package:tarcza_polska/app/router/app_router.dart";
 import "package:tarcza_polska/app/theme/tarcza_colors.dart";
 import "package:tarcza_polska/core/utils/formatters.dart";
+import "package:tarcza_polska/core/widgets/guidance_widgets.dart";
 import "package:tarcza_polska/core/widgets/widgets.dart";
 import "package:tarcza_polska/data/models/models.dart";
+import "package:tarcza_polska/data/repositories/repositories.dart";
 import "package:tarcza_polska/features/alerts/bloc/alerts_cubit.dart";
 import "package:tarcza_polska/features/map/bloc/map_bloc.dart";
 
 /// Pełnoekranowy alert z komunikatem operatora (INFORM).
 class AlertPage extends StatelessWidget {
-  const AlertPage({super.key, required this.alertId});
+  const AlertPage({
+    super.key,
+    required this.alertId,
+    this.repository,
+    this.incidents,
+    this.guidance,
+  });
 
   final String alertId;
 
+  /// Podgląd ekranów (ustawienia dev) podaje własne repozytorium ze stałymi danymi.
+  final AlertRepository? repository;
+  final IncidentRepository? incidents;
+  final GuidanceRepository? guidance;
+
   @override
   Widget build(BuildContext context) => BlocProvider(
-    create: (_) => AlertDetailCubit(repository: getIt(), alertId: alertId)..load(),
+    create: (_) => AlertDetailCubit(
+      repository: repository ?? getIt(),
+      incidents: incidents ?? getIt(),
+      guidance: guidance ?? getIt(),
+      alertId: alertId,
+    )..load(),
     child: const AlertView(),
   );
 }
@@ -29,8 +47,10 @@ class AlertView extends StatelessWidget {
   const AlertView({super.key});
 
   void _close(BuildContext context) {
-    if (context.canPop()) {
-      context.pop();
+    // `Navigator` obsługuje i strony go_router, i trasy otwarte imperatywnie (podgląd ekranów).
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.pop();
     } else {
       context.go(AppRoutes.alerts);
     }
@@ -49,7 +69,8 @@ class AlertView extends StatelessWidget {
             : context.statusColors.forSeverity(alert.severity);
         return Scaffold(
           backgroundColor: alert == null ? null : Color.lerp(color, Colors.white, 0.9),
-          appBar: AppBar(
+          appBar: TarczaAppBar(
+            showLogo: false,
             backgroundColor: Colors.transparent,
             systemOverlayStyle: SystemUiOverlayStyle.dark,
             automaticallyImplyLeading: false,
@@ -70,7 +91,7 @@ class AlertView extends StatelessWidget {
                           message: Formatters.failure(l10n, state.failure ?? Exception()),
                           onRetry: context.read<AlertDetailCubit>().load,
                         ))
-                : _AlertBody(alert: alert, color: color),
+                : _AlertBody(alert: alert, color: color, procedures: state.procedures),
           ),
         );
       },
@@ -79,10 +100,11 @@ class AlertView extends StatelessWidget {
 }
 
 class _AlertBody extends StatelessWidget {
-  const _AlertBody({required this.alert, required this.color});
+  const _AlertBody({required this.alert, required this.color, required this.procedures});
 
   final Alert alert;
   final Color color;
+  final List<Procedure> procedures;
 
   @override
   Widget build(BuildContext context) {
@@ -123,6 +145,10 @@ class _AlertBody extends StatelessWidget {
                   Text(
                     l10n.alertExpires(Formatters.clock(alert.expiresAt)),
                     style: TextStyle(color: dark),
+                  ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ProceduresSection(procedures: procedures),
                   ),
                 ],
               ),

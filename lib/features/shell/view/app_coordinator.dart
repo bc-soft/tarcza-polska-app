@@ -10,6 +10,7 @@ import "package:tarcza_polska/app/router/app_router.dart";
 import "package:tarcza_polska/core/push/push_event.dart";
 import "package:tarcza_polska/core/push/push_service.dart";
 import "package:tarcza_polska/core/utils/formatters.dart";
+import "package:tarcza_polska/data/repositories/location_repository.dart";
 import "package:tarcza_polska/data/repositories/repositories.dart";
 import "package:tarcza_polska/features/alerts/bloc/alerts_cubit.dart";
 import "package:tarcza_polska/features/map/bloc/map_bloc.dart";
@@ -39,7 +40,7 @@ class _AppCoordinatorState extends State<AppCoordinator> {
   @override
   void initState() {
     super.initState();
-    _lifecycle = AppLifecycleListener(onResume: _onForeground, onPause: _stopPolling);
+    _lifecycle = AppLifecycleListener(onResume: _onForeground, onPause: _onBackground);
     _subscriptions
       ..add(_push.events.listen(_onPush))
       ..add(_push.onTokenRefresh.listen(_onTokenRefresh));
@@ -59,7 +60,12 @@ class _AppCoordinatorState extends State<AppCoordinator> {
       final token = await _push.getToken();
       final device = getIt<DeviceRepository>();
       await device.ensureRegistered(pushToken: token);
+      // `GET /devices/me` sprawdza ważność tokena — 401 (`unauthorized` / `token_expired`)
+      // obsługuje AuthInterceptor: ponowna rejestracja z aktualnym tokenem push.
+      await device.getProfile();
       if (token != null) await device.updatePushToken(token);
+      // Przełącznik przypomnień mógł zmienić się offline — backend ma znać aktualną wartość.
+      await getIt<LocationRepository>().syncPreferences();
     } on Object catch (e) {
       debugPrint("Synchronizacja urządzenia: $e");
     }
@@ -77,8 +83,15 @@ class _AppCoordinatorState extends State<AppCoordinator> {
     if (!mounted) return;
     _poll();
     _startPolling();
-    await context.read<LocationCubit>().refreshOnOpen();
+    final location = context.read<LocationCubit>();
+    await location.refreshOnOpen();
+    await location.startLiveTracking();
     if (mounted) _poll();
+  }
+
+  void _onBackground() {
+    _stopPolling();
+    context.read<LocationCubit>().stopLiveTracking();
   }
 
   void _poll() {
@@ -102,8 +115,16 @@ class _AppCoordinatorState extends State<AppCoordinator> {
   void _onPush(PushEvent event) {
     if (!mounted) return;
     switch (event) {
-      case VerificationPushEvent(:final verificationId):
-        context.read<VerificationBloc>().add(VerificationPushReceived(verificationId));
+      case VerificationPushEvent(:final verificationId, :final expiresAt, :final opened):
+        final expired = expiresAt != null && !DateTime.now().isBefore(expiresAt);
+        if (expired && opened) {
+          // Tapnięty po czasie: ekran sam pobierze pytanie i pokaże „pytanie wygasło”.
+          _open(AppRoutes.verification(verificationId));
+        } else {
+          context.read<VerificationBloc>().add(
+            VerificationPushReceived(verificationId, expiresAt: expiresAt),
+          );
+        }
       case AlertPushEvent(:final alertId):
         unawaited(
           context.read<AlertsCubit>().refresh(

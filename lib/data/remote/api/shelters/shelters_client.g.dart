@@ -21,7 +21,11 @@ class _SheltersClient implements SheltersClient {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<void> getApiShelterList({String? bbox, num? lat, num? lng}) async {
+  Future<List<ShelterView>> getApiShelterList({
+    String? bbox,
+    num? lat,
+    num? lng,
+  }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'bbox': bbox,
@@ -31,7 +35,7 @@ class _SheltersClient implements SheltersClient {
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<void>(
+    final _options = _setStreamType<List<ShelterView>>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -41,16 +45,26 @@ class _SheltersClient implements SheltersClient {
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    await _dio.fetch<void>(_options);
+    final _result = await _dio.fetch<List<dynamic>>(_options);
+    late List<ShelterView> _value;
+    try {
+      _value = _result.data!
+          .map((dynamic i) => ShelterView.fromJson(i as Map<String, dynamic>))
+          .toList();
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
   }
 
   @override
-  Future<void> getApiShelterShow({required String id}) async {
+  Future<ShelterView> getApiShelterShow({required String id}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<void>(
+    final _options = _setStreamType<ShelterView>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -60,11 +74,19 @@ class _SheltersClient implements SheltersClient {
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    await _dio.fetch<void>(_options);
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late ShelterView _value;
+    try {
+      _value = ShelterView.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
   }
 
   @override
-  Future<void> postApiShelterConfirm({
+  Future<ShelterView> postApiShelterConfirm({
     required String id,
     required ConfirmShelterStatusRequest body,
   }) async {
@@ -73,7 +95,7 @@ class _SheltersClient implements SheltersClient {
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body.toJson());
-    final _options = _setStreamType<void>(
+    final _options = _setStreamType<ShelterView>(
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -83,7 +105,15 @@ class _SheltersClient implements SheltersClient {
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    await _dio.fetch<void>(_options);
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late ShelterView _value;
+    try {
+      _value = ShelterView.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
   }
 
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {

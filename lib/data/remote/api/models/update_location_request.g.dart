@@ -12,6 +12,9 @@ _UpdateLocationRequest _$UpdateLocationRequestFromJson(
   lat: (json['lat'] as num).toDouble(),
   lng: (json['lng'] as num).toDouble(),
   accuracyMeters: (json['accuracyMeters'] as num?)?.toDouble(),
+  source: json['source'] == null
+      ? null
+      : LocationSource.fromJson(json['source'] as String),
 );
 
 Map<String, dynamic> _$UpdateLocationRequestToJson(
@@ -20,4 +23,12 @@ Map<String, dynamic> _$UpdateLocationRequestToJson(
   'lat': instance.lat,
   'lng': instance.lng,
   'accuracyMeters': instance.accuracyMeters,
+  'source': _$LocationSourceEnumMap[instance.source],
+};
+
+const _$LocationSourceEnumMap = {
+  LocationSource.home: 'home',
+  LocationSource.gps: 'gps',
+  LocationSource.background: 'background',
+  LocationSource.$unknown: r'$unknown',
 };

@@ -4,6 +4,7 @@ import "package:flutter/material.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
 import "package:flutter_map/flutter_map.dart";
 import "package:go_router/go_router.dart";
+import "package:latlong2/latlong.dart";
 
 import "package:tarcza_polska/app/di/injection.dart";
 import "package:tarcza_polska/app/router/app_router.dart";
@@ -12,16 +13,29 @@ import "package:tarcza_polska/core/error/failures.dart";
 import "package:tarcza_polska/core/utils/formatters.dart";
 import "package:tarcza_polska/core/widgets/map_widgets.dart";
 import "package:tarcza_polska/core/widgets/widgets.dart";
+import "package:tarcza_polska/data/models/models.dart";
 import "package:tarcza_polska/features/map/bloc/map_bloc.dart";
 import "package:tarcza_polska/features/report/bloc/report_cubit.dart";
 import "package:tarcza_polska/features/settings/bloc/location_cubit.dart";
 
 class ReportPage extends StatelessWidget {
-  const ReportPage({super.key});
+  const ReportPage({super.key, this.start});
+
+  /// Zgłoszenie z ekranu schronu / stacji (`/report-object`) — typ i obiekt wybrane.
+  final ReportStart? start;
 
   @override
   Widget build(BuildContext context) => BlocProvider(
-    create: (_) => ReportCubit(repository: getIt())..loadTypes(),
+    create: (context) {
+      final cubit = ReportCubit(repository: getIt(), fuelStations: getIt(), shelters: getIt());
+      if (start case final start?) {
+        unawaited(
+          cubit.startWith(start, defaultPosition: context.read<LocationCubit>().state.bestPosition),
+        );
+      }
+      unawaited(cubit.loadTypes());
+      return cubit;
+    },
     child: const ReportView(),
   );
 }
@@ -52,13 +66,21 @@ class ReportView extends StatelessWidget {
         }
       },
       builder: (context, state) => Scaffold(
-        appBar: AppBar(
+        appBar: TarczaAppBar(
           title: Text(l10n.reportTitle),
           leading: switch (state.step) {
-            ReportStep.location || ReportStep.description => IconButton(
+            ReportStep.location || ReportStep.object || ReportStep.description => IconButton(
               tooltip: l10n.commonBack,
               icon: const Icon(Icons.arrow_back),
-              onPressed: context.read<ReportCubit>().back,
+              onPressed: () {
+                final cubit = context.read<ReportCubit>();
+                // Otwarte z ekranu obiektu: pierwszy krok to obiekt — „Wstecz” zamyka ekran.
+                if (cubit.startedFromObject && state.step == ReportStep.object) {
+                  Navigator.of(context).maybePop();
+                } else {
+                  cubit.back();
+                }
+              },
             ),
             _ => null,
           },
@@ -69,6 +91,7 @@ class ReportView extends StatelessWidget {
             child: switch (state.step) {
               ReportStep.type => _TypeStep(key: const ValueKey("type"), state: state),
               ReportStep.location => _LocationStep(key: const ValueKey("loc"), state: state),
+              ReportStep.object => _ObjectStep(key: const ValueKey("obj"), state: state),
               ReportStep.description => _DescriptionStep(
                 key: const ValueKey("desc"),
                 state: state,
@@ -118,7 +141,7 @@ class _TypeStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final position = context.read<LocationCubit>().state.effectivePosition;
+    final position = context.read<LocationCubit>().state.bestPosition;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -129,7 +152,7 @@ class _TypeStep extends StatelessWidget {
             crossAxisCount: 2,
             mainAxisSpacing: 12,
             crossAxisSpacing: 12,
-            childAspectRatio: 1.25,
+            childAspectRatio: 0.95,
             children: [
               for (final option in state.types)
                 TarczaCard(
@@ -137,15 +160,26 @@ class _TypeStep extends StatelessWidget {
                     option,
                     defaultPosition: position,
                   ),
+                  padding: const EdgeInsets.all(12),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(option.type.icon, size: 36, color: TarczaPalette.primary),
-                      const SizedBox(height: 10),
+                      Icon(option.type.icon, size: 34, color: TarczaPalette.primary),
+                      const SizedBox(height: 8),
                       Text(
                         option.label,
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        option.type.description(l10n),
+                        textAlign: TextAlign.center,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.copyWith(color: TarczaPalette.textSecondary),
                       ),
                     ],
                   ),
@@ -168,6 +202,7 @@ class _LocationStep extends StatelessWidget {
     final l10n = context.l10n;
     final cubit = context.read<ReportCubit>();
     final location = context.watch<LocationCubit>().state;
+    final myPosition = location.livePosition ?? location.position;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -178,19 +213,12 @@ class _LocationStep extends StatelessWidget {
             child: LocationPickerMap(
               position: state.position,
               onChanged: cubit.setPosition,
-              fallbackCenter: location.effectivePosition ?? defaultMapCenter,
+              fallbackCenter: location.bestPosition ?? defaultMapCenter,
               extraMarkers: [
+                if (location.livePosition ?? location.position case final me?)
+                  userLocationMarker(me),
                 if (location.homeAddress != null)
-                  Marker(
-                    point: location.homeAddress!.location,
-                    width: 28,
-                    height: 28,
-                    child: const IconCircleMarker(
-                      icon: Icons.home_rounded,
-                      color: TarczaPalette.primaryDark,
-                      size: 28,
-                    ),
-                  ),
+                  homeMarker(location.homeAddress!.location, size: 38),
               ],
             ),
           ),
@@ -202,16 +230,15 @@ class _LocationStep extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  if (location.position != null)
+                  if (myPosition != null)
                     Expanded(
                       child: SecondaryButton(
                         icon: Icons.my_location,
                         label: l10n.reportUseMyLocation,
-                        onPressed: () => cubit.setPosition(location.position!),
+                        onPressed: () => cubit.setPosition(myPosition),
                       ),
                     ),
-                  if (location.position != null && location.homeAddress != null)
-                    const SizedBox(width: 12),
+                  if (myPosition != null && location.homeAddress != null) const SizedBox(width: 12),
                   if (location.homeAddress != null)
                     Expanded(
                       child: SecondaryButton(
@@ -232,6 +259,263 @@ class _LocationStep extends StatelessWidget {
                 onPressed: state.position == null ? null : cubit.confirmLocation,
               ),
             ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Zgłoszenie punktowe: wybór stacji / schronu na mapie (najbliższy zaznaczony, tapnięcie
+/// w marker zmienia wybór) i — dla paliwa — rodzajów brakującego paliwa.
+class _ObjectStep extends StatelessWidget {
+  const _ObjectStep({super.key, required this.state});
+
+  final ReportState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final cubit = context.read<ReportCubit>();
+    final type = state.type!;
+    final isFuel = state.needsFuels;
+    final selected = state.poi;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _StepHeader(
+          step: 2,
+          title: isFuel ? l10n.reportObjectFuelTitle : l10n.reportObjectShelterTitle,
+          hint: cubit.startedFromObject ? l10n.reportObjectChangeHint : l10n.reportObjectMapHint,
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _PoiPickerMap(state: state, onSelect: cubit.selectPoi),
+          ),
+        ),
+        // Panel na dole odcięty od mapy — treść nie wjeżdża pod przycisk.
+        Container(
+          margin: const EdgeInsets.only(top: 12),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(top: BorderSide(color: TarczaPalette.outline)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (state.candidatesLoading)
+                const Center(child: CircularProgressIndicator())
+              else if (selected == null)
+                Text(
+                  state.candidates.isEmpty ? l10n.reportObjectNone : l10n.reportObjectMapHint,
+                  style: const TextStyle(color: TarczaPalette.textSecondary),
+                )
+              else
+                Row(
+                  children: [
+                    Icon(selected.poi.kind.icon, color: TarczaPalette.primary),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            selected.poi.name,
+                            style: Theme.of(context).textTheme.titleMedium,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            [
+                              if (selected.distanceMeters != null)
+                                Formatters.distance(l10n, selected.distanceMeters!),
+                              ?selected.subtitle,
+                            ].join(" · "),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: TarczaPalette.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              if (isFuel) ...[
+                const SizedBox(height: 14),
+                Text(l10n.reportFuelTypesTitle, style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 6),
+                FuelChips(
+                  types: type.fuelTypes.isEmpty
+                      ? FuelType.values
+                      : type.fuelTypes.map((f) => f.type).toList(),
+                  labels: {for (final f in type.fuelTypes) f.type: f.label},
+                  selected: state.fuels,
+                  onToggle: cubit.toggleFuel,
+                ),
+              ],
+              const SizedBox(height: 16),
+              PrimaryButton(
+                label: l10n.commonContinue,
+                onPressed: state.objectReady ? cubit.confirmObject : null,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Mapa obiektów do wyboru (schrony / stacje) z pozycją użytkownika i domem.
+class _PoiPickerMap extends StatefulWidget {
+  const _PoiPickerMap({required this.state, required this.onSelect});
+
+  final ReportState state;
+  final ValueChanged<PoiCandidate> onSelect;
+
+  @override
+  State<_PoiPickerMap> createState() => _PoiPickerMapState();
+}
+
+class _PoiPickerMapState extends State<_PoiPickerMap> {
+  final _controller = MapController();
+  bool _ready = false;
+  bool _fitted = false;
+
+  List<LatLng> _points(LocationState location) => [
+    ...widget.state.candidates.take(5).map((c) => c.location),
+    ?(location.livePosition ?? location.position ?? widget.state.position),
+  ];
+
+  /// Kamera obejmuje najbliższe obiekty i użytkownika — raz, gdy lista przyjdzie.
+  /// Zawsze po klatce: ruch kamery w `onMapReady` (przed pierwszym kadrem) nie ładuje kafelków.
+  void _fit(LocationState location) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _fitNow(location);
+    });
+  }
+
+  void _fitNow(LocationState location) {
+    if (!_ready || _fitted || widget.state.candidates.isEmpty) return;
+    final points = _points(location);
+    _fitted = true;
+    if (points.length == 1) {
+      _controller.move(points.first, 16);
+    } else {
+      _controller.fitCamera(
+        CameraFit.coordinates(
+          coordinates: points,
+          padding: const EdgeInsets.all(40),
+          maxZoom: 16.5,
+        ),
+      );
+    }
+  }
+
+  @override
+  void didUpdateWidget(_PoiPickerMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.state.candidates.length != widget.state.candidates.length) {
+      _fitted = false;
+      _fit(context.read<LocationCubit>().state);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final location = context.watch<LocationCubit>().state;
+    final me = location.livePosition ?? location.position;
+    final selectedId = widget.state.poi?.poi.id;
+    final candidates = widget.state.candidates;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: FlutterMap(
+        mapController: _controller,
+        options: MapOptions(
+          initialCenter:
+              candidates.firstOrNull?.location ?? location.bestPosition ?? defaultMapCenter,
+          initialZoom: 15,
+          interactionOptions: const InteractionOptions(
+            flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+          ),
+          onMapReady: () {
+            _ready = true;
+            _fit(location);
+          },
+        ),
+        children: [
+          osmTileLayer(),
+          MarkerLayer(
+            markers: [
+              if (location.homeAddress != null)
+                homeMarker(location.homeAddress!.location, size: 38),
+              if (me != null) userLocationMarker(me),
+              // Wybrany na wierzchu.
+              for (final c in [
+                ...candidates.where((c) => c.poi.id != selectedId),
+                ...candidates.where((c) => c.poi.id == selectedId),
+              ])
+                Marker(
+                  point: c.location,
+                  width: c.poi.id == selectedId ? 50 : 36,
+                  height: c.poi.id == selectedId ? 50 : 36,
+                  child: GestureDetector(
+                    onTap: () => widget.onSelect(c),
+                    child: Semantics(
+                      label: c.poi.name,
+                      selected: c.poi.id == selectedId,
+                      button: true,
+                      child: _PoiMarker(kind: c.poi.kind, selected: c.poi.id == selectedId),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const OsmAttribution(),
+        ],
+      ),
+    );
+  }
+}
+
+class _PoiMarker extends StatelessWidget {
+  const _PoiMarker({required this.kind, required this.selected});
+
+  final PoiKind kind;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!selected) {
+      return IconCircleMarker(icon: kind.icon, color: TarczaPalette.unverified);
+    }
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.center,
+      children: [
+        Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: TarczaPalette.primary.withValues(alpha: 0.2),
+          ),
+        ),
+        IconCircleMarker(icon: kind.icon, color: TarczaPalette.primary, size: 40),
+        Positioned(
+          right: 0,
+          top: 0,
+          child: Container(
+            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+            child: const Icon(Icons.check_circle, size: 18, color: TarczaPalette.success),
           ),
         ),
       ],
@@ -282,12 +566,33 @@ class _DescriptionStepState extends State<_DescriptionStep> {
                     Icon(state.type!.type.icon, color: TarczaPalette.primary),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: Text(
-                        state.type!.label,
-                        style: Theme.of(context).textTheme.titleMedium,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            state.type!.label,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          // Zgłoszenie punktowe: którego obiektu i jakich paliw dotyczy.
+                          if (state.isPoint && state.poi != null)
+                            Text(
+                              [
+                                state.poi!.poi.name,
+                                if (state.needsFuels)
+                                  state.type!.fuelTypes
+                                      .where((f) => state.fuels.contains(f.type))
+                                      .map((f) => f.type.displayLabel(l10n, f.label))
+                                      .join(", "),
+                              ].join(" · "),
+                              style: const TextStyle(color: TarczaPalette.textSecondary),
+                            ),
+                        ],
                       ),
                     ),
-                    const Icon(Icons.place_outlined, color: TarczaPalette.textSecondary),
+                    Icon(
+                      state.isPoint ? state.type!.poiKind!.icon : Icons.place_outlined,
+                      color: TarczaPalette.textSecondary,
+                    ),
                   ],
                 ),
               ),
@@ -300,7 +605,7 @@ class _DescriptionStepState extends State<_DescriptionStep> {
                 maxLength: ReportState.maxDescription,
                 textCapitalization: TextCapitalization.sentences,
                 decoration: InputDecoration(
-                  hintText: l10n.reportDescriptionHint,
+                  hintText: state.type!.type.descriptionHint(l10n),
                   errorText: state.descriptionTooLong ? l10n.reportDescriptionTooLong : serverError,
                 ),
               ),
@@ -344,10 +649,21 @@ class _SuccessStep extends StatelessWidget {
                 Flexible(child: Text(l10n.reportSuccessPending)),
               ],
             )
-          : ConfidenceBadge(
-              level: incident.confidenceLevel,
-              label: state.type?.label ?? "",
-              score: incident.confidenceScore,
+          : Column(
+              children: [
+                if (incident.typeLabel != null && incident.confidenceLabel != null) ...[
+                  Text(
+                    l10n.reportSuccessJoined(incident.typeLabel!, incident.confidenceLabel!),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                ],
+                ConfidenceBadge(
+                  level: incident.confidenceLevel,
+                  label: incident.confidenceLabel ?? state.type?.label ?? "",
+                  score: incident.confidenceScore,
+                ),
+              ],
             ),
       actions: [
         PrimaryButton(

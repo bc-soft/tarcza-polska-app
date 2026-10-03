@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
 import '../models/confirm_shelter_status_request.dart';
+import '../models/shelter_view.dart';
 
 part 'shelters_client.g.dart';
 
@@ -15,7 +16,7 @@ abstract class SheltersClient {
 
   /// Shelters in a bbox, or the nearest ones to lat/lng
   @GET('/api/v1/shelters')
-  Future<void> getApiShelterList({
+  Future<List<ShelterView>> getApiShelterList({
     @Query('bbox') String? bbox,
     @Query('lat') num? lat,
     @Query('lng') num? lng,
@@ -23,13 +24,13 @@ abstract class SheltersClient {
 
   /// Shelter details
   @GET('/api/v1/shelters/{id}')
-  Future<void> getApiShelterShow({
+  Future<ShelterView> getApiShelterShow({
     @Path('id') required String id,
   });
 
-  /// Confirm the current status of a shelter (open / closed / full)
+  /// Confirm the current status of a shelter (open / closed) and, when open, how much room is left (plenty / limited / full)
   @POST('/api/v1/shelters/{id}/status')
-  Future<void> postApiShelterConfirm({
+  Future<ShelterView> postApiShelterConfirm({
     @Path('id') required String id,
     @Body() required ConfirmShelterStatusRequest body,
   });

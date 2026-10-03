@@ -21,13 +21,13 @@ class _IncidentsClient implements IncidentsClient {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<void> getApiIncidentList({num? lat, num? lng}) async {
+  Future<List<IncidentView>> getApiIncidentList({num? lat, num? lng}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{r'lat': lat, r'lng': lng};
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<void>(
+    final _options = _setStreamType<List<IncidentView>>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -37,16 +37,26 @@ class _IncidentsClient implements IncidentsClient {
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    await _dio.fetch<void>(_options);
+    final _result = await _dio.fetch<List<dynamic>>(_options);
+    late List<IncidentView> _value;
+    try {
+      _value = _result.data!
+          .map((dynamic i) => IncidentView.fromJson(i as Map<String, dynamic>))
+          .toList();
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
   }
 
   @override
-  Future<void> getApiIncidentShow({required String id}) async {
+  Future<IncidentView> getApiIncidentShow({required String id}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<void>(
+    final _options = _setStreamType<IncidentView>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -56,17 +66,59 @@ class _IncidentsClient implements IncidentsClient {
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    await _dio.fetch<void>(_options);
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late IncidentView _value;
+    try {
+      _value = IncidentView.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
   }
 
   @override
-  Future<void> getApiMap({String? bbox}) async {
+  Future<List<IncidentTimelineEntry>> getApiIncidentTimeline({
+    required String id,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<List<IncidentTimelineEntry>>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/v1/incidents/${id}/timeline',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<List<dynamic>>(_options);
+    late List<IncidentTimelineEntry> _value;
+    try {
+      _value = _result.data!
+          .map(
+            (dynamic i) =>
+                IncidentTimelineEntry.fromJson(i as Map<String, dynamic>),
+          )
+          .toList();
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<MapFeatureCollection> getApiMap({String? bbox}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{r'bbox': bbox};
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<void>(
+    final _options = _setStreamType<MapFeatureCollection>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -76,7 +128,15 @@ class _IncidentsClient implements IncidentsClient {
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    await _dio.fetch<void>(_options);
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late MapFeatureCollection _value;
+    try {
+      _value = MapFeatureCollection.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
   }
 
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {

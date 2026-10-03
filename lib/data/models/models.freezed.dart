@@ -287,8 +287,13 @@ as int?,
 /// @nodoc
 mixin _$Incident {
 
- String get id; IncidentType get type; String get typeLabel; IncidentStatus get status; ConfidenceLevel get confidenceLevel; String get confidenceLabel;/// 0–1, pokazujemy jako procent. Liczone wyłącznie przez backend.
- double get confidenceScore; DateTime get startedAt; DateTime get lastActivityAt; DateTime? get lastConfirmedAt; Community get community; String? get summary; GeoArea get area;
+ String get id; IncidentType get type; String get typeLabel; IncidentStatus get status;/// Etykieta statusu z backendu; `null` w danych mockowych — UI ma etykietę zapasową.
+ String? get statusLabel; ConfidenceLevel get confidenceLevel; String get confidenceLabel;/// 0–1, pokazujemy jako procent. Liczone wyłącznie przez backend.
+ double get confidenceScore; DateTime get startedAt; DateTime get lastActivityAt; DateTime? get lastConfirmedAt; Community get community; String? get summary;/// `null`, dopóki zasięg nie jest wyznaczony (status `detected`). Na mapie taki
+/// incydent przychodzi jako `Point` (centroid zgłoszeń).
+ GeoArea? get area;/// `point` — dotyczy jednego obiektu ([poi]); geometria to `Point`, bez poligonu.
+ ReportScope get scope; PoiRef? get poi;/// Brakujące paliwa (tylko `fuel_shortage`).
+ List<FuelType> get fuelTypes;
 /// Create a copy of Incident
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -300,20 +305,20 @@ $IncidentCopyWith<Incident> get copyWith => _$IncidentCopyWithImpl<Incident>(thi
 @override
 bool operator ==(Object other) {
   final _this = this as Incident;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Incident&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.typeLabel, _this.typeLabel) || other.typeLabel == _this.typeLabel)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.confidenceLevel, _this.confidenceLevel) || other.confidenceLevel == _this.confidenceLevel)&&(identical(other.confidenceLabel, _this.confidenceLabel) || other.confidenceLabel == _this.confidenceLabel)&&(identical(other.confidenceScore, _this.confidenceScore) || other.confidenceScore == _this.confidenceScore)&&(identical(other.startedAt, _this.startedAt) || other.startedAt == _this.startedAt)&&(identical(other.lastActivityAt, _this.lastActivityAt) || other.lastActivityAt == _this.lastActivityAt)&&(identical(other.lastConfirmedAt, _this.lastConfirmedAt) || other.lastConfirmedAt == _this.lastConfirmedAt)&&(identical(other.community, _this.community) || other.community == _this.community)&&(identical(other.summary, _this.summary) || other.summary == _this.summary)&&(identical(other.area, _this.area) || other.area == _this.area));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Incident&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.typeLabel, _this.typeLabel) || other.typeLabel == _this.typeLabel)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.statusLabel, _this.statusLabel) || other.statusLabel == _this.statusLabel)&&(identical(other.confidenceLevel, _this.confidenceLevel) || other.confidenceLevel == _this.confidenceLevel)&&(identical(other.confidenceLabel, _this.confidenceLabel) || other.confidenceLabel == _this.confidenceLabel)&&(identical(other.confidenceScore, _this.confidenceScore) || other.confidenceScore == _this.confidenceScore)&&(identical(other.startedAt, _this.startedAt) || other.startedAt == _this.startedAt)&&(identical(other.lastActivityAt, _this.lastActivityAt) || other.lastActivityAt == _this.lastActivityAt)&&(identical(other.lastConfirmedAt, _this.lastConfirmedAt) || other.lastConfirmedAt == _this.lastConfirmedAt)&&(identical(other.community, _this.community) || other.community == _this.community)&&(identical(other.summary, _this.summary) || other.summary == _this.summary)&&(identical(other.area, _this.area) || other.area == _this.area)&&(identical(other.scope, _this.scope) || other.scope == _this.scope)&&(identical(other.poi, _this.poi) || other.poi == _this.poi)&&const DeepCollectionEquality().equals(other.fuelTypes, _this.fuelTypes));
 }
 
 
 @override
 int get hashCode {
   final _this = this as Incident;
-  return Object.hash(runtimeType,_this.id,_this.type,_this.typeLabel,_this.status,_this.confidenceLevel,_this.confidenceLabel,_this.confidenceScore,_this.startedAt,_this.lastActivityAt,_this.lastConfirmedAt,_this.community,_this.summary,_this.area);
+  return Object.hash(runtimeType,_this.id,_this.type,_this.typeLabel,_this.status,_this.statusLabel,_this.confidenceLevel,_this.confidenceLabel,_this.confidenceScore,_this.startedAt,_this.lastActivityAt,_this.lastConfirmedAt,_this.community,_this.summary,_this.area,_this.scope,_this.poi,const DeepCollectionEquality().hash(_this.fuelTypes));
 }
 
 @override
 String toString() {
   final _this = this as Incident;
-  return 'Incident(id: ${_this.id}, type: ${_this.type}, typeLabel: ${_this.typeLabel}, status: ${_this.status}, confidenceLevel: ${_this.confidenceLevel}, confidenceLabel: ${_this.confidenceLabel}, confidenceScore: ${_this.confidenceScore}, startedAt: ${_this.startedAt}, lastActivityAt: ${_this.lastActivityAt}, lastConfirmedAt: ${_this.lastConfirmedAt}, community: ${_this.community}, summary: ${_this.summary}, area: ${_this.area})';
+  return 'Incident(id: ${_this.id}, type: ${_this.type}, typeLabel: ${_this.typeLabel}, status: ${_this.status}, statusLabel: ${_this.statusLabel}, confidenceLevel: ${_this.confidenceLevel}, confidenceLabel: ${_this.confidenceLabel}, confidenceScore: ${_this.confidenceScore}, startedAt: ${_this.startedAt}, lastActivityAt: ${_this.lastActivityAt}, lastConfirmedAt: ${_this.lastConfirmedAt}, community: ${_this.community}, summary: ${_this.summary}, area: ${_this.area}, scope: ${_this.scope}, poi: ${_this.poi}, fuelTypes: ${_this.fuelTypes})';
 }
 
 
@@ -324,11 +329,11 @@ abstract mixin class $IncidentCopyWith<$Res>  {
   factory $IncidentCopyWith(Incident value, $Res Function(Incident) _then) = _$IncidentCopyWithImpl;
 @useResult
 $Res call({
- String id, IncidentType type, String typeLabel, IncidentStatus status, ConfidenceLevel confidenceLevel, String confidenceLabel, double confidenceScore, DateTime startedAt, DateTime lastActivityAt, DateTime? lastConfirmedAt, Community community, String? summary, GeoArea area
+ String id, IncidentType type, String typeLabel, IncidentStatus status, String? statusLabel, ConfidenceLevel confidenceLevel, String confidenceLabel, double confidenceScore, DateTime startedAt, DateTime lastActivityAt, DateTime? lastConfirmedAt, Community community, String? summary, GeoArea? area, ReportScope scope, PoiRef? poi, List<FuelType> fuelTypes
 });
 
 
-$CommunityCopyWith<$Res> get community;$GeoAreaCopyWith<$Res> get area;
+$CommunityCopyWith<$Res> get community;$GeoAreaCopyWith<$Res>? get area;$PoiRefCopyWith<$Res>? get poi;
 
 }
 /// @nodoc
@@ -341,13 +346,14 @@ class _$IncidentCopyWithImpl<$Res>
 
 /// Create a copy of Incident
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? typeLabel = null,Object? status = null,Object? confidenceLevel = null,Object? confidenceLabel = null,Object? confidenceScore = null,Object? startedAt = null,Object? lastActivityAt = null,Object? lastConfirmedAt = freezed,Object? community = null,Object? summary = freezed,Object? area = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? typeLabel = null,Object? status = null,Object? statusLabel = freezed,Object? confidenceLevel = null,Object? confidenceLabel = null,Object? confidenceScore = null,Object? startedAt = null,Object? lastActivityAt = null,Object? lastConfirmedAt = freezed,Object? community = null,Object? summary = freezed,Object? area = freezed,Object? scope = null,Object? poi = freezed,Object? fuelTypes = null,}) {
   return _then(Incident(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as IncidentType,typeLabel: null == typeLabel ? _self.typeLabel : typeLabel // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as IncidentStatus,confidenceLevel: null == confidenceLevel ? _self.confidenceLevel : confidenceLevel // ignore: cast_nullable_to_non_nullable
+as IncidentStatus,statusLabel: freezed == statusLabel ? _self.statusLabel : statusLabel // ignore: cast_nullable_to_non_nullable
+as String?,confidenceLevel: null == confidenceLevel ? _self.confidenceLevel : confidenceLevel // ignore: cast_nullable_to_non_nullable
 as ConfidenceLevel,confidenceLabel: null == confidenceLabel ? _self.confidenceLabel : confidenceLabel // ignore: cast_nullable_to_non_nullable
 as String,confidenceScore: null == confidenceScore ? _self.confidenceScore : confidenceScore // ignore: cast_nullable_to_non_nullable
 as double,startedAt: null == startedAt ? _self.startedAt : startedAt // ignore: cast_nullable_to_non_nullable
@@ -355,8 +361,11 @@ as DateTime,lastActivityAt: null == lastActivityAt ? _self.lastActivityAt : last
 as DateTime,lastConfirmedAt: freezed == lastConfirmedAt ? _self.lastConfirmedAt : lastConfirmedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,community: null == community ? _self.community : community // ignore: cast_nullable_to_non_nullable
 as Community,summary: freezed == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
-as String?,area: null == area ? _self.area : area // ignore: cast_nullable_to_non_nullable
-as GeoArea,
+as String?,area: freezed == area ? _self.area : area // ignore: cast_nullable_to_non_nullable
+as GeoArea?,scope: null == scope ? _self.scope : scope // ignore: cast_nullable_to_non_nullable
+as ReportScope,poi: freezed == poi ? _self.poi : poi // ignore: cast_nullable_to_non_nullable
+as PoiRef?,fuelTypes: null == fuelTypes ? _self.fuelTypes : fuelTypes // ignore: cast_nullable_to_non_nullable
+as List<FuelType>,
   ));
 }
 /// Create a copy of Incident
@@ -372,10 +381,25 @@ $CommunityCopyWith<$Res> get community {
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$GeoAreaCopyWith<$Res> get area {
-  
-  return $GeoAreaCopyWith<$Res>(_self.area, (value) {
+$GeoAreaCopyWith<$Res>? get area {
+    if (_self.area == null) {
+    return null;
+  }
+
+  return $GeoAreaCopyWith<$Res>(_self.area!, (value) {
     return _then(_self.copyWith(area: value));
+  });
+}/// Create a copy of Incident
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PoiRefCopyWith<$Res>? get poi {
+    if (_self.poi == null) {
+    return null;
+  }
+
+  return $PoiRefCopyWith<$Res>(_self.poi!, (value) {
+    return _then(_self.copyWith(poi: value));
   });
 }
 }
@@ -459,10 +483,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  IncidentType type,  String typeLabel,  IncidentStatus status,  ConfidenceLevel confidenceLevel,  String confidenceLabel,  double confidenceScore,  DateTime startedAt,  DateTime lastActivityAt,  DateTime? lastConfirmedAt,  Community community,  String? summary,  GeoArea area)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  IncidentType type,  String typeLabel,  IncidentStatus status,  String? statusLabel,  ConfidenceLevel confidenceLevel,  String confidenceLabel,  double confidenceScore,  DateTime startedAt,  DateTime lastActivityAt,  DateTime? lastConfirmedAt,  Community community,  String? summary,  GeoArea? area,  ReportScope scope,  PoiRef? poi,  List<FuelType> fuelTypes)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Incident() when $default != null:
-return $default(_that.id,_that.type,_that.typeLabel,_that.status,_that.confidenceLevel,_that.confidenceLabel,_that.confidenceScore,_that.startedAt,_that.lastActivityAt,_that.lastConfirmedAt,_that.community,_that.summary,_that.area);case _:
+return $default(_that.id,_that.type,_that.typeLabel,_that.status,_that.statusLabel,_that.confidenceLevel,_that.confidenceLabel,_that.confidenceScore,_that.startedAt,_that.lastActivityAt,_that.lastConfirmedAt,_that.community,_that.summary,_that.area,_that.scope,_that.poi,_that.fuelTypes);case _:
   return orElse();
 
 }
@@ -480,10 +504,10 @@ return $default(_that.id,_that.type,_that.typeLabel,_that.status,_that.confidenc
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  IncidentType type,  String typeLabel,  IncidentStatus status,  ConfidenceLevel confidenceLevel,  String confidenceLabel,  double confidenceScore,  DateTime startedAt,  DateTime lastActivityAt,  DateTime? lastConfirmedAt,  Community community,  String? summary,  GeoArea area)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  IncidentType type,  String typeLabel,  IncidentStatus status,  String? statusLabel,  ConfidenceLevel confidenceLevel,  String confidenceLabel,  double confidenceScore,  DateTime startedAt,  DateTime lastActivityAt,  DateTime? lastConfirmedAt,  Community community,  String? summary,  GeoArea? area,  ReportScope scope,  PoiRef? poi,  List<FuelType> fuelTypes)  $default,) {final _that = this;
 switch (_that) {
 case _Incident():
-return $default(_that.id,_that.type,_that.typeLabel,_that.status,_that.confidenceLevel,_that.confidenceLabel,_that.confidenceScore,_that.startedAt,_that.lastActivityAt,_that.lastConfirmedAt,_that.community,_that.summary,_that.area);case _:
+return $default(_that.id,_that.type,_that.typeLabel,_that.status,_that.statusLabel,_that.confidenceLevel,_that.confidenceLabel,_that.confidenceScore,_that.startedAt,_that.lastActivityAt,_that.lastConfirmedAt,_that.community,_that.summary,_that.area,_that.scope,_that.poi,_that.fuelTypes);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -500,10 +524,10 @@ return $default(_that.id,_that.type,_that.typeLabel,_that.status,_that.confidenc
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  IncidentType type,  String typeLabel,  IncidentStatus status,  ConfidenceLevel confidenceLevel,  String confidenceLabel,  double confidenceScore,  DateTime startedAt,  DateTime lastActivityAt,  DateTime? lastConfirmedAt,  Community community,  String? summary,  GeoArea area)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  IncidentType type,  String typeLabel,  IncidentStatus status,  String? statusLabel,  ConfidenceLevel confidenceLevel,  String confidenceLabel,  double confidenceScore,  DateTime startedAt,  DateTime lastActivityAt,  DateTime? lastConfirmedAt,  Community community,  String? summary,  GeoArea? area,  ReportScope scope,  PoiRef? poi,  List<FuelType> fuelTypes)?  $default,) {final _that = this;
 switch (_that) {
 case _Incident() when $default != null:
-return $default(_that.id,_that.type,_that.typeLabel,_that.status,_that.confidenceLevel,_that.confidenceLabel,_that.confidenceScore,_that.startedAt,_that.lastActivityAt,_that.lastConfirmedAt,_that.community,_that.summary,_that.area);case _:
+return $default(_that.id,_that.type,_that.typeLabel,_that.status,_that.statusLabel,_that.confidenceLevel,_that.confidenceLabel,_that.confidenceScore,_that.startedAt,_that.lastActivityAt,_that.lastConfirmedAt,_that.community,_that.summary,_that.area,_that.scope,_that.poi,_that.fuelTypes);case _:
   return null;
 
 }
@@ -515,13 +539,15 @@ return $default(_that.id,_that.type,_that.typeLabel,_that.status,_that.confidenc
 
 
 class _Incident implements Incident {
-  const _Incident({required this.id, required this.type, required this.typeLabel, required this.status, required this.confidenceLevel, required this.confidenceLabel, required this.confidenceScore, required this.startedAt, required this.lastActivityAt, this.lastConfirmedAt, required this.community, this.summary, required this.area});
+  const _Incident({required this.id, required this.type, required this.typeLabel, required this.status, this.statusLabel, required this.confidenceLevel, required this.confidenceLabel, required this.confidenceScore, required this.startedAt, required this.lastActivityAt, this.lastConfirmedAt, required this.community, this.summary, this.area, this.scope = ReportScope.area, this.poi,  List<FuelType> fuelTypes = const <FuelType>[]}): _fuelTypes = fuelTypes;
   
 
 @override final  String id;
 @override final  IncidentType type;
 @override final  String typeLabel;
 @override final  IncidentStatus status;
+/// Etykieta statusu z backendu; `null` w danych mockowych — UI ma etykietę zapasową.
+@override final  String? statusLabel;
 @override final  ConfidenceLevel confidenceLevel;
 @override final  String confidenceLabel;
 /// 0–1, pokazujemy jako procent. Liczone wyłącznie przez backend.
@@ -531,7 +557,21 @@ class _Incident implements Incident {
 @override final  DateTime? lastConfirmedAt;
 @override final  Community community;
 @override final  String? summary;
-@override final  GeoArea area;
+/// `null`, dopóki zasięg nie jest wyznaczony (status `detected`). Na mapie taki
+/// incydent przychodzi jako `Point` (centroid zgłoszeń).
+@override final  GeoArea? area;
+/// `point` — dotyczy jednego obiektu ([poi]); geometria to `Point`, bez poligonu.
+@override@JsonKey() final  ReportScope scope;
+@override final  PoiRef? poi;
+/// Brakujące paliwa (tylko `fuel_shortage`).
+ final  List<FuelType> _fuelTypes;
+/// Brakujące paliwa (tylko `fuel_shortage`).
+@override@JsonKey() List<FuelType> get fuelTypes {
+  if (_fuelTypes is EqualUnmodifiableListView) return _fuelTypes;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_fuelTypes);
+}
+
 
 /// Create a copy of Incident
 /// with the given fields replaced by the non-null parameter values.
@@ -543,18 +583,18 @@ _$IncidentCopyWith<_Incident> get copyWith => __$IncidentCopyWithImpl<_Incident>
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Incident&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.typeLabel, typeLabel) || other.typeLabel == typeLabel)&&(identical(other.status, status) || other.status == status)&&(identical(other.confidenceLevel, confidenceLevel) || other.confidenceLevel == confidenceLevel)&&(identical(other.confidenceLabel, confidenceLabel) || other.confidenceLabel == confidenceLabel)&&(identical(other.confidenceScore, confidenceScore) || other.confidenceScore == confidenceScore)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.lastActivityAt, lastActivityAt) || other.lastActivityAt == lastActivityAt)&&(identical(other.lastConfirmedAt, lastConfirmedAt) || other.lastConfirmedAt == lastConfirmedAt)&&(identical(other.community, community) || other.community == community)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.area, area) || other.area == area));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Incident&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.typeLabel, typeLabel) || other.typeLabel == typeLabel)&&(identical(other.status, status) || other.status == status)&&(identical(other.statusLabel, statusLabel) || other.statusLabel == statusLabel)&&(identical(other.confidenceLevel, confidenceLevel) || other.confidenceLevel == confidenceLevel)&&(identical(other.confidenceLabel, confidenceLabel) || other.confidenceLabel == confidenceLabel)&&(identical(other.confidenceScore, confidenceScore) || other.confidenceScore == confidenceScore)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.lastActivityAt, lastActivityAt) || other.lastActivityAt == lastActivityAt)&&(identical(other.lastConfirmedAt, lastConfirmedAt) || other.lastConfirmedAt == lastConfirmedAt)&&(identical(other.community, community) || other.community == community)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.area, area) || other.area == area)&&(identical(other.scope, scope) || other.scope == scope)&&(identical(other.poi, poi) || other.poi == poi)&&const DeepCollectionEquality().equals(other.fuelTypes, _fuelTypes));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,type,typeLabel,status,confidenceLevel,confidenceLabel,confidenceScore,startedAt,lastActivityAt,lastConfirmedAt,community,summary,area);
+    return Object.hash(runtimeType,id,type,typeLabel,status,statusLabel,confidenceLevel,confidenceLabel,confidenceScore,startedAt,lastActivityAt,lastConfirmedAt,community,summary,area,scope,poi,const DeepCollectionEquality().hash(_fuelTypes));
 }
 
 @override
 String toString() {
-    return 'Incident(id: $id, type: $type, typeLabel: $typeLabel, status: $status, confidenceLevel: $confidenceLevel, confidenceLabel: $confidenceLabel, confidenceScore: $confidenceScore, startedAt: $startedAt, lastActivityAt: $lastActivityAt, lastConfirmedAt: $lastConfirmedAt, community: $community, summary: $summary, area: $area)';
+    return 'Incident(id: $id, type: $type, typeLabel: $typeLabel, status: $status, statusLabel: $statusLabel, confidenceLevel: $confidenceLevel, confidenceLabel: $confidenceLabel, confidenceScore: $confidenceScore, startedAt: $startedAt, lastActivityAt: $lastActivityAt, lastConfirmedAt: $lastConfirmedAt, community: $community, summary: $summary, area: $area, scope: $scope, poi: $poi, fuelTypes: $fuelTypes)';
 }
 
 
@@ -565,11 +605,11 @@ abstract mixin class _$IncidentCopyWith<$Res> implements $IncidentCopyWith<$Res>
   factory _$IncidentCopyWith(_Incident value, $Res Function(_Incident) _then) = __$IncidentCopyWithImpl;
 @override @useResult
 $Res call({
- String id, IncidentType type, String typeLabel, IncidentStatus status, ConfidenceLevel confidenceLevel, String confidenceLabel, double confidenceScore, DateTime startedAt, DateTime lastActivityAt, DateTime? lastConfirmedAt, Community community, String? summary, GeoArea area
+ String id, IncidentType type, String typeLabel, IncidentStatus status, String? statusLabel, ConfidenceLevel confidenceLevel, String confidenceLabel, double confidenceScore, DateTime startedAt, DateTime lastActivityAt, DateTime? lastConfirmedAt, Community community, String? summary, GeoArea? area, ReportScope scope, PoiRef? poi, List<FuelType> fuelTypes
 });
 
 
-@override $CommunityCopyWith<$Res> get community;@override $GeoAreaCopyWith<$Res> get area;
+@override $CommunityCopyWith<$Res> get community;@override $GeoAreaCopyWith<$Res>? get area;@override $PoiRefCopyWith<$Res>? get poi;
 
 }
 /// @nodoc
@@ -582,13 +622,14 @@ class __$IncidentCopyWithImpl<$Res>
 
 /// Create a copy of Incident
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? typeLabel = null,Object? status = null,Object? confidenceLevel = null,Object? confidenceLabel = null,Object? confidenceScore = null,Object? startedAt = null,Object? lastActivityAt = null,Object? lastConfirmedAt = freezed,Object? community = null,Object? summary = freezed,Object? area = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? typeLabel = null,Object? status = null,Object? statusLabel = freezed,Object? confidenceLevel = null,Object? confidenceLabel = null,Object? confidenceScore = null,Object? startedAt = null,Object? lastActivityAt = null,Object? lastConfirmedAt = freezed,Object? community = null,Object? summary = freezed,Object? area = freezed,Object? scope = null,Object? poi = freezed,Object? fuelTypes = null,}) {
   return _then(_Incident(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as IncidentType,typeLabel: null == typeLabel ? _self.typeLabel : typeLabel // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as IncidentStatus,confidenceLevel: null == confidenceLevel ? _self.confidenceLevel : confidenceLevel // ignore: cast_nullable_to_non_nullable
+as IncidentStatus,statusLabel: freezed == statusLabel ? _self.statusLabel : statusLabel // ignore: cast_nullable_to_non_nullable
+as String?,confidenceLevel: null == confidenceLevel ? _self.confidenceLevel : confidenceLevel // ignore: cast_nullable_to_non_nullable
 as ConfidenceLevel,confidenceLabel: null == confidenceLabel ? _self.confidenceLabel : confidenceLabel // ignore: cast_nullable_to_non_nullable
 as String,confidenceScore: null == confidenceScore ? _self.confidenceScore : confidenceScore // ignore: cast_nullable_to_non_nullable
 as double,startedAt: null == startedAt ? _self.startedAt : startedAt // ignore: cast_nullable_to_non_nullable
@@ -596,8 +637,11 @@ as DateTime,lastActivityAt: null == lastActivityAt ? _self.lastActivityAt : last
 as DateTime,lastConfirmedAt: freezed == lastConfirmedAt ? _self.lastConfirmedAt : lastConfirmedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,community: null == community ? _self.community : community // ignore: cast_nullable_to_non_nullable
 as Community,summary: freezed == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
-as String?,area: null == area ? _self.area : area // ignore: cast_nullable_to_non_nullable
-as GeoArea,
+as String?,area: freezed == area ? _self.area : area // ignore: cast_nullable_to_non_nullable
+as GeoArea?,scope: null == scope ? _self.scope : scope // ignore: cast_nullable_to_non_nullable
+as ReportScope,poi: freezed == poi ? _self.poi : poi // ignore: cast_nullable_to_non_nullable
+as PoiRef?,fuelTypes: null == fuelTypes ? _self._fuelTypes : fuelTypes // ignore: cast_nullable_to_non_nullable
+as List<FuelType>,
   ));
 }
 
@@ -614,10 +658,25 @@ $CommunityCopyWith<$Res> get community {
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$GeoAreaCopyWith<$Res> get area {
-  
-  return $GeoAreaCopyWith<$Res>(_self.area, (value) {
+$GeoAreaCopyWith<$Res>? get area {
+    if (_self.area == null) {
+    return null;
+  }
+
+  return $GeoAreaCopyWith<$Res>(_self.area!, (value) {
     return _then(_self.copyWith(area: value));
+  });
+}/// Create a copy of Incident
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PoiRefCopyWith<$Res>? get poi {
+    if (_self.poi == null) {
+    return null;
+  }
+
+  return $PoiRefCopyWith<$Res>(_self.poi!, (value) {
+    return _then(_self.copyWith(poi: value));
   });
 }
 }
@@ -625,8 +684,10 @@ $GeoAreaCopyWith<$Res> get area {
 /// @nodoc
 mixin _$Shelter {
 
- String get id; String get name; String get address; LatLng get location; ShelterStatus get status; String get statusLabel; int? get capacity; DateTime? get lastConfirmedAt; int get confirmationCount;/// Tylko w wariancie „najbliższe” (`?lat&lng`).
- double? get distanceMeters;
+ String get id; String get name;/// Schrony dodane ręcznie przez operatora mogą nie mieć adresu.
+ String? get address; LatLng get location; ShelterStatus get status; String get statusLabel; int? get capacity; DateTime? get lastConfirmedAt; int get confirmationCount;/// Tylko w wariancie „najbliższe” (`?lat&lng`).
+ double? get distanceMeters; ShelterOccupancy get occupancy; String? get occupancyLabel;/// Tryb otwarcia z rejestru krajowego (Całodobowo / Na żądanie / …) — niezależny od statusu.
+ String? get availabilityLabel;
 /// Create a copy of Shelter
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -638,20 +699,20 @@ $ShelterCopyWith<Shelter> get copyWith => _$ShelterCopyWithImpl<Shelter>(this as
 @override
 bool operator ==(Object other) {
   final _this = this as Shelter;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Shelter&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.address, _this.address) || other.address == _this.address)&&(identical(other.location, _this.location) || other.location == _this.location)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.statusLabel, _this.statusLabel) || other.statusLabel == _this.statusLabel)&&(identical(other.capacity, _this.capacity) || other.capacity == _this.capacity)&&(identical(other.lastConfirmedAt, _this.lastConfirmedAt) || other.lastConfirmedAt == _this.lastConfirmedAt)&&(identical(other.confirmationCount, _this.confirmationCount) || other.confirmationCount == _this.confirmationCount)&&(identical(other.distanceMeters, _this.distanceMeters) || other.distanceMeters == _this.distanceMeters));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Shelter&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.address, _this.address) || other.address == _this.address)&&(identical(other.location, _this.location) || other.location == _this.location)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.statusLabel, _this.statusLabel) || other.statusLabel == _this.statusLabel)&&(identical(other.capacity, _this.capacity) || other.capacity == _this.capacity)&&(identical(other.lastConfirmedAt, _this.lastConfirmedAt) || other.lastConfirmedAt == _this.lastConfirmedAt)&&(identical(other.confirmationCount, _this.confirmationCount) || other.confirmationCount == _this.confirmationCount)&&(identical(other.distanceMeters, _this.distanceMeters) || other.distanceMeters == _this.distanceMeters)&&(identical(other.occupancy, _this.occupancy) || other.occupancy == _this.occupancy)&&(identical(other.occupancyLabel, _this.occupancyLabel) || other.occupancyLabel == _this.occupancyLabel)&&(identical(other.availabilityLabel, _this.availabilityLabel) || other.availabilityLabel == _this.availabilityLabel));
 }
 
 
 @override
 int get hashCode {
   final _this = this as Shelter;
-  return Object.hash(runtimeType,_this.id,_this.name,_this.address,_this.location,_this.status,_this.statusLabel,_this.capacity,_this.lastConfirmedAt,_this.confirmationCount,_this.distanceMeters);
+  return Object.hash(runtimeType,_this.id,_this.name,_this.address,_this.location,_this.status,_this.statusLabel,_this.capacity,_this.lastConfirmedAt,_this.confirmationCount,_this.distanceMeters,_this.occupancy,_this.occupancyLabel,_this.availabilityLabel);
 }
 
 @override
 String toString() {
   final _this = this as Shelter;
-  return 'Shelter(id: ${_this.id}, name: ${_this.name}, address: ${_this.address}, location: ${_this.location}, status: ${_this.status}, statusLabel: ${_this.statusLabel}, capacity: ${_this.capacity}, lastConfirmedAt: ${_this.lastConfirmedAt}, confirmationCount: ${_this.confirmationCount}, distanceMeters: ${_this.distanceMeters})';
+  return 'Shelter(id: ${_this.id}, name: ${_this.name}, address: ${_this.address}, location: ${_this.location}, status: ${_this.status}, statusLabel: ${_this.statusLabel}, capacity: ${_this.capacity}, lastConfirmedAt: ${_this.lastConfirmedAt}, confirmationCount: ${_this.confirmationCount}, distanceMeters: ${_this.distanceMeters}, occupancy: ${_this.occupancy}, occupancyLabel: ${_this.occupancyLabel}, availabilityLabel: ${_this.availabilityLabel})';
 }
 
 
@@ -662,7 +723,7 @@ abstract mixin class $ShelterCopyWith<$Res>  {
   factory $ShelterCopyWith(Shelter value, $Res Function(Shelter) _then) = _$ShelterCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String address, LatLng location, ShelterStatus status, String statusLabel, int? capacity, DateTime? lastConfirmedAt, int confirmationCount, double? distanceMeters
+ String id, String name, String? address, LatLng location, ShelterStatus status, String statusLabel, int? capacity, DateTime? lastConfirmedAt, int confirmationCount, double? distanceMeters, ShelterOccupancy occupancy, String? occupancyLabel, String? availabilityLabel
 });
 
 
@@ -679,19 +740,22 @@ class _$ShelterCopyWithImpl<$Res>
 
 /// Create a copy of Shelter
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? address = null,Object? location = null,Object? status = null,Object? statusLabel = null,Object? capacity = freezed,Object? lastConfirmedAt = freezed,Object? confirmationCount = null,Object? distanceMeters = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? address = freezed,Object? location = null,Object? status = null,Object? statusLabel = null,Object? capacity = freezed,Object? lastConfirmedAt = freezed,Object? confirmationCount = null,Object? distanceMeters = freezed,Object? occupancy = null,Object? occupancyLabel = freezed,Object? availabilityLabel = freezed,}) {
   return _then(Shelter(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,address: null == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
-as String,location: null == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
+as String,address: freezed == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
+as String?,location: null == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
 as LatLng,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as ShelterStatus,statusLabel: null == statusLabel ? _self.statusLabel : statusLabel // ignore: cast_nullable_to_non_nullable
 as String,capacity: freezed == capacity ? _self.capacity : capacity // ignore: cast_nullable_to_non_nullable
 as int?,lastConfirmedAt: freezed == lastConfirmedAt ? _self.lastConfirmedAt : lastConfirmedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,confirmationCount: null == confirmationCount ? _self.confirmationCount : confirmationCount // ignore: cast_nullable_to_non_nullable
 as int,distanceMeters: freezed == distanceMeters ? _self.distanceMeters : distanceMeters // ignore: cast_nullable_to_non_nullable
-as double?,
+as double?,occupancy: null == occupancy ? _self.occupancy : occupancy // ignore: cast_nullable_to_non_nullable
+as ShelterOccupancy,occupancyLabel: freezed == occupancyLabel ? _self.occupancyLabel : occupancyLabel // ignore: cast_nullable_to_non_nullable
+as String?,availabilityLabel: freezed == availabilityLabel ? _self.availabilityLabel : availabilityLabel // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -776,10 +840,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String address,  LatLng location,  ShelterStatus status,  String statusLabel,  int? capacity,  DateTime? lastConfirmedAt,  int confirmationCount,  double? distanceMeters)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String? address,  LatLng location,  ShelterStatus status,  String statusLabel,  int? capacity,  DateTime? lastConfirmedAt,  int confirmationCount,  double? distanceMeters,  ShelterOccupancy occupancy,  String? occupancyLabel,  String? availabilityLabel)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Shelter() when $default != null:
-return $default(_that.id,_that.name,_that.address,_that.location,_that.status,_that.statusLabel,_that.capacity,_that.lastConfirmedAt,_that.confirmationCount,_that.distanceMeters);case _:
+return $default(_that.id,_that.name,_that.address,_that.location,_that.status,_that.statusLabel,_that.capacity,_that.lastConfirmedAt,_that.confirmationCount,_that.distanceMeters,_that.occupancy,_that.occupancyLabel,_that.availabilityLabel);case _:
   return orElse();
 
 }
@@ -797,10 +861,10 @@ return $default(_that.id,_that.name,_that.address,_that.location,_that.status,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String address,  LatLng location,  ShelterStatus status,  String statusLabel,  int? capacity,  DateTime? lastConfirmedAt,  int confirmationCount,  double? distanceMeters)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String? address,  LatLng location,  ShelterStatus status,  String statusLabel,  int? capacity,  DateTime? lastConfirmedAt,  int confirmationCount,  double? distanceMeters,  ShelterOccupancy occupancy,  String? occupancyLabel,  String? availabilityLabel)  $default,) {final _that = this;
 switch (_that) {
 case _Shelter():
-return $default(_that.id,_that.name,_that.address,_that.location,_that.status,_that.statusLabel,_that.capacity,_that.lastConfirmedAt,_that.confirmationCount,_that.distanceMeters);case _:
+return $default(_that.id,_that.name,_that.address,_that.location,_that.status,_that.statusLabel,_that.capacity,_that.lastConfirmedAt,_that.confirmationCount,_that.distanceMeters,_that.occupancy,_that.occupancyLabel,_that.availabilityLabel);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -817,10 +881,10 @@ return $default(_that.id,_that.name,_that.address,_that.location,_that.status,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String address,  LatLng location,  ShelterStatus status,  String statusLabel,  int? capacity,  DateTime? lastConfirmedAt,  int confirmationCount,  double? distanceMeters)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String? address,  LatLng location,  ShelterStatus status,  String statusLabel,  int? capacity,  DateTime? lastConfirmedAt,  int confirmationCount,  double? distanceMeters,  ShelterOccupancy occupancy,  String? occupancyLabel,  String? availabilityLabel)?  $default,) {final _that = this;
 switch (_that) {
 case _Shelter() when $default != null:
-return $default(_that.id,_that.name,_that.address,_that.location,_that.status,_that.statusLabel,_that.capacity,_that.lastConfirmedAt,_that.confirmationCount,_that.distanceMeters);case _:
+return $default(_that.id,_that.name,_that.address,_that.location,_that.status,_that.statusLabel,_that.capacity,_that.lastConfirmedAt,_that.confirmationCount,_that.distanceMeters,_that.occupancy,_that.occupancyLabel,_that.availabilityLabel);case _:
   return null;
 
 }
@@ -832,12 +896,13 @@ return $default(_that.id,_that.name,_that.address,_that.location,_that.status,_t
 
 
 class _Shelter implements Shelter {
-  const _Shelter({required this.id, required this.name, required this.address, required this.location, required this.status, required this.statusLabel, this.capacity, this.lastConfirmedAt, this.confirmationCount = 0, this.distanceMeters});
+  const _Shelter({required this.id, required this.name, this.address, required this.location, required this.status, required this.statusLabel, this.capacity, this.lastConfirmedAt, this.confirmationCount = 0, this.distanceMeters, this.occupancy = ShelterOccupancy.unknown, this.occupancyLabel, this.availabilityLabel});
   
 
 @override final  String id;
 @override final  String name;
-@override final  String address;
+/// Schrony dodane ręcznie przez operatora mogą nie mieć adresu.
+@override final  String? address;
 @override final  LatLng location;
 @override final  ShelterStatus status;
 @override final  String statusLabel;
@@ -846,6 +911,10 @@ class _Shelter implements Shelter {
 @override@JsonKey() final  int confirmationCount;
 /// Tylko w wariancie „najbliższe” (`?lat&lng`).
 @override final  double? distanceMeters;
+@override@JsonKey() final  ShelterOccupancy occupancy;
+@override final  String? occupancyLabel;
+/// Tryb otwarcia z rejestru krajowego (Całodobowo / Na żądanie / …) — niezależny od statusu.
+@override final  String? availabilityLabel;
 
 /// Create a copy of Shelter
 /// with the given fields replaced by the non-null parameter values.
@@ -857,18 +926,18 @@ _$ShelterCopyWith<_Shelter> get copyWith => __$ShelterCopyWithImpl<_Shelter>(thi
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Shelter&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.address, address) || other.address == address)&&(identical(other.location, location) || other.location == location)&&(identical(other.status, status) || other.status == status)&&(identical(other.statusLabel, statusLabel) || other.statusLabel == statusLabel)&&(identical(other.capacity, capacity) || other.capacity == capacity)&&(identical(other.lastConfirmedAt, lastConfirmedAt) || other.lastConfirmedAt == lastConfirmedAt)&&(identical(other.confirmationCount, confirmationCount) || other.confirmationCount == confirmationCount)&&(identical(other.distanceMeters, distanceMeters) || other.distanceMeters == distanceMeters));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Shelter&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.address, address) || other.address == address)&&(identical(other.location, location) || other.location == location)&&(identical(other.status, status) || other.status == status)&&(identical(other.statusLabel, statusLabel) || other.statusLabel == statusLabel)&&(identical(other.capacity, capacity) || other.capacity == capacity)&&(identical(other.lastConfirmedAt, lastConfirmedAt) || other.lastConfirmedAt == lastConfirmedAt)&&(identical(other.confirmationCount, confirmationCount) || other.confirmationCount == confirmationCount)&&(identical(other.distanceMeters, distanceMeters) || other.distanceMeters == distanceMeters)&&(identical(other.occupancy, occupancy) || other.occupancy == occupancy)&&(identical(other.occupancyLabel, occupancyLabel) || other.occupancyLabel == occupancyLabel)&&(identical(other.availabilityLabel, availabilityLabel) || other.availabilityLabel == availabilityLabel));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,name,address,location,status,statusLabel,capacity,lastConfirmedAt,confirmationCount,distanceMeters);
+    return Object.hash(runtimeType,id,name,address,location,status,statusLabel,capacity,lastConfirmedAt,confirmationCount,distanceMeters,occupancy,occupancyLabel,availabilityLabel);
 }
 
 @override
 String toString() {
-    return 'Shelter(id: $id, name: $name, address: $address, location: $location, status: $status, statusLabel: $statusLabel, capacity: $capacity, lastConfirmedAt: $lastConfirmedAt, confirmationCount: $confirmationCount, distanceMeters: $distanceMeters)';
+    return 'Shelter(id: $id, name: $name, address: $address, location: $location, status: $status, statusLabel: $statusLabel, capacity: $capacity, lastConfirmedAt: $lastConfirmedAt, confirmationCount: $confirmationCount, distanceMeters: $distanceMeters, occupancy: $occupancy, occupancyLabel: $occupancyLabel, availabilityLabel: $availabilityLabel)';
 }
 
 
@@ -879,7 +948,7 @@ abstract mixin class _$ShelterCopyWith<$Res> implements $ShelterCopyWith<$Res> {
   factory _$ShelterCopyWith(_Shelter value, $Res Function(_Shelter) _then) = __$ShelterCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String address, LatLng location, ShelterStatus status, String statusLabel, int? capacity, DateTime? lastConfirmedAt, int confirmationCount, double? distanceMeters
+ String id, String name, String? address, LatLng location, ShelterStatus status, String statusLabel, int? capacity, DateTime? lastConfirmedAt, int confirmationCount, double? distanceMeters, ShelterOccupancy occupancy, String? occupancyLabel, String? availabilityLabel
 });
 
 
@@ -896,19 +965,22 @@ class __$ShelterCopyWithImpl<$Res>
 
 /// Create a copy of Shelter
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? address = null,Object? location = null,Object? status = null,Object? statusLabel = null,Object? capacity = freezed,Object? lastConfirmedAt = freezed,Object? confirmationCount = null,Object? distanceMeters = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? address = freezed,Object? location = null,Object? status = null,Object? statusLabel = null,Object? capacity = freezed,Object? lastConfirmedAt = freezed,Object? confirmationCount = null,Object? distanceMeters = freezed,Object? occupancy = null,Object? occupancyLabel = freezed,Object? availabilityLabel = freezed,}) {
   return _then(_Shelter(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,address: null == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
-as String,location: null == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
+as String,address: freezed == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
+as String?,location: null == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
 as LatLng,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as ShelterStatus,statusLabel: null == statusLabel ? _self.statusLabel : statusLabel // ignore: cast_nullable_to_non_nullable
 as String,capacity: freezed == capacity ? _self.capacity : capacity // ignore: cast_nullable_to_non_nullable
 as int?,lastConfirmedAt: freezed == lastConfirmedAt ? _self.lastConfirmedAt : lastConfirmedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,confirmationCount: null == confirmationCount ? _self.confirmationCount : confirmationCount // ignore: cast_nullable_to_non_nullable
 as int,distanceMeters: freezed == distanceMeters ? _self.distanceMeters : distanceMeters // ignore: cast_nullable_to_non_nullable
-as double?,
+as double?,occupancy: null == occupancy ? _self.occupancy : occupancy // ignore: cast_nullable_to_non_nullable
+as ShelterOccupancy,occupancyLabel: freezed == occupancyLabel ? _self.occupancyLabel : occupancyLabel // ignore: cast_nullable_to_non_nullable
+as String?,availabilityLabel: freezed == availabilityLabel ? _self.availabilityLabel : availabilityLabel // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -1230,6 +1302,1433 @@ $GeoAreaCopyWith<$Res>? get area {
 }
 
 /// @nodoc
+mixin _$PoiRef {
+
+ PoiKind get kind; String get id; String get name; LatLng? get location;
+/// Create a copy of PoiRef
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PoiRefCopyWith<PoiRef> get copyWith => _$PoiRefCopyWithImpl<PoiRef>(this as PoiRef, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as PoiRef;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PoiRef&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.location, _this.location) || other.location == _this.location));
+}
+
+
+@override
+int get hashCode {
+  final _this = this as PoiRef;
+  return Object.hash(runtimeType,_this.kind,_this.id,_this.name,_this.location);
+}
+
+@override
+String toString() {
+  final _this = this as PoiRef;
+  return 'PoiRef(kind: ${_this.kind}, id: ${_this.id}, name: ${_this.name}, location: ${_this.location})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $PoiRefCopyWith<$Res>  {
+  factory $PoiRefCopyWith(PoiRef value, $Res Function(PoiRef) _then) = _$PoiRefCopyWithImpl;
+@useResult
+$Res call({
+ PoiKind kind, String id, String name, LatLng? location
+});
+
+
+
+
+}
+/// @nodoc
+class _$PoiRefCopyWithImpl<$Res>
+    implements $PoiRefCopyWith<$Res> {
+  _$PoiRefCopyWithImpl(this._self, this._then);
+
+  final PoiRef _self;
+  final $Res Function(PoiRef) _then;
+
+/// Create a copy of PoiRef
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? kind = null,Object? id = null,Object? name = null,Object? location = freezed,}) {
+  return _then(PoiRef(
+kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
+as PoiKind,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
+as LatLng?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [PoiRef].
+extension PoiRefPatterns on PoiRef {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _PoiRef value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _PoiRef() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _PoiRef value)  $default,){
+final _that = this;
+switch (_that) {
+case _PoiRef():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _PoiRef value)?  $default,){
+final _that = this;
+switch (_that) {
+case _PoiRef() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( PoiKind kind,  String id,  String name,  LatLng? location)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _PoiRef() when $default != null:
+return $default(_that.kind,_that.id,_that.name,_that.location);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( PoiKind kind,  String id,  String name,  LatLng? location)  $default,) {final _that = this;
+switch (_that) {
+case _PoiRef():
+return $default(_that.kind,_that.id,_that.name,_that.location);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( PoiKind kind,  String id,  String name,  LatLng? location)?  $default,) {final _that = this;
+switch (_that) {
+case _PoiRef() when $default != null:
+return $default(_that.kind,_that.id,_that.name,_that.location);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _PoiRef implements PoiRef {
+  const _PoiRef({required this.kind, required this.id, required this.name, this.location});
+  
+
+@override final  PoiKind kind;
+@override final  String id;
+@override final  String name;
+@override final  LatLng? location;
+
+/// Create a copy of PoiRef
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$PoiRefCopyWith<_PoiRef> get copyWith => __$PoiRefCopyWithImpl<_PoiRef>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PoiRef&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.location, location) || other.location == location));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,kind,id,name,location);
+}
+
+@override
+String toString() {
+    return 'PoiRef(kind: $kind, id: $id, name: $name, location: $location)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$PoiRefCopyWith<$Res> implements $PoiRefCopyWith<$Res> {
+  factory _$PoiRefCopyWith(_PoiRef value, $Res Function(_PoiRef) _then) = __$PoiRefCopyWithImpl;
+@override @useResult
+$Res call({
+ PoiKind kind, String id, String name, LatLng? location
+});
+
+
+
+
+}
+/// @nodoc
+class __$PoiRefCopyWithImpl<$Res>
+    implements _$PoiRefCopyWith<$Res> {
+  __$PoiRefCopyWithImpl(this._self, this._then);
+
+  final _PoiRef _self;
+  final $Res Function(_PoiRef) _then;
+
+/// Create a copy of PoiRef
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? kind = null,Object? id = null,Object? name = null,Object? location = freezed,}) {
+  return _then(_PoiRef(
+kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
+as PoiKind,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
+as LatLng?,
+  ));
+}
+
+
+}
+
+/// @nodoc
+mixin _$FuelStatus {
+
+ FuelType get type; String get label; FuelAvailability get status; String get statusLabel; DateTime? get confirmedAt;
+/// Create a copy of FuelStatus
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$FuelStatusCopyWith<FuelStatus> get copyWith => _$FuelStatusCopyWithImpl<FuelStatus>(this as FuelStatus, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as FuelStatus;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FuelStatus&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.label, _this.label) || other.label == _this.label)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.statusLabel, _this.statusLabel) || other.statusLabel == _this.statusLabel)&&(identical(other.confirmedAt, _this.confirmedAt) || other.confirmedAt == _this.confirmedAt));
+}
+
+
+@override
+int get hashCode {
+  final _this = this as FuelStatus;
+  return Object.hash(runtimeType,_this.type,_this.label,_this.status,_this.statusLabel,_this.confirmedAt);
+}
+
+@override
+String toString() {
+  final _this = this as FuelStatus;
+  return 'FuelStatus(type: ${_this.type}, label: ${_this.label}, status: ${_this.status}, statusLabel: ${_this.statusLabel}, confirmedAt: ${_this.confirmedAt})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $FuelStatusCopyWith<$Res>  {
+  factory $FuelStatusCopyWith(FuelStatus value, $Res Function(FuelStatus) _then) = _$FuelStatusCopyWithImpl;
+@useResult
+$Res call({
+ FuelType type, String label, FuelAvailability status, String statusLabel, DateTime? confirmedAt
+});
+
+
+
+
+}
+/// @nodoc
+class _$FuelStatusCopyWithImpl<$Res>
+    implements $FuelStatusCopyWith<$Res> {
+  _$FuelStatusCopyWithImpl(this._self, this._then);
+
+  final FuelStatus _self;
+  final $Res Function(FuelStatus) _then;
+
+/// Create a copy of FuelStatus
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? label = null,Object? status = null,Object? statusLabel = null,Object? confirmedAt = freezed,}) {
+  return _then(FuelStatus(
+type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as FuelType,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as FuelAvailability,statusLabel: null == statusLabel ? _self.statusLabel : statusLabel // ignore: cast_nullable_to_non_nullable
+as String,confirmedAt: freezed == confirmedAt ? _self.confirmedAt : confirmedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [FuelStatus].
+extension FuelStatusPatterns on FuelStatus {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _FuelStatus value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _FuelStatus() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _FuelStatus value)  $default,){
+final _that = this;
+switch (_that) {
+case _FuelStatus():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _FuelStatus value)?  $default,){
+final _that = this;
+switch (_that) {
+case _FuelStatus() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( FuelType type,  String label,  FuelAvailability status,  String statusLabel,  DateTime? confirmedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _FuelStatus() when $default != null:
+return $default(_that.type,_that.label,_that.status,_that.statusLabel,_that.confirmedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( FuelType type,  String label,  FuelAvailability status,  String statusLabel,  DateTime? confirmedAt)  $default,) {final _that = this;
+switch (_that) {
+case _FuelStatus():
+return $default(_that.type,_that.label,_that.status,_that.statusLabel,_that.confirmedAt);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( FuelType type,  String label,  FuelAvailability status,  String statusLabel,  DateTime? confirmedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _FuelStatus() when $default != null:
+return $default(_that.type,_that.label,_that.status,_that.statusLabel,_that.confirmedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _FuelStatus implements FuelStatus {
+  const _FuelStatus({required this.type, required this.label, required this.status, required this.statusLabel, this.confirmedAt});
+  
+
+@override final  FuelType type;
+@override final  String label;
+@override final  FuelAvailability status;
+@override final  String statusLabel;
+@override final  DateTime? confirmedAt;
+
+/// Create a copy of FuelStatus
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$FuelStatusCopyWith<_FuelStatus> get copyWith => __$FuelStatusCopyWithImpl<_FuelStatus>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FuelStatus&&(identical(other.type, type) || other.type == type)&&(identical(other.label, label) || other.label == label)&&(identical(other.status, status) || other.status == status)&&(identical(other.statusLabel, statusLabel) || other.statusLabel == statusLabel)&&(identical(other.confirmedAt, confirmedAt) || other.confirmedAt == confirmedAt));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,type,label,status,statusLabel,confirmedAt);
+}
+
+@override
+String toString() {
+    return 'FuelStatus(type: $type, label: $label, status: $status, statusLabel: $statusLabel, confirmedAt: $confirmedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$FuelStatusCopyWith<$Res> implements $FuelStatusCopyWith<$Res> {
+  factory _$FuelStatusCopyWith(_FuelStatus value, $Res Function(_FuelStatus) _then) = __$FuelStatusCopyWithImpl;
+@override @useResult
+$Res call({
+ FuelType type, String label, FuelAvailability status, String statusLabel, DateTime? confirmedAt
+});
+
+
+
+
+}
+/// @nodoc
+class __$FuelStatusCopyWithImpl<$Res>
+    implements _$FuelStatusCopyWith<$Res> {
+  __$FuelStatusCopyWithImpl(this._self, this._then);
+
+  final _FuelStatus _self;
+  final $Res Function(_FuelStatus) _then;
+
+/// Create a copy of FuelStatus
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? label = null,Object? status = null,Object? statusLabel = null,Object? confirmedAt = freezed,}) {
+  return _then(_FuelStatus(
+type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as FuelType,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as FuelAvailability,statusLabel: null == statusLabel ? _self.statusLabel : statusLabel // ignore: cast_nullable_to_non_nullable
+as String,confirmedAt: freezed == confirmedAt ? _self.confirmedAt : confirmedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+
+}
+
+/// @nodoc
+mixin _$FuelStation {
+
+ String get id; String get name; String? get brand; String? get address; LatLng get location; List<FuelStatus> get fuels;/// Co najmniej jedno paliwo zgłoszone jako niedostępne.
+ bool get shortage; List<FuelType> get missingFuelTypes; DateTime? get lastConfirmedAt; int get confirmationCount; double? get distanceMeters;
+/// Create a copy of FuelStation
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$FuelStationCopyWith<FuelStation> get copyWith => _$FuelStationCopyWithImpl<FuelStation>(this as FuelStation, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as FuelStation;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FuelStation&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.brand, _this.brand) || other.brand == _this.brand)&&(identical(other.address, _this.address) || other.address == _this.address)&&(identical(other.location, _this.location) || other.location == _this.location)&&const DeepCollectionEquality().equals(other.fuels, _this.fuels)&&(identical(other.shortage, _this.shortage) || other.shortage == _this.shortage)&&const DeepCollectionEquality().equals(other.missingFuelTypes, _this.missingFuelTypes)&&(identical(other.lastConfirmedAt, _this.lastConfirmedAt) || other.lastConfirmedAt == _this.lastConfirmedAt)&&(identical(other.confirmationCount, _this.confirmationCount) || other.confirmationCount == _this.confirmationCount)&&(identical(other.distanceMeters, _this.distanceMeters) || other.distanceMeters == _this.distanceMeters));
+}
+
+
+@override
+int get hashCode {
+  final _this = this as FuelStation;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.brand,_this.address,_this.location,const DeepCollectionEquality().hash(_this.fuels),_this.shortage,const DeepCollectionEquality().hash(_this.missingFuelTypes),_this.lastConfirmedAt,_this.confirmationCount,_this.distanceMeters);
+}
+
+@override
+String toString() {
+  final _this = this as FuelStation;
+  return 'FuelStation(id: ${_this.id}, name: ${_this.name}, brand: ${_this.brand}, address: ${_this.address}, location: ${_this.location}, fuels: ${_this.fuels}, shortage: ${_this.shortage}, missingFuelTypes: ${_this.missingFuelTypes}, lastConfirmedAt: ${_this.lastConfirmedAt}, confirmationCount: ${_this.confirmationCount}, distanceMeters: ${_this.distanceMeters})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $FuelStationCopyWith<$Res>  {
+  factory $FuelStationCopyWith(FuelStation value, $Res Function(FuelStation) _then) = _$FuelStationCopyWithImpl;
+@useResult
+$Res call({
+ String id, String name, String? brand, String? address, LatLng location, List<FuelStatus> fuels, bool shortage, List<FuelType> missingFuelTypes, DateTime? lastConfirmedAt, int confirmationCount, double? distanceMeters
+});
+
+
+
+
+}
+/// @nodoc
+class _$FuelStationCopyWithImpl<$Res>
+    implements $FuelStationCopyWith<$Res> {
+  _$FuelStationCopyWithImpl(this._self, this._then);
+
+  final FuelStation _self;
+  final $Res Function(FuelStation) _then;
+
+/// Create a copy of FuelStation
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? brand = freezed,Object? address = freezed,Object? location = null,Object? fuels = null,Object? shortage = null,Object? missingFuelTypes = null,Object? lastConfirmedAt = freezed,Object? confirmationCount = null,Object? distanceMeters = freezed,}) {
+  return _then(FuelStation(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,brand: freezed == brand ? _self.brand : brand // ignore: cast_nullable_to_non_nullable
+as String?,address: freezed == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
+as String?,location: null == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
+as LatLng,fuels: null == fuels ? _self.fuels : fuels // ignore: cast_nullable_to_non_nullable
+as List<FuelStatus>,shortage: null == shortage ? _self.shortage : shortage // ignore: cast_nullable_to_non_nullable
+as bool,missingFuelTypes: null == missingFuelTypes ? _self.missingFuelTypes : missingFuelTypes // ignore: cast_nullable_to_non_nullable
+as List<FuelType>,lastConfirmedAt: freezed == lastConfirmedAt ? _self.lastConfirmedAt : lastConfirmedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,confirmationCount: null == confirmationCount ? _self.confirmationCount : confirmationCount // ignore: cast_nullable_to_non_nullable
+as int,distanceMeters: freezed == distanceMeters ? _self.distanceMeters : distanceMeters // ignore: cast_nullable_to_non_nullable
+as double?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [FuelStation].
+extension FuelStationPatterns on FuelStation {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _FuelStation value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _FuelStation() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _FuelStation value)  $default,){
+final _that = this;
+switch (_that) {
+case _FuelStation():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _FuelStation value)?  $default,){
+final _that = this;
+switch (_that) {
+case _FuelStation() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String? brand,  String? address,  LatLng location,  List<FuelStatus> fuels,  bool shortage,  List<FuelType> missingFuelTypes,  DateTime? lastConfirmedAt,  int confirmationCount,  double? distanceMeters)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _FuelStation() when $default != null:
+return $default(_that.id,_that.name,_that.brand,_that.address,_that.location,_that.fuels,_that.shortage,_that.missingFuelTypes,_that.lastConfirmedAt,_that.confirmationCount,_that.distanceMeters);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String? brand,  String? address,  LatLng location,  List<FuelStatus> fuels,  bool shortage,  List<FuelType> missingFuelTypes,  DateTime? lastConfirmedAt,  int confirmationCount,  double? distanceMeters)  $default,) {final _that = this;
+switch (_that) {
+case _FuelStation():
+return $default(_that.id,_that.name,_that.brand,_that.address,_that.location,_that.fuels,_that.shortage,_that.missingFuelTypes,_that.lastConfirmedAt,_that.confirmationCount,_that.distanceMeters);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String? brand,  String? address,  LatLng location,  List<FuelStatus> fuels,  bool shortage,  List<FuelType> missingFuelTypes,  DateTime? lastConfirmedAt,  int confirmationCount,  double? distanceMeters)?  $default,) {final _that = this;
+switch (_that) {
+case _FuelStation() when $default != null:
+return $default(_that.id,_that.name,_that.brand,_that.address,_that.location,_that.fuels,_that.shortage,_that.missingFuelTypes,_that.lastConfirmedAt,_that.confirmationCount,_that.distanceMeters);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _FuelStation implements FuelStation {
+  const _FuelStation({required this.id, required this.name, this.brand, this.address, required this.location,  List<FuelStatus> fuels = const <FuelStatus>[], this.shortage = false,  List<FuelType> missingFuelTypes = const <FuelType>[], this.lastConfirmedAt, this.confirmationCount = 0, this.distanceMeters}): _fuels = fuels,_missingFuelTypes = missingFuelTypes;
+  
+
+@override final  String id;
+@override final  String name;
+@override final  String? brand;
+@override final  String? address;
+@override final  LatLng location;
+ final  List<FuelStatus> _fuels;
+@override@JsonKey() List<FuelStatus> get fuels {
+  if (_fuels is EqualUnmodifiableListView) return _fuels;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_fuels);
+}
+
+/// Co najmniej jedno paliwo zgłoszone jako niedostępne.
+@override@JsonKey() final  bool shortage;
+ final  List<FuelType> _missingFuelTypes;
+@override@JsonKey() List<FuelType> get missingFuelTypes {
+  if (_missingFuelTypes is EqualUnmodifiableListView) return _missingFuelTypes;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_missingFuelTypes);
+}
+
+@override final  DateTime? lastConfirmedAt;
+@override@JsonKey() final  int confirmationCount;
+@override final  double? distanceMeters;
+
+/// Create a copy of FuelStation
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$FuelStationCopyWith<_FuelStation> get copyWith => __$FuelStationCopyWithImpl<_FuelStation>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FuelStation&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.address, address) || other.address == address)&&(identical(other.location, location) || other.location == location)&&const DeepCollectionEquality().equals(other.fuels, _fuels)&&(identical(other.shortage, shortage) || other.shortage == shortage)&&const DeepCollectionEquality().equals(other.missingFuelTypes, _missingFuelTypes)&&(identical(other.lastConfirmedAt, lastConfirmedAt) || other.lastConfirmedAt == lastConfirmedAt)&&(identical(other.confirmationCount, confirmationCount) || other.confirmationCount == confirmationCount)&&(identical(other.distanceMeters, distanceMeters) || other.distanceMeters == distanceMeters));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,id,name,brand,address,location,const DeepCollectionEquality().hash(_fuels),shortage,const DeepCollectionEquality().hash(_missingFuelTypes),lastConfirmedAt,confirmationCount,distanceMeters);
+}
+
+@override
+String toString() {
+    return 'FuelStation(id: $id, name: $name, brand: $brand, address: $address, location: $location, fuels: $fuels, shortage: $shortage, missingFuelTypes: $missingFuelTypes, lastConfirmedAt: $lastConfirmedAt, confirmationCount: $confirmationCount, distanceMeters: $distanceMeters)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$FuelStationCopyWith<$Res> implements $FuelStationCopyWith<$Res> {
+  factory _$FuelStationCopyWith(_FuelStation value, $Res Function(_FuelStation) _then) = __$FuelStationCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String name, String? brand, String? address, LatLng location, List<FuelStatus> fuels, bool shortage, List<FuelType> missingFuelTypes, DateTime? lastConfirmedAt, int confirmationCount, double? distanceMeters
+});
+
+
+
+
+}
+/// @nodoc
+class __$FuelStationCopyWithImpl<$Res>
+    implements _$FuelStationCopyWith<$Res> {
+  __$FuelStationCopyWithImpl(this._self, this._then);
+
+  final _FuelStation _self;
+  final $Res Function(_FuelStation) _then;
+
+/// Create a copy of FuelStation
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? brand = freezed,Object? address = freezed,Object? location = null,Object? fuels = null,Object? shortage = null,Object? missingFuelTypes = null,Object? lastConfirmedAt = freezed,Object? confirmationCount = null,Object? distanceMeters = freezed,}) {
+  return _then(_FuelStation(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,brand: freezed == brand ? _self.brand : brand // ignore: cast_nullable_to_non_nullable
+as String?,address: freezed == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
+as String?,location: null == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
+as LatLng,fuels: null == fuels ? _self._fuels : fuels // ignore: cast_nullable_to_non_nullable
+as List<FuelStatus>,shortage: null == shortage ? _self.shortage : shortage // ignore: cast_nullable_to_non_nullable
+as bool,missingFuelTypes: null == missingFuelTypes ? _self._missingFuelTypes : missingFuelTypes // ignore: cast_nullable_to_non_nullable
+as List<FuelType>,lastConfirmedAt: freezed == lastConfirmedAt ? _self.lastConfirmedAt : lastConfirmedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,confirmationCount: null == confirmationCount ? _self.confirmationCount : confirmationCount // ignore: cast_nullable_to_non_nullable
+as int,distanceMeters: freezed == distanceMeters ? _self.distanceMeters : distanceMeters // ignore: cast_nullable_to_non_nullable
+as double?,
+  ));
+}
+
+
+}
+
+/// @nodoc
+mixin _$IncidentTimelineEntry {
+
+ String get type; String get label; DateTime get at; Map<String, dynamic> get details;
+/// Create a copy of IncidentTimelineEntry
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$IncidentTimelineEntryCopyWith<IncidentTimelineEntry> get copyWith => _$IncidentTimelineEntryCopyWithImpl<IncidentTimelineEntry>(this as IncidentTimelineEntry, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as IncidentTimelineEntry;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is IncidentTimelineEntry&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.label, _this.label) || other.label == _this.label)&&(identical(other.at, _this.at) || other.at == _this.at)&&const DeepCollectionEquality().equals(other.details, _this.details));
+}
+
+
+@override
+int get hashCode {
+  final _this = this as IncidentTimelineEntry;
+  return Object.hash(runtimeType,_this.type,_this.label,_this.at,const DeepCollectionEquality().hash(_this.details));
+}
+
+@override
+String toString() {
+  final _this = this as IncidentTimelineEntry;
+  return 'IncidentTimelineEntry(type: ${_this.type}, label: ${_this.label}, at: ${_this.at}, details: ${_this.details})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $IncidentTimelineEntryCopyWith<$Res>  {
+  factory $IncidentTimelineEntryCopyWith(IncidentTimelineEntry value, $Res Function(IncidentTimelineEntry) _then) = _$IncidentTimelineEntryCopyWithImpl;
+@useResult
+$Res call({
+ String type, String label, DateTime at, Map<String, dynamic> details
+});
+
+
+
+
+}
+/// @nodoc
+class _$IncidentTimelineEntryCopyWithImpl<$Res>
+    implements $IncidentTimelineEntryCopyWith<$Res> {
+  _$IncidentTimelineEntryCopyWithImpl(this._self, this._then);
+
+  final IncidentTimelineEntry _self;
+  final $Res Function(IncidentTimelineEntry) _then;
+
+/// Create a copy of IncidentTimelineEntry
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? label = null,Object? at = null,Object? details = null,}) {
+  return _then(IncidentTimelineEntry(
+type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+as String,at: null == at ? _self.at : at // ignore: cast_nullable_to_non_nullable
+as DateTime,details: null == details ? _self.details : details // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [IncidentTimelineEntry].
+extension IncidentTimelineEntryPatterns on IncidentTimelineEntry {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _IncidentTimelineEntry value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _IncidentTimelineEntry() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _IncidentTimelineEntry value)  $default,){
+final _that = this;
+switch (_that) {
+case _IncidentTimelineEntry():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _IncidentTimelineEntry value)?  $default,){
+final _that = this;
+switch (_that) {
+case _IncidentTimelineEntry() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String type,  String label,  DateTime at,  Map<String, dynamic> details)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _IncidentTimelineEntry() when $default != null:
+return $default(_that.type,_that.label,_that.at,_that.details);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String type,  String label,  DateTime at,  Map<String, dynamic> details)  $default,) {final _that = this;
+switch (_that) {
+case _IncidentTimelineEntry():
+return $default(_that.type,_that.label,_that.at,_that.details);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String type,  String label,  DateTime at,  Map<String, dynamic> details)?  $default,) {final _that = this;
+switch (_that) {
+case _IncidentTimelineEntry() when $default != null:
+return $default(_that.type,_that.label,_that.at,_that.details);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _IncidentTimelineEntry implements IncidentTimelineEntry {
+  const _IncidentTimelineEntry({required this.type, required this.label, required this.at,  Map<String, dynamic> details = const <String, dynamic>{}}): _details = details;
+  
+
+@override final  String type;
+@override final  String label;
+@override final  DateTime at;
+ final  Map<String, dynamic> _details;
+@override@JsonKey() Map<String, dynamic> get details {
+  if (_details is EqualUnmodifiableMapView) return _details;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_details);
+}
+
+
+/// Create a copy of IncidentTimelineEntry
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$IncidentTimelineEntryCopyWith<_IncidentTimelineEntry> get copyWith => __$IncidentTimelineEntryCopyWithImpl<_IncidentTimelineEntry>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _IncidentTimelineEntry&&(identical(other.type, type) || other.type == type)&&(identical(other.label, label) || other.label == label)&&(identical(other.at, at) || other.at == at)&&const DeepCollectionEquality().equals(other.details, _details));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,type,label,at,const DeepCollectionEquality().hash(_details));
+}
+
+@override
+String toString() {
+    return 'IncidentTimelineEntry(type: $type, label: $label, at: $at, details: $details)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$IncidentTimelineEntryCopyWith<$Res> implements $IncidentTimelineEntryCopyWith<$Res> {
+  factory _$IncidentTimelineEntryCopyWith(_IncidentTimelineEntry value, $Res Function(_IncidentTimelineEntry) _then) = __$IncidentTimelineEntryCopyWithImpl;
+@override @useResult
+$Res call({
+ String type, String label, DateTime at, Map<String, dynamic> details
+});
+
+
+
+
+}
+/// @nodoc
+class __$IncidentTimelineEntryCopyWithImpl<$Res>
+    implements _$IncidentTimelineEntryCopyWith<$Res> {
+  __$IncidentTimelineEntryCopyWithImpl(this._self, this._then);
+
+  final _IncidentTimelineEntry _self;
+  final $Res Function(_IncidentTimelineEntry) _then;
+
+/// Create a copy of IncidentTimelineEntry
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? label = null,Object? at = null,Object? details = null,}) {
+  return _then(_IncidentTimelineEntry(
+type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+as String,at: null == at ? _self.at : at // ignore: cast_nullable_to_non_nullable
+as DateTime,details: null == details ? _self._details : details // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,
+  ));
+}
+
+
+}
+
+/// @nodoc
+mixin _$Procedure {
+
+ String get id; String get title; String get summary; List<String> get steps; List<IncidentType> get appliesTo; int get priority;
+/// Create a copy of Procedure
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ProcedureCopyWith<Procedure> get copyWith => _$ProcedureCopyWithImpl<Procedure>(this as Procedure, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as Procedure;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Procedure&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.summary, _this.summary) || other.summary == _this.summary)&&const DeepCollectionEquality().equals(other.steps, _this.steps)&&const DeepCollectionEquality().equals(other.appliesTo, _this.appliesTo)&&(identical(other.priority, _this.priority) || other.priority == _this.priority));
+}
+
+
+@override
+int get hashCode {
+  final _this = this as Procedure;
+  return Object.hash(runtimeType,_this.id,_this.title,_this.summary,const DeepCollectionEquality().hash(_this.steps),const DeepCollectionEquality().hash(_this.appliesTo),_this.priority);
+}
+
+@override
+String toString() {
+  final _this = this as Procedure;
+  return 'Procedure(id: ${_this.id}, title: ${_this.title}, summary: ${_this.summary}, steps: ${_this.steps}, appliesTo: ${_this.appliesTo}, priority: ${_this.priority})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ProcedureCopyWith<$Res>  {
+  factory $ProcedureCopyWith(Procedure value, $Res Function(Procedure) _then) = _$ProcedureCopyWithImpl;
+@useResult
+$Res call({
+ String id, String title, String summary, List<String> steps, List<IncidentType> appliesTo, int priority
+});
+
+
+
+
+}
+/// @nodoc
+class _$ProcedureCopyWithImpl<$Res>
+    implements $ProcedureCopyWith<$Res> {
+  _$ProcedureCopyWithImpl(this._self, this._then);
+
+  final Procedure _self;
+  final $Res Function(Procedure) _then;
+
+/// Create a copy of Procedure
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? summary = null,Object? steps = null,Object? appliesTo = null,Object? priority = null,}) {
+  return _then(Procedure(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,summary: null == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
+as String,steps: null == steps ? _self.steps : steps // ignore: cast_nullable_to_non_nullable
+as List<String>,appliesTo: null == appliesTo ? _self.appliesTo : appliesTo // ignore: cast_nullable_to_non_nullable
+as List<IncidentType>,priority: null == priority ? _self.priority : priority // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [Procedure].
+extension ProcedurePatterns on Procedure {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _Procedure value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _Procedure() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _Procedure value)  $default,){
+final _that = this;
+switch (_that) {
+case _Procedure():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _Procedure value)?  $default,){
+final _that = this;
+switch (_that) {
+case _Procedure() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String summary,  List<String> steps,  List<IncidentType> appliesTo,  int priority)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _Procedure() when $default != null:
+return $default(_that.id,_that.title,_that.summary,_that.steps,_that.appliesTo,_that.priority);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String summary,  List<String> steps,  List<IncidentType> appliesTo,  int priority)  $default,) {final _that = this;
+switch (_that) {
+case _Procedure():
+return $default(_that.id,_that.title,_that.summary,_that.steps,_that.appliesTo,_that.priority);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String summary,  List<String> steps,  List<IncidentType> appliesTo,  int priority)?  $default,) {final _that = this;
+switch (_that) {
+case _Procedure() when $default != null:
+return $default(_that.id,_that.title,_that.summary,_that.steps,_that.appliesTo,_that.priority);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _Procedure implements Procedure {
+  const _Procedure({required this.id, required this.title, required this.summary,  List<String> steps = const <String>[],  List<IncidentType> appliesTo = const <IncidentType>[], this.priority = 0}): _steps = steps,_appliesTo = appliesTo;
+  
+
+@override final  String id;
+@override final  String title;
+@override final  String summary;
+ final  List<String> _steps;
+@override@JsonKey() List<String> get steps {
+  if (_steps is EqualUnmodifiableListView) return _steps;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_steps);
+}
+
+ final  List<IncidentType> _appliesTo;
+@override@JsonKey() List<IncidentType> get appliesTo {
+  if (_appliesTo is EqualUnmodifiableListView) return _appliesTo;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_appliesTo);
+}
+
+@override@JsonKey() final  int priority;
+
+/// Create a copy of Procedure
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ProcedureCopyWith<_Procedure> get copyWith => __$ProcedureCopyWithImpl<_Procedure>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Procedure&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.summary, summary) || other.summary == summary)&&const DeepCollectionEquality().equals(other.steps, _steps)&&const DeepCollectionEquality().equals(other.appliesTo, _appliesTo)&&(identical(other.priority, priority) || other.priority == priority));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,id,title,summary,const DeepCollectionEquality().hash(_steps),const DeepCollectionEquality().hash(_appliesTo),priority);
+}
+
+@override
+String toString() {
+    return 'Procedure(id: $id, title: $title, summary: $summary, steps: $steps, appliesTo: $appliesTo, priority: $priority)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ProcedureCopyWith<$Res> implements $ProcedureCopyWith<$Res> {
+  factory _$ProcedureCopyWith(_Procedure value, $Res Function(_Procedure) _then) = __$ProcedureCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String title, String summary, List<String> steps, List<IncidentType> appliesTo, int priority
+});
+
+
+
+
+}
+/// @nodoc
+class __$ProcedureCopyWithImpl<$Res>
+    implements _$ProcedureCopyWith<$Res> {
+  __$ProcedureCopyWithImpl(this._self, this._then);
+
+  final _Procedure _self;
+  final $Res Function(_Procedure) _then;
+
+/// Create a copy of Procedure
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? summary = null,Object? steps = null,Object? appliesTo = null,Object? priority = null,}) {
+  return _then(_Procedure(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,summary: null == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
+as String,steps: null == steps ? _self._steps : steps // ignore: cast_nullable_to_non_nullable
+as List<String>,appliesTo: null == appliesTo ? _self._appliesTo : appliesTo // ignore: cast_nullable_to_non_nullable
+as List<IncidentType>,priority: null == priority ? _self.priority : priority // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+
+}
+
+/// @nodoc
 mixin _$MapFeature {
 
 
@@ -1273,12 +2772,13 @@ extension MapFeaturePatterns on MapFeature {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( IncidentFeature value)?  incident,TResult Function( ShelterFeature value)?  shelter,TResult Function( AlertFeature value)?  alert,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( IncidentFeature value)?  incident,TResult Function( ShelterFeature value)?  shelter,TResult Function( FuelStationFeature value)?  fuelStation,TResult Function( AlertFeature value)?  alert,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case IncidentFeature() when incident != null:
 return incident(_that);case ShelterFeature() when shelter != null:
-return shelter(_that);case AlertFeature() when alert != null:
+return shelter(_that);case FuelStationFeature() when fuelStation != null:
+return fuelStation(_that);case AlertFeature() when alert != null:
 return alert(_that);case _:
   return orElse();
 
@@ -1297,12 +2797,13 @@ return alert(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( IncidentFeature value)  incident,required TResult Function( ShelterFeature value)  shelter,required TResult Function( AlertFeature value)  alert,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( IncidentFeature value)  incident,required TResult Function( ShelterFeature value)  shelter,required TResult Function( FuelStationFeature value)  fuelStation,required TResult Function( AlertFeature value)  alert,}){
 final _that = this;
 switch (_that) {
 case IncidentFeature():
 return incident(_that);case ShelterFeature():
-return shelter(_that);case AlertFeature():
+return shelter(_that);case FuelStationFeature():
+return fuelStation(_that);case AlertFeature():
 return alert(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
@@ -1317,12 +2818,13 @@ return alert(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( IncidentFeature value)?  incident,TResult? Function( ShelterFeature value)?  shelter,TResult? Function( AlertFeature value)?  alert,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( IncidentFeature value)?  incident,TResult? Function( ShelterFeature value)?  shelter,TResult? Function( FuelStationFeature value)?  fuelStation,TResult? Function( AlertFeature value)?  alert,}){
 final _that = this;
 switch (_that) {
 case IncidentFeature() when incident != null:
 return incident(_that);case ShelterFeature() when shelter != null:
-return shelter(_that);case AlertFeature() when alert != null:
+return shelter(_that);case FuelStationFeature() when fuelStation != null:
+return fuelStation(_that);case AlertFeature() when alert != null:
 return alert(_that);case _:
   return null;
 
@@ -1340,11 +2842,12 @@ return alert(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Incident incident)?  incident,TResult Function( Shelter shelter)?  shelter,TResult Function( Alert alert)?  alert,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Incident incident)?  incident,TResult Function( Shelter shelter)?  shelter,TResult Function( FuelStation station)?  fuelStation,TResult Function( Alert alert)?  alert,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case IncidentFeature() when incident != null:
 return incident(_that.incident);case ShelterFeature() when shelter != null:
-return shelter(_that.shelter);case AlertFeature() when alert != null:
+return shelter(_that.shelter);case FuelStationFeature() when fuelStation != null:
+return fuelStation(_that.station);case AlertFeature() when alert != null:
 return alert(_that.alert);case _:
   return orElse();
 
@@ -1363,11 +2866,12 @@ return alert(_that.alert);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Incident incident)  incident,required TResult Function( Shelter shelter)  shelter,required TResult Function( Alert alert)  alert,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Incident incident)  incident,required TResult Function( Shelter shelter)  shelter,required TResult Function( FuelStation station)  fuelStation,required TResult Function( Alert alert)  alert,}) {final _that = this;
 switch (_that) {
 case IncidentFeature():
 return incident(_that.incident);case ShelterFeature():
-return shelter(_that.shelter);case AlertFeature():
+return shelter(_that.shelter);case FuelStationFeature():
+return fuelStation(_that.station);case AlertFeature():
 return alert(_that.alert);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -1382,11 +2886,12 @@ return alert(_that.alert);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Incident incident)?  incident,TResult? Function( Shelter shelter)?  shelter,TResult? Function( Alert alert)?  alert,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Incident incident)?  incident,TResult? Function( Shelter shelter)?  shelter,TResult? Function( FuelStation station)?  fuelStation,TResult? Function( Alert alert)?  alert,}) {final _that = this;
 switch (_that) {
 case IncidentFeature() when incident != null:
 return incident(_that.incident);case ShelterFeature() when shelter != null:
-return shelter(_that.shelter);case AlertFeature() when alert != null:
+return shelter(_that.shelter);case FuelStationFeature() when fuelStation != null:
+return fuelStation(_that.station);case AlertFeature() when alert != null:
 return alert(_that.alert);case _:
   return null;
 
@@ -1552,6 +3057,83 @@ $ShelterCopyWith<$Res> get shelter {
 /// @nodoc
 
 
+class FuelStationFeature implements MapFeature {
+  const FuelStationFeature(this.station);
+  
+
+ final  FuelStation station;
+
+/// Create a copy of MapFeature
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$FuelStationFeatureCopyWith<FuelStationFeature> get copyWith => _$FuelStationFeatureCopyWithImpl<FuelStationFeature>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is FuelStationFeature&&(identical(other.station, station) || other.station == station));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,station);
+}
+
+@override
+String toString() {
+    return 'MapFeature.fuelStation(station: $station)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $FuelStationFeatureCopyWith<$Res> implements $MapFeatureCopyWith<$Res> {
+  factory $FuelStationFeatureCopyWith(FuelStationFeature value, $Res Function(FuelStationFeature) _then) = _$FuelStationFeatureCopyWithImpl;
+@useResult
+$Res call({
+ FuelStation station
+});
+
+
+$FuelStationCopyWith<$Res> get station;
+
+}
+/// @nodoc
+class _$FuelStationFeatureCopyWithImpl<$Res>
+    implements $FuelStationFeatureCopyWith<$Res> {
+  _$FuelStationFeatureCopyWithImpl(this._self, this._then);
+
+  final FuelStationFeature _self;
+  final $Res Function(FuelStationFeature) _then;
+
+/// Create a copy of MapFeature
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? station = null,}) {
+  return _then(FuelStationFeature(
+null == station ? _self.station : station // ignore: cast_nullable_to_non_nullable
+as FuelStation,
+  ));
+}
+
+/// Create a copy of MapFeature
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$FuelStationCopyWith<$Res> get station {
+  
+  return $FuelStationCopyWith<$Res>(_self.station, (value) {
+    return _then(_self.copyWith(station: value));
+  });
+}
+}
+
+/// @nodoc
+
+
 class AlertFeature implements MapFeature {
   const AlertFeature(this.alert);
   
@@ -1629,7 +3211,8 @@ $AlertCopyWith<$Res> get alert {
 /// @nodoc
 mixin _$VerificationQuestion {
 
- String get verificationId; String get incidentId; IncidentType get type; String get typeLabel; String get question; String get context; List<VerificationAnswer> get options; DateTime get sentAt; DateTime get expiresAt; bool get answered;
+ String get verificationId; String get incidentId; IncidentType get type; String get typeLabel; String get question; String get context;/// Obiekt, o który pytamy (może to być sąsiednia stacja, nie ta zgłoszona).
+ PoiRef? get poi; List<VerificationAnswer> get options; DateTime get sentAt; DateTime get expiresAt; bool get answered;
 /// Create a copy of VerificationQuestion
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1641,20 +3224,20 @@ $VerificationQuestionCopyWith<VerificationQuestion> get copyWith => _$Verificati
 @override
 bool operator ==(Object other) {
   final _this = this as VerificationQuestion;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is VerificationQuestion&&(identical(other.verificationId, _this.verificationId) || other.verificationId == _this.verificationId)&&(identical(other.incidentId, _this.incidentId) || other.incidentId == _this.incidentId)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.typeLabel, _this.typeLabel) || other.typeLabel == _this.typeLabel)&&(identical(other.question, _this.question) || other.question == _this.question)&&(identical(other.context, _this.context) || other.context == _this.context)&&const DeepCollectionEquality().equals(other.options, _this.options)&&(identical(other.sentAt, _this.sentAt) || other.sentAt == _this.sentAt)&&(identical(other.expiresAt, _this.expiresAt) || other.expiresAt == _this.expiresAt)&&(identical(other.answered, _this.answered) || other.answered == _this.answered));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is VerificationQuestion&&(identical(other.verificationId, _this.verificationId) || other.verificationId == _this.verificationId)&&(identical(other.incidentId, _this.incidentId) || other.incidentId == _this.incidentId)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.typeLabel, _this.typeLabel) || other.typeLabel == _this.typeLabel)&&(identical(other.question, _this.question) || other.question == _this.question)&&(identical(other.context, _this.context) || other.context == _this.context)&&(identical(other.poi, _this.poi) || other.poi == _this.poi)&&const DeepCollectionEquality().equals(other.options, _this.options)&&(identical(other.sentAt, _this.sentAt) || other.sentAt == _this.sentAt)&&(identical(other.expiresAt, _this.expiresAt) || other.expiresAt == _this.expiresAt)&&(identical(other.answered, _this.answered) || other.answered == _this.answered));
 }
 
 
 @override
 int get hashCode {
   final _this = this as VerificationQuestion;
-  return Object.hash(runtimeType,_this.verificationId,_this.incidentId,_this.type,_this.typeLabel,_this.question,_this.context,const DeepCollectionEquality().hash(_this.options),_this.sentAt,_this.expiresAt,_this.answered);
+  return Object.hash(runtimeType,_this.verificationId,_this.incidentId,_this.type,_this.typeLabel,_this.question,_this.context,_this.poi,const DeepCollectionEquality().hash(_this.options),_this.sentAt,_this.expiresAt,_this.answered);
 }
 
 @override
 String toString() {
   final _this = this as VerificationQuestion;
-  return 'VerificationQuestion(verificationId: ${_this.verificationId}, incidentId: ${_this.incidentId}, type: ${_this.type}, typeLabel: ${_this.typeLabel}, question: ${_this.question}, context: ${_this.context}, options: ${_this.options}, sentAt: ${_this.sentAt}, expiresAt: ${_this.expiresAt}, answered: ${_this.answered})';
+  return 'VerificationQuestion(verificationId: ${_this.verificationId}, incidentId: ${_this.incidentId}, type: ${_this.type}, typeLabel: ${_this.typeLabel}, question: ${_this.question}, context: ${_this.context}, poi: ${_this.poi}, options: ${_this.options}, sentAt: ${_this.sentAt}, expiresAt: ${_this.expiresAt}, answered: ${_this.answered})';
 }
 
 
@@ -1665,11 +3248,11 @@ abstract mixin class $VerificationQuestionCopyWith<$Res>  {
   factory $VerificationQuestionCopyWith(VerificationQuestion value, $Res Function(VerificationQuestion) _then) = _$VerificationQuestionCopyWithImpl;
 @useResult
 $Res call({
- String verificationId, String incidentId, IncidentType type, String typeLabel, String question, String context, List<VerificationAnswer> options, DateTime sentAt, DateTime expiresAt, bool answered
+ String verificationId, String incidentId, IncidentType type, String typeLabel, String question, String context, PoiRef? poi, List<VerificationAnswer> options, DateTime sentAt, DateTime expiresAt, bool answered
 });
 
 
-
+$PoiRefCopyWith<$Res>? get poi;
 
 }
 /// @nodoc
@@ -1682,7 +3265,7 @@ class _$VerificationQuestionCopyWithImpl<$Res>
 
 /// Create a copy of VerificationQuestion
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? verificationId = null,Object? incidentId = null,Object? type = null,Object? typeLabel = null,Object? question = null,Object? context = null,Object? options = null,Object? sentAt = null,Object? expiresAt = null,Object? answered = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? verificationId = null,Object? incidentId = null,Object? type = null,Object? typeLabel = null,Object? question = null,Object? context = null,Object? poi = freezed,Object? options = null,Object? sentAt = null,Object? expiresAt = null,Object? answered = null,}) {
   return _then(VerificationQuestion(
 verificationId: null == verificationId ? _self.verificationId : verificationId // ignore: cast_nullable_to_non_nullable
 as String,incidentId: null == incidentId ? _self.incidentId : incidentId // ignore: cast_nullable_to_non_nullable
@@ -1690,14 +3273,27 @@ as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non
 as IncidentType,typeLabel: null == typeLabel ? _self.typeLabel : typeLabel // ignore: cast_nullable_to_non_nullable
 as String,question: null == question ? _self.question : question // ignore: cast_nullable_to_non_nullable
 as String,context: null == context ? _self.context : context // ignore: cast_nullable_to_non_nullable
-as String,options: null == options ? _self.options : options // ignore: cast_nullable_to_non_nullable
+as String,poi: freezed == poi ? _self.poi : poi // ignore: cast_nullable_to_non_nullable
+as PoiRef?,options: null == options ? _self.options : options // ignore: cast_nullable_to_non_nullable
 as List<VerificationAnswer>,sentAt: null == sentAt ? _self.sentAt : sentAt // ignore: cast_nullable_to_non_nullable
 as DateTime,expiresAt: null == expiresAt ? _self.expiresAt : expiresAt // ignore: cast_nullable_to_non_nullable
 as DateTime,answered: null == answered ? _self.answered : answered // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
+/// Create a copy of VerificationQuestion
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PoiRefCopyWith<$Res>? get poi {
+    if (_self.poi == null) {
+    return null;
+  }
 
+  return $PoiRefCopyWith<$Res>(_self.poi!, (value) {
+    return _then(_self.copyWith(poi: value));
+  });
+}
 }
 
 
@@ -1779,10 +3375,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String verificationId,  String incidentId,  IncidentType type,  String typeLabel,  String question,  String context,  List<VerificationAnswer> options,  DateTime sentAt,  DateTime expiresAt,  bool answered)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String verificationId,  String incidentId,  IncidentType type,  String typeLabel,  String question,  String context,  PoiRef? poi,  List<VerificationAnswer> options,  DateTime sentAt,  DateTime expiresAt,  bool answered)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _VerificationQuestion() when $default != null:
-return $default(_that.verificationId,_that.incidentId,_that.type,_that.typeLabel,_that.question,_that.context,_that.options,_that.sentAt,_that.expiresAt,_that.answered);case _:
+return $default(_that.verificationId,_that.incidentId,_that.type,_that.typeLabel,_that.question,_that.context,_that.poi,_that.options,_that.sentAt,_that.expiresAt,_that.answered);case _:
   return orElse();
 
 }
@@ -1800,10 +3396,10 @@ return $default(_that.verificationId,_that.incidentId,_that.type,_that.typeLabel
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String verificationId,  String incidentId,  IncidentType type,  String typeLabel,  String question,  String context,  List<VerificationAnswer> options,  DateTime sentAt,  DateTime expiresAt,  bool answered)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String verificationId,  String incidentId,  IncidentType type,  String typeLabel,  String question,  String context,  PoiRef? poi,  List<VerificationAnswer> options,  DateTime sentAt,  DateTime expiresAt,  bool answered)  $default,) {final _that = this;
 switch (_that) {
 case _VerificationQuestion():
-return $default(_that.verificationId,_that.incidentId,_that.type,_that.typeLabel,_that.question,_that.context,_that.options,_that.sentAt,_that.expiresAt,_that.answered);case _:
+return $default(_that.verificationId,_that.incidentId,_that.type,_that.typeLabel,_that.question,_that.context,_that.poi,_that.options,_that.sentAt,_that.expiresAt,_that.answered);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1820,10 +3416,10 @@ return $default(_that.verificationId,_that.incidentId,_that.type,_that.typeLabel
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String verificationId,  String incidentId,  IncidentType type,  String typeLabel,  String question,  String context,  List<VerificationAnswer> options,  DateTime sentAt,  DateTime expiresAt,  bool answered)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String verificationId,  String incidentId,  IncidentType type,  String typeLabel,  String question,  String context,  PoiRef? poi,  List<VerificationAnswer> options,  DateTime sentAt,  DateTime expiresAt,  bool answered)?  $default,) {final _that = this;
 switch (_that) {
 case _VerificationQuestion() when $default != null:
-return $default(_that.verificationId,_that.incidentId,_that.type,_that.typeLabel,_that.question,_that.context,_that.options,_that.sentAt,_that.expiresAt,_that.answered);case _:
+return $default(_that.verificationId,_that.incidentId,_that.type,_that.typeLabel,_that.question,_that.context,_that.poi,_that.options,_that.sentAt,_that.expiresAt,_that.answered);case _:
   return null;
 
 }
@@ -1835,7 +3431,7 @@ return $default(_that.verificationId,_that.incidentId,_that.type,_that.typeLabel
 
 
 class _VerificationQuestion extends VerificationQuestion {
-  const _VerificationQuestion({required this.verificationId, required this.incidentId, required this.type, required this.typeLabel, required this.question, required this.context,  List<VerificationAnswer> options = VerificationAnswer.values, required this.sentAt, required this.expiresAt, this.answered = false}): _options = options,super._();
+  const _VerificationQuestion({required this.verificationId, required this.incidentId, required this.type, required this.typeLabel, required this.question, required this.context, this.poi,  List<VerificationAnswer> options = VerificationAnswer.values, required this.sentAt, required this.expiresAt, this.answered = false}): _options = options,super._();
   
 
 @override final  String verificationId;
@@ -1844,6 +3440,8 @@ class _VerificationQuestion extends VerificationQuestion {
 @override final  String typeLabel;
 @override final  String question;
 @override final  String context;
+/// Obiekt, o który pytamy (może to być sąsiednia stacja, nie ta zgłoszona).
+@override final  PoiRef? poi;
  final  List<VerificationAnswer> _options;
 @override@JsonKey() List<VerificationAnswer> get options {
   if (_options is EqualUnmodifiableListView) return _options;
@@ -1865,18 +3463,18 @@ _$VerificationQuestionCopyWith<_VerificationQuestion> get copyWith => __$Verific
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _VerificationQuestion&&(identical(other.verificationId, verificationId) || other.verificationId == verificationId)&&(identical(other.incidentId, incidentId) || other.incidentId == incidentId)&&(identical(other.type, type) || other.type == type)&&(identical(other.typeLabel, typeLabel) || other.typeLabel == typeLabel)&&(identical(other.question, question) || other.question == question)&&(identical(other.context, context) || other.context == context)&&const DeepCollectionEquality().equals(other.options, _options)&&(identical(other.sentAt, sentAt) || other.sentAt == sentAt)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.answered, answered) || other.answered == answered));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _VerificationQuestion&&(identical(other.verificationId, verificationId) || other.verificationId == verificationId)&&(identical(other.incidentId, incidentId) || other.incidentId == incidentId)&&(identical(other.type, type) || other.type == type)&&(identical(other.typeLabel, typeLabel) || other.typeLabel == typeLabel)&&(identical(other.question, question) || other.question == question)&&(identical(other.context, context) || other.context == context)&&(identical(other.poi, poi) || other.poi == poi)&&const DeepCollectionEquality().equals(other.options, _options)&&(identical(other.sentAt, sentAt) || other.sentAt == sentAt)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.answered, answered) || other.answered == answered));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,verificationId,incidentId,type,typeLabel,question,context,const DeepCollectionEquality().hash(_options),sentAt,expiresAt,answered);
+    return Object.hash(runtimeType,verificationId,incidentId,type,typeLabel,question,context,poi,const DeepCollectionEquality().hash(_options),sentAt,expiresAt,answered);
 }
 
 @override
 String toString() {
-    return 'VerificationQuestion(verificationId: $verificationId, incidentId: $incidentId, type: $type, typeLabel: $typeLabel, question: $question, context: $context, options: $options, sentAt: $sentAt, expiresAt: $expiresAt, answered: $answered)';
+    return 'VerificationQuestion(verificationId: $verificationId, incidentId: $incidentId, type: $type, typeLabel: $typeLabel, question: $question, context: $context, poi: $poi, options: $options, sentAt: $sentAt, expiresAt: $expiresAt, answered: $answered)';
 }
 
 
@@ -1887,11 +3485,11 @@ abstract mixin class _$VerificationQuestionCopyWith<$Res> implements $Verificati
   factory _$VerificationQuestionCopyWith(_VerificationQuestion value, $Res Function(_VerificationQuestion) _then) = __$VerificationQuestionCopyWithImpl;
 @override @useResult
 $Res call({
- String verificationId, String incidentId, IncidentType type, String typeLabel, String question, String context, List<VerificationAnswer> options, DateTime sentAt, DateTime expiresAt, bool answered
+ String verificationId, String incidentId, IncidentType type, String typeLabel, String question, String context, PoiRef? poi, List<VerificationAnswer> options, DateTime sentAt, DateTime expiresAt, bool answered
 });
 
 
-
+@override $PoiRefCopyWith<$Res>? get poi;
 
 }
 /// @nodoc
@@ -1904,7 +3502,7 @@ class __$VerificationQuestionCopyWithImpl<$Res>
 
 /// Create a copy of VerificationQuestion
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? verificationId = null,Object? incidentId = null,Object? type = null,Object? typeLabel = null,Object? question = null,Object? context = null,Object? options = null,Object? sentAt = null,Object? expiresAt = null,Object? answered = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? verificationId = null,Object? incidentId = null,Object? type = null,Object? typeLabel = null,Object? question = null,Object? context = null,Object? poi = freezed,Object? options = null,Object? sentAt = null,Object? expiresAt = null,Object? answered = null,}) {
   return _then(_VerificationQuestion(
 verificationId: null == verificationId ? _self.verificationId : verificationId // ignore: cast_nullable_to_non_nullable
 as String,incidentId: null == incidentId ? _self.incidentId : incidentId // ignore: cast_nullable_to_non_nullable
@@ -1912,7 +3510,8 @@ as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non
 as IncidentType,typeLabel: null == typeLabel ? _self.typeLabel : typeLabel // ignore: cast_nullable_to_non_nullable
 as String,question: null == question ? _self.question : question // ignore: cast_nullable_to_non_nullable
 as String,context: null == context ? _self.context : context // ignore: cast_nullable_to_non_nullable
-as String,options: null == options ? _self._options : options // ignore: cast_nullable_to_non_nullable
+as String,poi: freezed == poi ? _self.poi : poi // ignore: cast_nullable_to_non_nullable
+as PoiRef?,options: null == options ? _self._options : options // ignore: cast_nullable_to_non_nullable
 as List<VerificationAnswer>,sentAt: null == sentAt ? _self.sentAt : sentAt // ignore: cast_nullable_to_non_nullable
 as DateTime,expiresAt: null == expiresAt ? _self.expiresAt : expiresAt // ignore: cast_nullable_to_non_nullable
 as DateTime,answered: null == answered ? _self.answered : answered // ignore: cast_nullable_to_non_nullable
@@ -1920,7 +3519,19 @@ as bool,
   ));
 }
 
+/// Create a copy of VerificationQuestion
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PoiRefCopyWith<$Res>? get poi {
+    if (_self.poi == null) {
+    return null;
+  }
 
+  return $PoiRefCopyWith<$Res>(_self.poi!, (value) {
+    return _then(_self.copyWith(poi: value));
+  });
+}
 }
 
 /// @nodoc
@@ -2194,9 +3805,276 @@ as String,
 }
 
 /// @nodoc
+mixin _$FuelTypeOption {
+
+ FuelType get type; String get label;
+/// Create a copy of FuelTypeOption
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$FuelTypeOptionCopyWith<FuelTypeOption> get copyWith => _$FuelTypeOptionCopyWithImpl<FuelTypeOption>(this as FuelTypeOption, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as FuelTypeOption;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FuelTypeOption&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.label, _this.label) || other.label == _this.label));
+}
+
+
+@override
+int get hashCode {
+  final _this = this as FuelTypeOption;
+  return Object.hash(runtimeType,_this.type,_this.label);
+}
+
+@override
+String toString() {
+  final _this = this as FuelTypeOption;
+  return 'FuelTypeOption(type: ${_this.type}, label: ${_this.label})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $FuelTypeOptionCopyWith<$Res>  {
+  factory $FuelTypeOptionCopyWith(FuelTypeOption value, $Res Function(FuelTypeOption) _then) = _$FuelTypeOptionCopyWithImpl;
+@useResult
+$Res call({
+ FuelType type, String label
+});
+
+
+
+
+}
+/// @nodoc
+class _$FuelTypeOptionCopyWithImpl<$Res>
+    implements $FuelTypeOptionCopyWith<$Res> {
+  _$FuelTypeOptionCopyWithImpl(this._self, this._then);
+
+  final FuelTypeOption _self;
+  final $Res Function(FuelTypeOption) _then;
+
+/// Create a copy of FuelTypeOption
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? label = null,}) {
+  return _then(FuelTypeOption(
+type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as FuelType,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [FuelTypeOption].
+extension FuelTypeOptionPatterns on FuelTypeOption {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _FuelTypeOption value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _FuelTypeOption() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _FuelTypeOption value)  $default,){
+final _that = this;
+switch (_that) {
+case _FuelTypeOption():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _FuelTypeOption value)?  $default,){
+final _that = this;
+switch (_that) {
+case _FuelTypeOption() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( FuelType type,  String label)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _FuelTypeOption() when $default != null:
+return $default(_that.type,_that.label);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( FuelType type,  String label)  $default,) {final _that = this;
+switch (_that) {
+case _FuelTypeOption():
+return $default(_that.type,_that.label);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( FuelType type,  String label)?  $default,) {final _that = this;
+switch (_that) {
+case _FuelTypeOption() when $default != null:
+return $default(_that.type,_that.label);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _FuelTypeOption implements FuelTypeOption {
+  const _FuelTypeOption({required this.type, required this.label});
+  
+
+@override final  FuelType type;
+@override final  String label;
+
+/// Create a copy of FuelTypeOption
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$FuelTypeOptionCopyWith<_FuelTypeOption> get copyWith => __$FuelTypeOptionCopyWithImpl<_FuelTypeOption>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FuelTypeOption&&(identical(other.type, type) || other.type == type)&&(identical(other.label, label) || other.label == label));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,type,label);
+}
+
+@override
+String toString() {
+    return 'FuelTypeOption(type: $type, label: $label)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$FuelTypeOptionCopyWith<$Res> implements $FuelTypeOptionCopyWith<$Res> {
+  factory _$FuelTypeOptionCopyWith(_FuelTypeOption value, $Res Function(_FuelTypeOption) _then) = __$FuelTypeOptionCopyWithImpl;
+@override @useResult
+$Res call({
+ FuelType type, String label
+});
+
+
+
+
+}
+/// @nodoc
+class __$FuelTypeOptionCopyWithImpl<$Res>
+    implements _$FuelTypeOptionCopyWith<$Res> {
+  __$FuelTypeOptionCopyWithImpl(this._self, this._then);
+
+  final _FuelTypeOption _self;
+  final $Res Function(_FuelTypeOption) _then;
+
+/// Create a copy of FuelTypeOption
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? label = null,}) {
+  return _then(_FuelTypeOption(
+type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as FuelType,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
 mixin _$ReportTypeOption {
 
- IncidentType get type; String get label;
+ IncidentType get type; String get label; ReportScope get scope; PoiKind? get poiKind; List<FuelTypeOption> get fuelTypes;
 /// Create a copy of ReportTypeOption
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2208,20 +4086,20 @@ $ReportTypeOptionCopyWith<ReportTypeOption> get copyWith => _$ReportTypeOptionCo
 @override
 bool operator ==(Object other) {
   final _this = this as ReportTypeOption;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReportTypeOption&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.label, _this.label) || other.label == _this.label));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReportTypeOption&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.label, _this.label) || other.label == _this.label)&&(identical(other.scope, _this.scope) || other.scope == _this.scope)&&(identical(other.poiKind, _this.poiKind) || other.poiKind == _this.poiKind)&&const DeepCollectionEquality().equals(other.fuelTypes, _this.fuelTypes));
 }
 
 
 @override
 int get hashCode {
   final _this = this as ReportTypeOption;
-  return Object.hash(runtimeType,_this.type,_this.label);
+  return Object.hash(runtimeType,_this.type,_this.label,_this.scope,_this.poiKind,const DeepCollectionEquality().hash(_this.fuelTypes));
 }
 
 @override
 String toString() {
   final _this = this as ReportTypeOption;
-  return 'ReportTypeOption(type: ${_this.type}, label: ${_this.label})';
+  return 'ReportTypeOption(type: ${_this.type}, label: ${_this.label}, scope: ${_this.scope}, poiKind: ${_this.poiKind}, fuelTypes: ${_this.fuelTypes})';
 }
 
 
@@ -2232,7 +4110,7 @@ abstract mixin class $ReportTypeOptionCopyWith<$Res>  {
   factory $ReportTypeOptionCopyWith(ReportTypeOption value, $Res Function(ReportTypeOption) _then) = _$ReportTypeOptionCopyWithImpl;
 @useResult
 $Res call({
- IncidentType type, String label
+ IncidentType type, String label, ReportScope scope, PoiKind? poiKind, List<FuelTypeOption> fuelTypes
 });
 
 
@@ -2249,11 +4127,14 @@ class _$ReportTypeOptionCopyWithImpl<$Res>
 
 /// Create a copy of ReportTypeOption
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? label = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? label = null,Object? scope = null,Object? poiKind = freezed,Object? fuelTypes = null,}) {
   return _then(ReportTypeOption(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as IncidentType,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
-as String,
+as String,scope: null == scope ? _self.scope : scope // ignore: cast_nullable_to_non_nullable
+as ReportScope,poiKind: freezed == poiKind ? _self.poiKind : poiKind // ignore: cast_nullable_to_non_nullable
+as PoiKind?,fuelTypes: null == fuelTypes ? _self.fuelTypes : fuelTypes // ignore: cast_nullable_to_non_nullable
+as List<FuelTypeOption>,
   ));
 }
 
@@ -2338,10 +4219,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( IncidentType type,  String label)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( IncidentType type,  String label,  ReportScope scope,  PoiKind? poiKind,  List<FuelTypeOption> fuelTypes)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ReportTypeOption() when $default != null:
-return $default(_that.type,_that.label);case _:
+return $default(_that.type,_that.label,_that.scope,_that.poiKind,_that.fuelTypes);case _:
   return orElse();
 
 }
@@ -2359,10 +4240,10 @@ return $default(_that.type,_that.label);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( IncidentType type,  String label)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( IncidentType type,  String label,  ReportScope scope,  PoiKind? poiKind,  List<FuelTypeOption> fuelTypes)  $default,) {final _that = this;
 switch (_that) {
 case _ReportTypeOption():
-return $default(_that.type,_that.label);case _:
+return $default(_that.type,_that.label,_that.scope,_that.poiKind,_that.fuelTypes);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2379,10 +4260,10 @@ return $default(_that.type,_that.label);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( IncidentType type,  String label)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( IncidentType type,  String label,  ReportScope scope,  PoiKind? poiKind,  List<FuelTypeOption> fuelTypes)?  $default,) {final _that = this;
 switch (_that) {
 case _ReportTypeOption() when $default != null:
-return $default(_that.type,_that.label);case _:
+return $default(_that.type,_that.label,_that.scope,_that.poiKind,_that.fuelTypes);case _:
   return null;
 
 }
@@ -2393,12 +4274,21 @@ return $default(_that.type,_that.label);case _:
 /// @nodoc
 
 
-class _ReportTypeOption implements ReportTypeOption {
-  const _ReportTypeOption({required this.type, required this.label});
+class _ReportTypeOption extends ReportTypeOption {
+  const _ReportTypeOption({required this.type, required this.label, this.scope = ReportScope.area, this.poiKind,  List<FuelTypeOption> fuelTypes = const <FuelTypeOption>[]}): _fuelTypes = fuelTypes,super._();
   
 
 @override final  IncidentType type;
 @override final  String label;
+@override@JsonKey() final  ReportScope scope;
+@override final  PoiKind? poiKind;
+ final  List<FuelTypeOption> _fuelTypes;
+@override@JsonKey() List<FuelTypeOption> get fuelTypes {
+  if (_fuelTypes is EqualUnmodifiableListView) return _fuelTypes;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_fuelTypes);
+}
+
 
 /// Create a copy of ReportTypeOption
 /// with the given fields replaced by the non-null parameter values.
@@ -2410,18 +4300,18 @@ _$ReportTypeOptionCopyWith<_ReportTypeOption> get copyWith => __$ReportTypeOptio
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReportTypeOption&&(identical(other.type, type) || other.type == type)&&(identical(other.label, label) || other.label == label));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReportTypeOption&&(identical(other.type, type) || other.type == type)&&(identical(other.label, label) || other.label == label)&&(identical(other.scope, scope) || other.scope == scope)&&(identical(other.poiKind, poiKind) || other.poiKind == poiKind)&&const DeepCollectionEquality().equals(other.fuelTypes, _fuelTypes));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,type,label);
+    return Object.hash(runtimeType,type,label,scope,poiKind,const DeepCollectionEquality().hash(_fuelTypes));
 }
 
 @override
 String toString() {
-    return 'ReportTypeOption(type: $type, label: $label)';
+    return 'ReportTypeOption(type: $type, label: $label, scope: $scope, poiKind: $poiKind, fuelTypes: $fuelTypes)';
 }
 
 
@@ -2432,7 +4322,7 @@ abstract mixin class _$ReportTypeOptionCopyWith<$Res> implements $ReportTypeOpti
   factory _$ReportTypeOptionCopyWith(_ReportTypeOption value, $Res Function(_ReportTypeOption) _then) = __$ReportTypeOptionCopyWithImpl;
 @override @useResult
 $Res call({
- IncidentType type, String label
+ IncidentType type, String label, ReportScope scope, PoiKind? poiKind, List<FuelTypeOption> fuelTypes
 });
 
 
@@ -2449,11 +4339,14 @@ class __$ReportTypeOptionCopyWithImpl<$Res>
 
 /// Create a copy of ReportTypeOption
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? label = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? label = null,Object? scope = null,Object? poiKind = freezed,Object? fuelTypes = null,}) {
   return _then(_ReportTypeOption(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as IncidentType,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
-as String,
+as String,scope: null == scope ? _self.scope : scope // ignore: cast_nullable_to_non_nullable
+as ReportScope,poiKind: freezed == poiKind ? _self.poiKind : poiKind // ignore: cast_nullable_to_non_nullable
+as PoiKind?,fuelTypes: null == fuelTypes ? _self._fuelTypes : fuelTypes // ignore: cast_nullable_to_non_nullable
+as List<FuelTypeOption>,
   ));
 }
 
@@ -2463,7 +4356,7 @@ as String,
 /// @nodoc
 mixin _$ReportReceipt {
 
- String get reportId; String? get h3Cell; DateTime get createdAt;
+ String get reportId; String? get h3Cell; DateTime get createdAt; ReportScope get scope; PoiRef? get poi;
 /// Create a copy of ReportReceipt
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2475,20 +4368,20 @@ $ReportReceiptCopyWith<ReportReceipt> get copyWith => _$ReportReceiptCopyWithImp
 @override
 bool operator ==(Object other) {
   final _this = this as ReportReceipt;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReportReceipt&&(identical(other.reportId, _this.reportId) || other.reportId == _this.reportId)&&(identical(other.h3Cell, _this.h3Cell) || other.h3Cell == _this.h3Cell)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReportReceipt&&(identical(other.reportId, _this.reportId) || other.reportId == _this.reportId)&&(identical(other.h3Cell, _this.h3Cell) || other.h3Cell == _this.h3Cell)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.scope, _this.scope) || other.scope == _this.scope)&&(identical(other.poi, _this.poi) || other.poi == _this.poi));
 }
 
 
 @override
 int get hashCode {
   final _this = this as ReportReceipt;
-  return Object.hash(runtimeType,_this.reportId,_this.h3Cell,_this.createdAt);
+  return Object.hash(runtimeType,_this.reportId,_this.h3Cell,_this.createdAt,_this.scope,_this.poi);
 }
 
 @override
 String toString() {
   final _this = this as ReportReceipt;
-  return 'ReportReceipt(reportId: ${_this.reportId}, h3Cell: ${_this.h3Cell}, createdAt: ${_this.createdAt})';
+  return 'ReportReceipt(reportId: ${_this.reportId}, h3Cell: ${_this.h3Cell}, createdAt: ${_this.createdAt}, scope: ${_this.scope}, poi: ${_this.poi})';
 }
 
 
@@ -2499,11 +4392,11 @@ abstract mixin class $ReportReceiptCopyWith<$Res>  {
   factory $ReportReceiptCopyWith(ReportReceipt value, $Res Function(ReportReceipt) _then) = _$ReportReceiptCopyWithImpl;
 @useResult
 $Res call({
- String reportId, String? h3Cell, DateTime createdAt
+ String reportId, String? h3Cell, DateTime createdAt, ReportScope scope, PoiRef? poi
 });
 
 
-
+$PoiRefCopyWith<$Res>? get poi;
 
 }
 /// @nodoc
@@ -2516,15 +4409,29 @@ class _$ReportReceiptCopyWithImpl<$Res>
 
 /// Create a copy of ReportReceipt
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? reportId = null,Object? h3Cell = freezed,Object? createdAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? reportId = null,Object? h3Cell = freezed,Object? createdAt = null,Object? scope = null,Object? poi = freezed,}) {
   return _then(ReportReceipt(
 reportId: null == reportId ? _self.reportId : reportId // ignore: cast_nullable_to_non_nullable
 as String,h3Cell: freezed == h3Cell ? _self.h3Cell : h3Cell // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,scope: null == scope ? _self.scope : scope // ignore: cast_nullable_to_non_nullable
+as ReportScope,poi: freezed == poi ? _self.poi : poi // ignore: cast_nullable_to_non_nullable
+as PoiRef?,
   ));
 }
+/// Create a copy of ReportReceipt
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PoiRefCopyWith<$Res>? get poi {
+    if (_self.poi == null) {
+    return null;
+  }
 
+  return $PoiRefCopyWith<$Res>(_self.poi!, (value) {
+    return _then(_self.copyWith(poi: value));
+  });
+}
 }
 
 
@@ -2606,10 +4513,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String reportId,  String? h3Cell,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String reportId,  String? h3Cell,  DateTime createdAt,  ReportScope scope,  PoiRef? poi)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ReportReceipt() when $default != null:
-return $default(_that.reportId,_that.h3Cell,_that.createdAt);case _:
+return $default(_that.reportId,_that.h3Cell,_that.createdAt,_that.scope,_that.poi);case _:
   return orElse();
 
 }
@@ -2627,10 +4534,10 @@ return $default(_that.reportId,_that.h3Cell,_that.createdAt);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String reportId,  String? h3Cell,  DateTime createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String reportId,  String? h3Cell,  DateTime createdAt,  ReportScope scope,  PoiRef? poi)  $default,) {final _that = this;
 switch (_that) {
 case _ReportReceipt():
-return $default(_that.reportId,_that.h3Cell,_that.createdAt);case _:
+return $default(_that.reportId,_that.h3Cell,_that.createdAt,_that.scope,_that.poi);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2647,10 +4554,10 @@ return $default(_that.reportId,_that.h3Cell,_that.createdAt);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String reportId,  String? h3Cell,  DateTime createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String reportId,  String? h3Cell,  DateTime createdAt,  ReportScope scope,  PoiRef? poi)?  $default,) {final _that = this;
 switch (_that) {
 case _ReportReceipt() when $default != null:
-return $default(_that.reportId,_that.h3Cell,_that.createdAt);case _:
+return $default(_that.reportId,_that.h3Cell,_that.createdAt,_that.scope,_that.poi);case _:
   return null;
 
 }
@@ -2662,12 +4569,14 @@ return $default(_that.reportId,_that.h3Cell,_that.createdAt);case _:
 
 
 class _ReportReceipt implements ReportReceipt {
-  const _ReportReceipt({required this.reportId, this.h3Cell, required this.createdAt});
+  const _ReportReceipt({required this.reportId, this.h3Cell, required this.createdAt, this.scope = ReportScope.area, this.poi});
   
 
 @override final  String reportId;
 @override final  String? h3Cell;
 @override final  DateTime createdAt;
+@override@JsonKey() final  ReportScope scope;
+@override final  PoiRef? poi;
 
 /// Create a copy of ReportReceipt
 /// with the given fields replaced by the non-null parameter values.
@@ -2679,18 +4588,18 @@ _$ReportReceiptCopyWith<_ReportReceipt> get copyWith => __$ReportReceiptCopyWith
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReportReceipt&&(identical(other.reportId, reportId) || other.reportId == reportId)&&(identical(other.h3Cell, h3Cell) || other.h3Cell == h3Cell)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReportReceipt&&(identical(other.reportId, reportId) || other.reportId == reportId)&&(identical(other.h3Cell, h3Cell) || other.h3Cell == h3Cell)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.scope, scope) || other.scope == scope)&&(identical(other.poi, poi) || other.poi == poi));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,reportId,h3Cell,createdAt);
+    return Object.hash(runtimeType,reportId,h3Cell,createdAt,scope,poi);
 }
 
 @override
 String toString() {
-    return 'ReportReceipt(reportId: $reportId, h3Cell: $h3Cell, createdAt: $createdAt)';
+    return 'ReportReceipt(reportId: $reportId, h3Cell: $h3Cell, createdAt: $createdAt, scope: $scope, poi: $poi)';
 }
 
 
@@ -2701,11 +4610,11 @@ abstract mixin class _$ReportReceiptCopyWith<$Res> implements $ReportReceiptCopy
   factory _$ReportReceiptCopyWith(_ReportReceipt value, $Res Function(_ReportReceipt) _then) = __$ReportReceiptCopyWithImpl;
 @override @useResult
 $Res call({
- String reportId, String? h3Cell, DateTime createdAt
+ String reportId, String? h3Cell, DateTime createdAt, ReportScope scope, PoiRef? poi
 });
 
 
-
+@override $PoiRefCopyWith<$Res>? get poi;
 
 }
 /// @nodoc
@@ -2718,22 +4627,36 @@ class __$ReportReceiptCopyWithImpl<$Res>
 
 /// Create a copy of ReportReceipt
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? reportId = null,Object? h3Cell = freezed,Object? createdAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? reportId = null,Object? h3Cell = freezed,Object? createdAt = null,Object? scope = null,Object? poi = freezed,}) {
   return _then(_ReportReceipt(
 reportId: null == reportId ? _self.reportId : reportId // ignore: cast_nullable_to_non_nullable
 as String,h3Cell: freezed == h3Cell ? _self.h3Cell : h3Cell // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,scope: null == scope ? _self.scope : scope // ignore: cast_nullable_to_non_nullable
+as ReportScope,poi: freezed == poi ? _self.poi : poi // ignore: cast_nullable_to_non_nullable
+as PoiRef?,
   ));
 }
 
+/// Create a copy of ReportReceipt
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PoiRefCopyWith<$Res>? get poi {
+    if (_self.poi == null) {
+    return null;
+  }
 
+  return $PoiRefCopyWith<$Res>(_self.poi!, (value) {
+    return _then(_self.copyWith(poi: value));
+  });
+}
 }
 
 /// @nodoc
 mixin _$ReportIncidentRef {
 
- String get id; IncidentStatus get status; ConfidenceLevel get confidenceLevel; double get confidenceScore;
+ String get id; IncidentStatus get status; ConfidenceLevel get confidenceLevel; double get confidenceScore; String? get typeLabel; String? get statusLabel; String? get confidenceLabel;
 /// Create a copy of ReportIncidentRef
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2745,20 +4668,20 @@ $ReportIncidentRefCopyWith<ReportIncidentRef> get copyWith => _$ReportIncidentRe
 @override
 bool operator ==(Object other) {
   final _this = this as ReportIncidentRef;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReportIncidentRef&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.confidenceLevel, _this.confidenceLevel) || other.confidenceLevel == _this.confidenceLevel)&&(identical(other.confidenceScore, _this.confidenceScore) || other.confidenceScore == _this.confidenceScore));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReportIncidentRef&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.confidenceLevel, _this.confidenceLevel) || other.confidenceLevel == _this.confidenceLevel)&&(identical(other.confidenceScore, _this.confidenceScore) || other.confidenceScore == _this.confidenceScore)&&(identical(other.typeLabel, _this.typeLabel) || other.typeLabel == _this.typeLabel)&&(identical(other.statusLabel, _this.statusLabel) || other.statusLabel == _this.statusLabel)&&(identical(other.confidenceLabel, _this.confidenceLabel) || other.confidenceLabel == _this.confidenceLabel));
 }
 
 
 @override
 int get hashCode {
   final _this = this as ReportIncidentRef;
-  return Object.hash(runtimeType,_this.id,_this.status,_this.confidenceLevel,_this.confidenceScore);
+  return Object.hash(runtimeType,_this.id,_this.status,_this.confidenceLevel,_this.confidenceScore,_this.typeLabel,_this.statusLabel,_this.confidenceLabel);
 }
 
 @override
 String toString() {
   final _this = this as ReportIncidentRef;
-  return 'ReportIncidentRef(id: ${_this.id}, status: ${_this.status}, confidenceLevel: ${_this.confidenceLevel}, confidenceScore: ${_this.confidenceScore})';
+  return 'ReportIncidentRef(id: ${_this.id}, status: ${_this.status}, confidenceLevel: ${_this.confidenceLevel}, confidenceScore: ${_this.confidenceScore}, typeLabel: ${_this.typeLabel}, statusLabel: ${_this.statusLabel}, confidenceLabel: ${_this.confidenceLabel})';
 }
 
 
@@ -2769,7 +4692,7 @@ abstract mixin class $ReportIncidentRefCopyWith<$Res>  {
   factory $ReportIncidentRefCopyWith(ReportIncidentRef value, $Res Function(ReportIncidentRef) _then) = _$ReportIncidentRefCopyWithImpl;
 @useResult
 $Res call({
- String id, IncidentStatus status, ConfidenceLevel confidenceLevel, double confidenceScore
+ String id, IncidentStatus status, ConfidenceLevel confidenceLevel, double confidenceScore, String? typeLabel, String? statusLabel, String? confidenceLabel
 });
 
 
@@ -2786,13 +4709,16 @@ class _$ReportIncidentRefCopyWithImpl<$Res>
 
 /// Create a copy of ReportIncidentRef
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? status = null,Object? confidenceLevel = null,Object? confidenceScore = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? status = null,Object? confidenceLevel = null,Object? confidenceScore = null,Object? typeLabel = freezed,Object? statusLabel = freezed,Object? confidenceLabel = freezed,}) {
   return _then(ReportIncidentRef(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as IncidentStatus,confidenceLevel: null == confidenceLevel ? _self.confidenceLevel : confidenceLevel // ignore: cast_nullable_to_non_nullable
 as ConfidenceLevel,confidenceScore: null == confidenceScore ? _self.confidenceScore : confidenceScore // ignore: cast_nullable_to_non_nullable
-as double,
+as double,typeLabel: freezed == typeLabel ? _self.typeLabel : typeLabel // ignore: cast_nullable_to_non_nullable
+as String?,statusLabel: freezed == statusLabel ? _self.statusLabel : statusLabel // ignore: cast_nullable_to_non_nullable
+as String?,confidenceLabel: freezed == confidenceLabel ? _self.confidenceLabel : confidenceLabel // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -2877,10 +4803,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  IncidentStatus status,  ConfidenceLevel confidenceLevel,  double confidenceScore)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  IncidentStatus status,  ConfidenceLevel confidenceLevel,  double confidenceScore,  String? typeLabel,  String? statusLabel,  String? confidenceLabel)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ReportIncidentRef() when $default != null:
-return $default(_that.id,_that.status,_that.confidenceLevel,_that.confidenceScore);case _:
+return $default(_that.id,_that.status,_that.confidenceLevel,_that.confidenceScore,_that.typeLabel,_that.statusLabel,_that.confidenceLabel);case _:
   return orElse();
 
 }
@@ -2898,10 +4824,10 @@ return $default(_that.id,_that.status,_that.confidenceLevel,_that.confidenceScor
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  IncidentStatus status,  ConfidenceLevel confidenceLevel,  double confidenceScore)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  IncidentStatus status,  ConfidenceLevel confidenceLevel,  double confidenceScore,  String? typeLabel,  String? statusLabel,  String? confidenceLabel)  $default,) {final _that = this;
 switch (_that) {
 case _ReportIncidentRef():
-return $default(_that.id,_that.status,_that.confidenceLevel,_that.confidenceScore);case _:
+return $default(_that.id,_that.status,_that.confidenceLevel,_that.confidenceScore,_that.typeLabel,_that.statusLabel,_that.confidenceLabel);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2918,10 +4844,10 @@ return $default(_that.id,_that.status,_that.confidenceLevel,_that.confidenceScor
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  IncidentStatus status,  ConfidenceLevel confidenceLevel,  double confidenceScore)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  IncidentStatus status,  ConfidenceLevel confidenceLevel,  double confidenceScore,  String? typeLabel,  String? statusLabel,  String? confidenceLabel)?  $default,) {final _that = this;
 switch (_that) {
 case _ReportIncidentRef() when $default != null:
-return $default(_that.id,_that.status,_that.confidenceLevel,_that.confidenceScore);case _:
+return $default(_that.id,_that.status,_that.confidenceLevel,_that.confidenceScore,_that.typeLabel,_that.statusLabel,_that.confidenceLabel);case _:
   return null;
 
 }
@@ -2933,13 +4859,16 @@ return $default(_that.id,_that.status,_that.confidenceLevel,_that.confidenceScor
 
 
 class _ReportIncidentRef implements ReportIncidentRef {
-  const _ReportIncidentRef({required this.id, required this.status, required this.confidenceLevel, required this.confidenceScore});
+  const _ReportIncidentRef({required this.id, required this.status, required this.confidenceLevel, required this.confidenceScore, this.typeLabel, this.statusLabel, this.confidenceLabel});
   
 
 @override final  String id;
 @override final  IncidentStatus status;
 @override final  ConfidenceLevel confidenceLevel;
 @override final  double confidenceScore;
+@override final  String? typeLabel;
+@override final  String? statusLabel;
+@override final  String? confidenceLabel;
 
 /// Create a copy of ReportIncidentRef
 /// with the given fields replaced by the non-null parameter values.
@@ -2951,18 +4880,18 @@ _$ReportIncidentRefCopyWith<_ReportIncidentRef> get copyWith => __$ReportInciden
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReportIncidentRef&&(identical(other.id, id) || other.id == id)&&(identical(other.status, status) || other.status == status)&&(identical(other.confidenceLevel, confidenceLevel) || other.confidenceLevel == confidenceLevel)&&(identical(other.confidenceScore, confidenceScore) || other.confidenceScore == confidenceScore));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReportIncidentRef&&(identical(other.id, id) || other.id == id)&&(identical(other.status, status) || other.status == status)&&(identical(other.confidenceLevel, confidenceLevel) || other.confidenceLevel == confidenceLevel)&&(identical(other.confidenceScore, confidenceScore) || other.confidenceScore == confidenceScore)&&(identical(other.typeLabel, typeLabel) || other.typeLabel == typeLabel)&&(identical(other.statusLabel, statusLabel) || other.statusLabel == statusLabel)&&(identical(other.confidenceLabel, confidenceLabel) || other.confidenceLabel == confidenceLabel));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,status,confidenceLevel,confidenceScore);
+    return Object.hash(runtimeType,id,status,confidenceLevel,confidenceScore,typeLabel,statusLabel,confidenceLabel);
 }
 
 @override
 String toString() {
-    return 'ReportIncidentRef(id: $id, status: $status, confidenceLevel: $confidenceLevel, confidenceScore: $confidenceScore)';
+    return 'ReportIncidentRef(id: $id, status: $status, confidenceLevel: $confidenceLevel, confidenceScore: $confidenceScore, typeLabel: $typeLabel, statusLabel: $statusLabel, confidenceLabel: $confidenceLabel)';
 }
 
 
@@ -2973,7 +4902,7 @@ abstract mixin class _$ReportIncidentRefCopyWith<$Res> implements $ReportInciden
   factory _$ReportIncidentRefCopyWith(_ReportIncidentRef value, $Res Function(_ReportIncidentRef) _then) = __$ReportIncidentRefCopyWithImpl;
 @override @useResult
 $Res call({
- String id, IncidentStatus status, ConfidenceLevel confidenceLevel, double confidenceScore
+ String id, IncidentStatus status, ConfidenceLevel confidenceLevel, double confidenceScore, String? typeLabel, String? statusLabel, String? confidenceLabel
 });
 
 
@@ -2990,13 +4919,16 @@ class __$ReportIncidentRefCopyWithImpl<$Res>
 
 /// Create a copy of ReportIncidentRef
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? status = null,Object? confidenceLevel = null,Object? confidenceScore = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? status = null,Object? confidenceLevel = null,Object? confidenceScore = null,Object? typeLabel = freezed,Object? statusLabel = freezed,Object? confidenceLabel = freezed,}) {
   return _then(_ReportIncidentRef(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as IncidentStatus,confidenceLevel: null == confidenceLevel ? _self.confidenceLevel : confidenceLevel // ignore: cast_nullable_to_non_nullable
 as ConfidenceLevel,confidenceScore: null == confidenceScore ? _self.confidenceScore : confidenceScore // ignore: cast_nullable_to_non_nullable
-as double,
+as double,typeLabel: freezed == typeLabel ? _self.typeLabel : typeLabel // ignore: cast_nullable_to_non_nullable
+as String?,statusLabel: freezed == statusLabel ? _self.statusLabel : statusLabel // ignore: cast_nullable_to_non_nullable
+as String?,confidenceLabel: freezed == confidenceLabel ? _self.confidenceLabel : confidenceLabel // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -3006,7 +4938,7 @@ as double,
 /// @nodoc
 mixin _$ReportStatus {
 
- String get reportId; IncidentType get type; DateTime get createdAt; ReportIncidentRef? get incident;
+ String get reportId; IncidentType get type; String? get typeLabel; DateTime get createdAt; ReportIncidentRef? get incident;
 /// Create a copy of ReportStatus
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -3018,20 +4950,20 @@ $ReportStatusCopyWith<ReportStatus> get copyWith => _$ReportStatusCopyWithImpl<R
 @override
 bool operator ==(Object other) {
   final _this = this as ReportStatus;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReportStatus&&(identical(other.reportId, _this.reportId) || other.reportId == _this.reportId)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.incident, _this.incident) || other.incident == _this.incident));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReportStatus&&(identical(other.reportId, _this.reportId) || other.reportId == _this.reportId)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.typeLabel, _this.typeLabel) || other.typeLabel == _this.typeLabel)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.incident, _this.incident) || other.incident == _this.incident));
 }
 
 
 @override
 int get hashCode {
   final _this = this as ReportStatus;
-  return Object.hash(runtimeType,_this.reportId,_this.type,_this.createdAt,_this.incident);
+  return Object.hash(runtimeType,_this.reportId,_this.type,_this.typeLabel,_this.createdAt,_this.incident);
 }
 
 @override
 String toString() {
   final _this = this as ReportStatus;
-  return 'ReportStatus(reportId: ${_this.reportId}, type: ${_this.type}, createdAt: ${_this.createdAt}, incident: ${_this.incident})';
+  return 'ReportStatus(reportId: ${_this.reportId}, type: ${_this.type}, typeLabel: ${_this.typeLabel}, createdAt: ${_this.createdAt}, incident: ${_this.incident})';
 }
 
 
@@ -3042,7 +4974,7 @@ abstract mixin class $ReportStatusCopyWith<$Res>  {
   factory $ReportStatusCopyWith(ReportStatus value, $Res Function(ReportStatus) _then) = _$ReportStatusCopyWithImpl;
 @useResult
 $Res call({
- String reportId, IncidentType type, DateTime createdAt, ReportIncidentRef? incident
+ String reportId, IncidentType type, String? typeLabel, DateTime createdAt, ReportIncidentRef? incident
 });
 
 
@@ -3059,11 +4991,12 @@ class _$ReportStatusCopyWithImpl<$Res>
 
 /// Create a copy of ReportStatus
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? reportId = null,Object? type = null,Object? createdAt = null,Object? incident = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? reportId = null,Object? type = null,Object? typeLabel = freezed,Object? createdAt = null,Object? incident = freezed,}) {
   return _then(ReportStatus(
 reportId: null == reportId ? _self.reportId : reportId // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as IncidentType,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as IncidentType,typeLabel: freezed == typeLabel ? _self.typeLabel : typeLabel // ignore: cast_nullable_to_non_nullable
+as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,incident: freezed == incident ? _self.incident : incident // ignore: cast_nullable_to_non_nullable
 as ReportIncidentRef?,
   ));
@@ -3162,10 +5095,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String reportId,  IncidentType type,  DateTime createdAt,  ReportIncidentRef? incident)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String reportId,  IncidentType type,  String? typeLabel,  DateTime createdAt,  ReportIncidentRef? incident)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ReportStatus() when $default != null:
-return $default(_that.reportId,_that.type,_that.createdAt,_that.incident);case _:
+return $default(_that.reportId,_that.type,_that.typeLabel,_that.createdAt,_that.incident);case _:
   return orElse();
 
 }
@@ -3183,10 +5116,10 @@ return $default(_that.reportId,_that.type,_that.createdAt,_that.incident);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String reportId,  IncidentType type,  DateTime createdAt,  ReportIncidentRef? incident)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String reportId,  IncidentType type,  String? typeLabel,  DateTime createdAt,  ReportIncidentRef? incident)  $default,) {final _that = this;
 switch (_that) {
 case _ReportStatus():
-return $default(_that.reportId,_that.type,_that.createdAt,_that.incident);case _:
+return $default(_that.reportId,_that.type,_that.typeLabel,_that.createdAt,_that.incident);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -3203,10 +5136,10 @@ return $default(_that.reportId,_that.type,_that.createdAt,_that.incident);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String reportId,  IncidentType type,  DateTime createdAt,  ReportIncidentRef? incident)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String reportId,  IncidentType type,  String? typeLabel,  DateTime createdAt,  ReportIncidentRef? incident)?  $default,) {final _that = this;
 switch (_that) {
 case _ReportStatus() when $default != null:
-return $default(_that.reportId,_that.type,_that.createdAt,_that.incident);case _:
+return $default(_that.reportId,_that.type,_that.typeLabel,_that.createdAt,_that.incident);case _:
   return null;
 
 }
@@ -3218,11 +5151,12 @@ return $default(_that.reportId,_that.type,_that.createdAt,_that.incident);case _
 
 
 class _ReportStatus implements ReportStatus {
-  const _ReportStatus({required this.reportId, required this.type, required this.createdAt, this.incident});
+  const _ReportStatus({required this.reportId, required this.type, this.typeLabel, required this.createdAt, this.incident});
   
 
 @override final  String reportId;
 @override final  IncidentType type;
+@override final  String? typeLabel;
 @override final  DateTime createdAt;
 @override final  ReportIncidentRef? incident;
 
@@ -3236,18 +5170,18 @@ _$ReportStatusCopyWith<_ReportStatus> get copyWith => __$ReportStatusCopyWithImp
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReportStatus&&(identical(other.reportId, reportId) || other.reportId == reportId)&&(identical(other.type, type) || other.type == type)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.incident, incident) || other.incident == incident));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReportStatus&&(identical(other.reportId, reportId) || other.reportId == reportId)&&(identical(other.type, type) || other.type == type)&&(identical(other.typeLabel, typeLabel) || other.typeLabel == typeLabel)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.incident, incident) || other.incident == incident));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,reportId,type,createdAt,incident);
+    return Object.hash(runtimeType,reportId,type,typeLabel,createdAt,incident);
 }
 
 @override
 String toString() {
-    return 'ReportStatus(reportId: $reportId, type: $type, createdAt: $createdAt, incident: $incident)';
+    return 'ReportStatus(reportId: $reportId, type: $type, typeLabel: $typeLabel, createdAt: $createdAt, incident: $incident)';
 }
 
 
@@ -3258,7 +5192,7 @@ abstract mixin class _$ReportStatusCopyWith<$Res> implements $ReportStatusCopyWi
   factory _$ReportStatusCopyWith(_ReportStatus value, $Res Function(_ReportStatus) _then) = __$ReportStatusCopyWithImpl;
 @override @useResult
 $Res call({
- String reportId, IncidentType type, DateTime createdAt, ReportIncidentRef? incident
+ String reportId, IncidentType type, String? typeLabel, DateTime createdAt, ReportIncidentRef? incident
 });
 
 
@@ -3275,11 +5209,12 @@ class __$ReportStatusCopyWithImpl<$Res>
 
 /// Create a copy of ReportStatus
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? reportId = null,Object? type = null,Object? createdAt = null,Object? incident = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? reportId = null,Object? type = null,Object? typeLabel = freezed,Object? createdAt = null,Object? incident = freezed,}) {
   return _then(_ReportStatus(
 reportId: null == reportId ? _self.reportId : reportId // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as IncidentType,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as IncidentType,typeLabel: freezed == typeLabel ? _self.typeLabel : typeLabel // ignore: cast_nullable_to_non_nullable
+as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,incident: freezed == incident ? _self.incident : incident // ignore: cast_nullable_to_non_nullable
 as ReportIncidentRef?,
   ));
@@ -3303,7 +5238,8 @@ $ReportIncidentRefCopyWith<$Res>? get incident {
 /// @nodoc
 mixin _$DeviceProfile {
 
- String get deviceId; String? get platform; bool get hasPushToken; LatLng? get lastLocation; String? get h3Cell; DateTime? get locationUpdatedAt;
+ String get deviceId; String? get platform; bool get hasPushToken; LatLng? get lastLocation; String? get h3Cell; DateTime? get locationUpdatedAt; LocationSource? get locationSource;/// `preferences.locationRefresh` — zgoda na przypomnienia `location_refresh`.
+ bool get locationRefresh;
 /// Create a copy of DeviceProfile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -3315,20 +5251,20 @@ $DeviceProfileCopyWith<DeviceProfile> get copyWith => _$DeviceProfileCopyWithImp
 @override
 bool operator ==(Object other) {
   final _this = this as DeviceProfile;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceProfile&&(identical(other.deviceId, _this.deviceId) || other.deviceId == _this.deviceId)&&(identical(other.platform, _this.platform) || other.platform == _this.platform)&&(identical(other.hasPushToken, _this.hasPushToken) || other.hasPushToken == _this.hasPushToken)&&(identical(other.lastLocation, _this.lastLocation) || other.lastLocation == _this.lastLocation)&&(identical(other.h3Cell, _this.h3Cell) || other.h3Cell == _this.h3Cell)&&(identical(other.locationUpdatedAt, _this.locationUpdatedAt) || other.locationUpdatedAt == _this.locationUpdatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceProfile&&(identical(other.deviceId, _this.deviceId) || other.deviceId == _this.deviceId)&&(identical(other.platform, _this.platform) || other.platform == _this.platform)&&(identical(other.hasPushToken, _this.hasPushToken) || other.hasPushToken == _this.hasPushToken)&&(identical(other.lastLocation, _this.lastLocation) || other.lastLocation == _this.lastLocation)&&(identical(other.h3Cell, _this.h3Cell) || other.h3Cell == _this.h3Cell)&&(identical(other.locationUpdatedAt, _this.locationUpdatedAt) || other.locationUpdatedAt == _this.locationUpdatedAt)&&(identical(other.locationSource, _this.locationSource) || other.locationSource == _this.locationSource)&&(identical(other.locationRefresh, _this.locationRefresh) || other.locationRefresh == _this.locationRefresh));
 }
 
 
 @override
 int get hashCode {
   final _this = this as DeviceProfile;
-  return Object.hash(runtimeType,_this.deviceId,_this.platform,_this.hasPushToken,_this.lastLocation,_this.h3Cell,_this.locationUpdatedAt);
+  return Object.hash(runtimeType,_this.deviceId,_this.platform,_this.hasPushToken,_this.lastLocation,_this.h3Cell,_this.locationUpdatedAt,_this.locationSource,_this.locationRefresh);
 }
 
 @override
 String toString() {
   final _this = this as DeviceProfile;
-  return 'DeviceProfile(deviceId: ${_this.deviceId}, platform: ${_this.platform}, hasPushToken: ${_this.hasPushToken}, lastLocation: ${_this.lastLocation}, h3Cell: ${_this.h3Cell}, locationUpdatedAt: ${_this.locationUpdatedAt})';
+  return 'DeviceProfile(deviceId: ${_this.deviceId}, platform: ${_this.platform}, hasPushToken: ${_this.hasPushToken}, lastLocation: ${_this.lastLocation}, h3Cell: ${_this.h3Cell}, locationUpdatedAt: ${_this.locationUpdatedAt}, locationSource: ${_this.locationSource}, locationRefresh: ${_this.locationRefresh})';
 }
 
 
@@ -3339,7 +5275,7 @@ abstract mixin class $DeviceProfileCopyWith<$Res>  {
   factory $DeviceProfileCopyWith(DeviceProfile value, $Res Function(DeviceProfile) _then) = _$DeviceProfileCopyWithImpl;
 @useResult
 $Res call({
- String deviceId, String? platform, bool hasPushToken, LatLng? lastLocation, String? h3Cell, DateTime? locationUpdatedAt
+ String deviceId, String? platform, bool hasPushToken, LatLng? lastLocation, String? h3Cell, DateTime? locationUpdatedAt, LocationSource? locationSource, bool locationRefresh
 });
 
 
@@ -3356,7 +5292,7 @@ class _$DeviceProfileCopyWithImpl<$Res>
 
 /// Create a copy of DeviceProfile
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? deviceId = null,Object? platform = freezed,Object? hasPushToken = null,Object? lastLocation = freezed,Object? h3Cell = freezed,Object? locationUpdatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? deviceId = null,Object? platform = freezed,Object? hasPushToken = null,Object? lastLocation = freezed,Object? h3Cell = freezed,Object? locationUpdatedAt = freezed,Object? locationSource = freezed,Object? locationRefresh = null,}) {
   return _then(DeviceProfile(
 deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
 as String,platform: freezed == platform ? _self.platform : platform // ignore: cast_nullable_to_non_nullable
@@ -3364,7 +5300,9 @@ as String?,hasPushToken: null == hasPushToken ? _self.hasPushToken : hasPushToke
 as bool,lastLocation: freezed == lastLocation ? _self.lastLocation : lastLocation // ignore: cast_nullable_to_non_nullable
 as LatLng?,h3Cell: freezed == h3Cell ? _self.h3Cell : h3Cell // ignore: cast_nullable_to_non_nullable
 as String?,locationUpdatedAt: freezed == locationUpdatedAt ? _self.locationUpdatedAt : locationUpdatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,locationSource: freezed == locationSource ? _self.locationSource : locationSource // ignore: cast_nullable_to_non_nullable
+as LocationSource?,locationRefresh: null == locationRefresh ? _self.locationRefresh : locationRefresh // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -3449,10 +5387,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String deviceId,  String? platform,  bool hasPushToken,  LatLng? lastLocation,  String? h3Cell,  DateTime? locationUpdatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String deviceId,  String? platform,  bool hasPushToken,  LatLng? lastLocation,  String? h3Cell,  DateTime? locationUpdatedAt,  LocationSource? locationSource,  bool locationRefresh)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DeviceProfile() when $default != null:
-return $default(_that.deviceId,_that.platform,_that.hasPushToken,_that.lastLocation,_that.h3Cell,_that.locationUpdatedAt);case _:
+return $default(_that.deviceId,_that.platform,_that.hasPushToken,_that.lastLocation,_that.h3Cell,_that.locationUpdatedAt,_that.locationSource,_that.locationRefresh);case _:
   return orElse();
 
 }
@@ -3470,10 +5408,10 @@ return $default(_that.deviceId,_that.platform,_that.hasPushToken,_that.lastLocat
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String deviceId,  String? platform,  bool hasPushToken,  LatLng? lastLocation,  String? h3Cell,  DateTime? locationUpdatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String deviceId,  String? platform,  bool hasPushToken,  LatLng? lastLocation,  String? h3Cell,  DateTime? locationUpdatedAt,  LocationSource? locationSource,  bool locationRefresh)  $default,) {final _that = this;
 switch (_that) {
 case _DeviceProfile():
-return $default(_that.deviceId,_that.platform,_that.hasPushToken,_that.lastLocation,_that.h3Cell,_that.locationUpdatedAt);case _:
+return $default(_that.deviceId,_that.platform,_that.hasPushToken,_that.lastLocation,_that.h3Cell,_that.locationUpdatedAt,_that.locationSource,_that.locationRefresh);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -3490,10 +5428,10 @@ return $default(_that.deviceId,_that.platform,_that.hasPushToken,_that.lastLocat
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String deviceId,  String? platform,  bool hasPushToken,  LatLng? lastLocation,  String? h3Cell,  DateTime? locationUpdatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String deviceId,  String? platform,  bool hasPushToken,  LatLng? lastLocation,  String? h3Cell,  DateTime? locationUpdatedAt,  LocationSource? locationSource,  bool locationRefresh)?  $default,) {final _that = this;
 switch (_that) {
 case _DeviceProfile() when $default != null:
-return $default(_that.deviceId,_that.platform,_that.hasPushToken,_that.lastLocation,_that.h3Cell,_that.locationUpdatedAt);case _:
+return $default(_that.deviceId,_that.platform,_that.hasPushToken,_that.lastLocation,_that.h3Cell,_that.locationUpdatedAt,_that.locationSource,_that.locationRefresh);case _:
   return null;
 
 }
@@ -3505,7 +5443,7 @@ return $default(_that.deviceId,_that.platform,_that.hasPushToken,_that.lastLocat
 
 
 class _DeviceProfile implements DeviceProfile {
-  const _DeviceProfile({required this.deviceId, this.platform, this.hasPushToken = false, this.lastLocation, this.h3Cell, this.locationUpdatedAt});
+  const _DeviceProfile({required this.deviceId, this.platform, this.hasPushToken = false, this.lastLocation, this.h3Cell, this.locationUpdatedAt, this.locationSource, this.locationRefresh = true});
   
 
 @override final  String deviceId;
@@ -3514,6 +5452,9 @@ class _DeviceProfile implements DeviceProfile {
 @override final  LatLng? lastLocation;
 @override final  String? h3Cell;
 @override final  DateTime? locationUpdatedAt;
+@override final  LocationSource? locationSource;
+/// `preferences.locationRefresh` — zgoda na przypomnienia `location_refresh`.
+@override@JsonKey() final  bool locationRefresh;
 
 /// Create a copy of DeviceProfile
 /// with the given fields replaced by the non-null parameter values.
@@ -3525,18 +5466,18 @@ _$DeviceProfileCopyWith<_DeviceProfile> get copyWith => __$DeviceProfileCopyWith
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceProfile&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.platform, platform) || other.platform == platform)&&(identical(other.hasPushToken, hasPushToken) || other.hasPushToken == hasPushToken)&&(identical(other.lastLocation, lastLocation) || other.lastLocation == lastLocation)&&(identical(other.h3Cell, h3Cell) || other.h3Cell == h3Cell)&&(identical(other.locationUpdatedAt, locationUpdatedAt) || other.locationUpdatedAt == locationUpdatedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceProfile&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.platform, platform) || other.platform == platform)&&(identical(other.hasPushToken, hasPushToken) || other.hasPushToken == hasPushToken)&&(identical(other.lastLocation, lastLocation) || other.lastLocation == lastLocation)&&(identical(other.h3Cell, h3Cell) || other.h3Cell == h3Cell)&&(identical(other.locationUpdatedAt, locationUpdatedAt) || other.locationUpdatedAt == locationUpdatedAt)&&(identical(other.locationSource, locationSource) || other.locationSource == locationSource)&&(identical(other.locationRefresh, locationRefresh) || other.locationRefresh == locationRefresh));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,deviceId,platform,hasPushToken,lastLocation,h3Cell,locationUpdatedAt);
+    return Object.hash(runtimeType,deviceId,platform,hasPushToken,lastLocation,h3Cell,locationUpdatedAt,locationSource,locationRefresh);
 }
 
 @override
 String toString() {
-    return 'DeviceProfile(deviceId: $deviceId, platform: $platform, hasPushToken: $hasPushToken, lastLocation: $lastLocation, h3Cell: $h3Cell, locationUpdatedAt: $locationUpdatedAt)';
+    return 'DeviceProfile(deviceId: $deviceId, platform: $platform, hasPushToken: $hasPushToken, lastLocation: $lastLocation, h3Cell: $h3Cell, locationUpdatedAt: $locationUpdatedAt, locationSource: $locationSource, locationRefresh: $locationRefresh)';
 }
 
 
@@ -3547,7 +5488,7 @@ abstract mixin class _$DeviceProfileCopyWith<$Res> implements $DeviceProfileCopy
   factory _$DeviceProfileCopyWith(_DeviceProfile value, $Res Function(_DeviceProfile) _then) = __$DeviceProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String deviceId, String? platform, bool hasPushToken, LatLng? lastLocation, String? h3Cell, DateTime? locationUpdatedAt
+ String deviceId, String? platform, bool hasPushToken, LatLng? lastLocation, String? h3Cell, DateTime? locationUpdatedAt, LocationSource? locationSource, bool locationRefresh
 });
 
 
@@ -3564,7 +5505,7 @@ class __$DeviceProfileCopyWithImpl<$Res>
 
 /// Create a copy of DeviceProfile
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? deviceId = null,Object? platform = freezed,Object? hasPushToken = null,Object? lastLocation = freezed,Object? h3Cell = freezed,Object? locationUpdatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? deviceId = null,Object? platform = freezed,Object? hasPushToken = null,Object? lastLocation = freezed,Object? h3Cell = freezed,Object? locationUpdatedAt = freezed,Object? locationSource = freezed,Object? locationRefresh = null,}) {
   return _then(_DeviceProfile(
 deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
 as String,platform: freezed == platform ? _self.platform : platform // ignore: cast_nullable_to_non_nullable
@@ -3572,7 +5513,9 @@ as String?,hasPushToken: null == hasPushToken ? _self.hasPushToken : hasPushToke
 as bool,lastLocation: freezed == lastLocation ? _self.lastLocation : lastLocation // ignore: cast_nullable_to_non_nullable
 as LatLng?,h3Cell: freezed == h3Cell ? _self.h3Cell : h3Cell // ignore: cast_nullable_to_non_nullable
 as String?,locationUpdatedAt: freezed == locationUpdatedAt ? _self.locationUpdatedAt : locationUpdatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,locationSource: freezed == locationSource ? _self.locationSource : locationSource // ignore: cast_nullable_to_non_nullable
+as LocationSource?,locationRefresh: null == locationRefresh ? _self.locationRefresh : locationRefresh // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

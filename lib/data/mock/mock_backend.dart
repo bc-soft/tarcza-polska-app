@@ -27,6 +27,8 @@ class MockBackend {
   final Map<String, Alert> alerts = {};
   final Map<String, VerificationQuestion> questions = {};
   final Map<String, ReportStatus> reports = {};
+  final Map<String, FuelStation> fuelStations = {};
+  final Map<String, List<IncidentTimelineEntry>> timelines = {};
 
   /// Odpowiedzi tego urządzenia — scenariusz demo reaguje na nie.
   final _answers = StreamController<(VerificationQuestion, VerificationAnswer)>.broadcast();
@@ -55,6 +57,10 @@ class MockBackend {
     shelters
       ..clear()
       ..addEntries(MockSeed.shelters(t).map((s) => MapEntry(s.id, s)));
+    fuelStations
+      ..clear()
+      ..addEntries(MockSeed.fuelStations(t).map((s) => MapEntry(s.id, s)));
+    timelines.clear();
     alerts.clear();
     questions.clear();
     reports.clear();
@@ -65,14 +71,51 @@ class MockBackend {
 
   /// Dołącza zgłoszenie do istniejącego incydentu tego typu (≤1,5 km)
   /// albo zakłada nowy, niezweryfikowany incydent z zasięgiem `Point`.
-  ReportReceipt createReport(IncidentType type, LatLng position) {
+  /// Wpis osi czasu incydentu (jak `GET /incidents/{id}/timeline`).
+  void addTimeline(String incidentId, String type, String label, [Map<String, dynamic>? details]) {
+    (timelines[incidentId] ??= []).add(
+      IncidentTimelineEntry(type: type, label: label, at: now, details: details ?? const {}),
+    );
+  }
+
+  /// Obiekt dla zgłoszenia punktowego: wskazany albo najbliższy w promieniu
+  /// (stacja 750 m, schron 500 m — jak w backendzie).
+  PoiRef? resolvePoi(PoiKind kind, LatLng position, String? poiId) {
+    final candidates = switch (kind) {
+      PoiKind.fuelStation => fuelStations.values.map(
+        (s) => PoiRef(kind: kind, id: s.id, name: s.name, location: s.location),
+      ),
+      PoiKind.shelter => shelters.values.map(
+        (s) => PoiRef(kind: kind, id: s.id, name: s.name, location: s.location),
+      ),
+    };
+    if (poiId != null) return candidates.where((p) => p.id == poiId).firstOrNull;
+    final limit = kind == PoiKind.fuelStation ? 750 : 500;
+    final near =
+        candidates.where((p) => GeoShapes.distanceMeters(p.location!, position) <= limit).toList()
+          ..sort(
+            (a, b) => GeoShapes.distanceMeters(a.location!, position).compareTo(
+              GeoShapes.distanceMeters(b.location!, position),
+            ),
+          );
+    return near.firstOrNull;
+  }
+
+  ReportReceipt createReport(
+    IncidentType type,
+    LatLng position, {
+    PoiRef? poi,
+    List<FuelType> fuelTypes = const [],
+  }) {
     final t = now;
     final reportId = nextId("report");
     deviceLocation = position;
 
     final match = incidents.values
         .where((i) => i.type == type && i.status != IncidentStatus.resolved)
-        .where((i) => GeoShapes.distanceMeters(i.area.center, position) <= 1500)
+        .where((i) => poi == null ? i.poi == null : i.poi?.id == poi.id)
+        .where((i) => i.area != null)
+        .where((i) => poi != null || GeoShapes.distanceMeters(i.area!.center, position) <= 1500)
         .firstOrNull;
 
     final Incident incident;
@@ -93,8 +136,16 @@ class MockBackend {
         startedAt: t,
         lastActivityAt: t,
         community: const Community(reports: 1),
-        area: GeoArea.point(position),
+        // Zgłoszenie punktowe: incydent w miejscu obiektu, bez poligonu.
+        area: GeoArea.point(poi?.location ?? position),
+        scope: poi == null ? ReportScope.area : ReportScope.point,
+        poi: poi,
+        fuelTypes: fuelTypes,
       );
+      addTimeline(incident.id, "created", "Wykryto skupisko zgłoszeń", {"reports": 1});
+    }
+    if (poi?.kind == PoiKind.fuelStation && fuelTypes.isNotEmpty) {
+      _markFuel(poi!.id, fuelTypes, available: false);
     }
 
     reports[reportId] = ReportStatus(reportId: reportId, type: type, createdAt: t);
@@ -111,7 +162,12 @@ class MockBackend {
       );
       notify();
     });
-    return ReportReceipt(reportId: reportId, createdAt: t);
+    return ReportReceipt(
+      reportId: reportId,
+      createdAt: t,
+      scope: poi == null ? ReportScope.area : ReportScope.point,
+      poi: poi,
+    );
   }
 
   // --- Weryfikacja --------------------------------------------------------------------------
@@ -138,18 +194,63 @@ class MockBackend {
 
   // --- Schrony ------------------------------------------------------------------------------
 
-  Shelter confirmShelter(String id, ShelterStatus status) {
+  Shelter confirmShelter(String id, ShelterStatus status, {ShelterOccupancy? occupancy}) {
     final shelter = shelters[id];
     if (shelter == null) throw const NotFoundFailure();
+    final occ = status == ShelterStatus.closed
+        ? ShelterOccupancy.unknown
+        : (occupancy ?? shelter.occupancy);
     final updated = shelter.copyWith(
       status: status,
       statusLabel: MockSeed.shelterLabels[status]!,
+      occupancy: occ,
+      occupancyLabel: MockSeed.occupancyLabels[occ],
       lastConfirmedAt: now,
       confirmationCount: shelter.confirmationCount + 1,
     );
     shelters[id] = updated;
     notify();
     return updated;
+  }
+
+  FuelStation confirmFuel(String id, List<FuelType> types, {required bool available}) {
+    if (!fuelStations.containsKey(id)) throw const NotFoundFailure();
+    _markFuel(id, types, available: available);
+    notify();
+    return fuelStations[id]!;
+  }
+
+  void _markFuel(String id, List<FuelType> types, {required bool available}) {
+    final station = fuelStations[id];
+    if (station == null) return;
+    final t = now;
+    final fuels = [...station.fuels];
+    for (final type in types) {
+      final status = FuelStatus(
+        type: type,
+        label: MockSeed.fuelLabels[type]!,
+        status: available ? FuelAvailability.available : FuelAvailability.unavailable,
+        statusLabel: available ? "Dostępne" : "Brak",
+        confirmedAt: t,
+      );
+      final index = fuels.indexWhere((f) => f.type == type);
+      if (index >= 0) {
+        fuels[index] = status;
+      } else {
+        fuels.add(status);
+      }
+    }
+    final missing = [
+      for (final f in fuels)
+        if (f.status == FuelAvailability.unavailable) f.type,
+    ];
+    fuelStations[id] = station.copyWith(
+      fuels: fuels,
+      shortage: missing.isNotEmpty,
+      missingFuelTypes: missing,
+      lastConfirmedAt: t,
+      confirmationCount: station.confirmationCount + 1,
+    );
   }
 
   List<Alert> activeAlerts() =>

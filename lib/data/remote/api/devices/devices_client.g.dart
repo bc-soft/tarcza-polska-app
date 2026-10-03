@@ -21,7 +21,7 @@ class _DevicesClient implements DevicesClient {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<PostApiV1DevicesResponse> postApiDeviceRegister({
+  Future<DeviceRegistered> postApiDeviceRegister({
     required RegisterDeviceRequest body,
   }) async {
     final _extra = <String, dynamic>{};
@@ -29,7 +29,7 @@ class _DevicesClient implements DevicesClient {
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body.toJson());
-    final _options = _setStreamType<PostApiV1DevicesResponse>(
+    final _options = _setStreamType<DeviceRegistered>(
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -40,9 +40,9 @@ class _DevicesClient implements DevicesClient {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<Map<String, Object?>>(_options);
-    late PostApiV1DevicesResponse _value;
+    late DeviceRegistered _value;
     try {
-      _value = PostApiV1DevicesResponse.fromJson(_result.data!);
+      _value = DeviceRegistered.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
@@ -51,12 +51,12 @@ class _DevicesClient implements DevicesClient {
   }
 
   @override
-  Future<void> getApiDeviceMe() async {
+  Future<DeviceProfile> getApiDeviceMe() async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<void>(
+    final _options = _setStreamType<DeviceProfile>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -66,12 +66,50 @@ class _DevicesClient implements DevicesClient {
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    await _dio.fetch<void>(_options);
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late DeviceProfile _value;
+    try {
+      _value = DeviceProfile.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
   }
 
   @override
-  Future<void> putApiDeviceLocation({
+  Future<LocationUpdated> putApiDeviceLocation({
     required UpdateLocationRequest body,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(body.toJson());
+    final _options = _setStreamType<LocationUpdated>(
+      Options(method: 'PUT', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/v1/devices/me/location',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late LocationUpdated _value;
+    try {
+      _value = LocationUpdated.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<void> putApiDevicePreferences({
+    required UpdatePreferencesRequest body,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -82,7 +120,7 @@ class _DevicesClient implements DevicesClient {
       Options(method: 'PUT', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/api/v1/devices/me/location',
+            '/api/v1/devices/me/preferences',
             queryParameters: queryParameters,
             data: _data,
           )

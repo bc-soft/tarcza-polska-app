@@ -1309,6 +1309,480 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Wyczyść'**
   String get commonClear;
+
+  /// No description provided for @reportRateLimitedFor.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wysłano zbyt wiele zgłoszeń w krótkim czasie. Spróbuj ponownie za {minutes} min.'**
+  String reportRateLimitedFor(int minutes);
+
+  /// No description provided for @incidentDetectedAt.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wykryto {date} ({ago})'**
+  String incidentDetectedAt(String date, String ago);
+
+  /// No description provided for @mapZoomIn.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przybliż'**
+  String get mapZoomIn;
+
+  /// No description provided for @mapZoomOut.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oddal'**
+  String get mapZoomOut;
+
+  /// No description provided for @mapAllIncidents.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wszystkie ({count})'**
+  String mapAllIncidents(int count);
+
+  /// No description provided for @incidentsTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Problemy w okolicy'**
+  String get incidentsTitle;
+
+  /// No description provided for @incidentsEmpty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak aktywnych problemów w widocznym obszarze mapy.'**
+  String get incidentsEmpty;
+
+  /// No description provided for @incidentsHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Problemy w obszarze widocznym na mapie, od najbardziej wiarygodnych.'**
+  String get incidentsHint;
+
+  /// No description provided for @reportTypePowerOutageDesc.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak zasilania w domu, budynku lub na ulicy'**
+  String get reportTypePowerOutageDesc;
+
+  /// No description provided for @reportTypePowerOutageHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. Cała ulica bez światła od 14:30, sąsiednie bloki też'**
+  String get reportTypePowerOutageHint;
+
+  /// No description provided for @reportTypeWaterOutageDesc.
+  ///
+  /// In pl, this message translates to:
+  /// **'Z kranów nie leci woda albo jest jej bardzo mało'**
+  String get reportTypeWaterOutageDesc;
+
+  /// No description provided for @reportTypeWaterOutageHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. Brak wody w całym budynku od rana'**
+  String get reportTypeWaterOutageHint;
+
+  /// No description provided for @reportTypeFuelShortageDesc.
+  ///
+  /// In pl, this message translates to:
+  /// **'Stacja nie ma paliwa lub są bardzo długie kolejki'**
+  String get reportTypeFuelShortageDesc;
+
+  /// No description provided for @reportTypeFuelShortageHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. Stacja przy rondzie — brak benzyny, kolejka ok. 30 aut'**
+  String get reportTypeFuelShortageHint;
+
+  /// No description provided for @reportTypeRoadBlockedDesc.
+  ///
+  /// In pl, this message translates to:
+  /// **'Droga jest zablokowana albo nie da się przejechać'**
+  String get reportTypeRoadBlockedDesc;
+
+  /// No description provided for @reportTypeRoadBlockedHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. Powalone drzewo blokuje oba pasy'**
+  String get reportTypeRoadBlockedHint;
+
+  /// No description provided for @reportTypeShelterIssueDesc.
+  ///
+  /// In pl, this message translates to:
+  /// **'Schron jest zamknięty, pełny albo niedostępny'**
+  String get reportTypeShelterIssueDesc;
+
+  /// No description provided for @reportTypeShelterIssueHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. Wejście do schronu zamknięte, brak informacji'**
+  String get reportTypeShelterIssueHint;
+
+  /// No description provided for @reportTypeOtherThreatDesc.
+  ///
+  /// In pl, this message translates to:
+  /// **'Inna sytuacja zagrażająca mieszkańcom'**
+  String get reportTypeOtherThreatDesc;
+
+  /// No description provided for @reportTypeOtherThreatHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Opisz krótko, co widzisz i gdzie dokładnie'**
+  String get reportTypeOtherThreatHint;
+
+  /// No description provided for @verificationPowerYes.
+  ///
+  /// In pl, this message translates to:
+  /// **'Mam prąd'**
+  String get verificationPowerYes;
+
+  /// No description provided for @verificationPowerNo.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie mam prądu'**
+  String get verificationPowerNo;
+
+  /// No description provided for @verificationWaterYes.
+  ///
+  /// In pl, this message translates to:
+  /// **'Mam wodę'**
+  String get verificationWaterYes;
+
+  /// No description provided for @verificationWaterNo.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie mam wody'**
+  String get verificationWaterNo;
+
+  /// No description provided for @verificationFuelYes.
+  ///
+  /// In pl, this message translates to:
+  /// **'Paliwo jest'**
+  String get verificationFuelYes;
+
+  /// No description provided for @verificationFuelNo.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak paliwa'**
+  String get verificationFuelNo;
+
+  /// No description provided for @verificationRoadYes.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przejezdna'**
+  String get verificationRoadYes;
+
+  /// No description provided for @verificationRoadNo.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nieprzejezdna'**
+  String get verificationRoadNo;
+
+  /// No description provided for @verificationShelterYes.
+  ///
+  /// In pl, this message translates to:
+  /// **'Schron dostępny'**
+  String get verificationShelterYes;
+
+  /// No description provided for @verificationShelterNo.
+  ///
+  /// In pl, this message translates to:
+  /// **'Niedostępny'**
+  String get verificationShelterNo;
+
+  /// No description provided for @previewTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podgląd ekranów'**
+  String get previewTitle;
+
+  /// No description provided for @previewSub.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ekrany ze stałymi danymi — bez backendu'**
+  String get previewSub;
+
+  /// No description provided for @previewHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Stałe dane demo (awaria prądu na Jeżycach, 96%). Nic nie trafia do backendu.'**
+  String get previewHint;
+
+  /// No description provided for @previewVerification.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pytanie weryfikacyjne'**
+  String get previewVerification;
+
+  /// No description provided for @previewScreens.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ekrany'**
+  String get previewScreens;
+
+  /// No description provided for @previewQuestionPower.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak prądu'**
+  String get previewQuestionPower;
+
+  /// No description provided for @previewQuestionWater.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak wody'**
+  String get previewQuestionWater;
+
+  /// No description provided for @previewQuestionGeneric.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pytanie ogólne (TAK / NIE)'**
+  String get previewQuestionGeneric;
+
+  /// No description provided for @verificationCardLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pytanie o Twoją okolicę'**
+  String get verificationCardLabel;
+
+  /// No description provided for @fuelPb95.
+  ///
+  /// In pl, this message translates to:
+  /// **'Benzyna 95'**
+  String get fuelPb95;
+
+  /// No description provided for @fuelPb98.
+  ///
+  /// In pl, this message translates to:
+  /// **'Benzyna 98'**
+  String get fuelPb98;
+
+  /// No description provided for @fuelDiesel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Diesel'**
+  String get fuelDiesel;
+
+  /// No description provided for @fuelLpg.
+  ///
+  /// In pl, this message translates to:
+  /// **'LPG'**
+  String get fuelLpg;
+
+  /// No description provided for @occupancyPlenty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dużo miejsc'**
+  String get occupancyPlenty;
+
+  /// No description provided for @occupancyLimited.
+  ///
+  /// In pl, this message translates to:
+  /// **'Mało miejsc'**
+  String get occupancyLimited;
+
+  /// No description provided for @occupancyFull.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pełny'**
+  String get occupancyFull;
+
+  /// No description provided for @occupancyUnknown.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak danych o miejscach'**
+  String get occupancyUnknown;
+
+  /// No description provided for @fuelStationTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Stacja paliw'**
+  String get fuelStationTitle;
+
+  /// No description provided for @fuelStationFuels.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dostępność paliw'**
+  String get fuelStationFuels;
+
+  /// No description provided for @fuelStationShortage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak części paliw'**
+  String get fuelStationShortage;
+
+  /// No description provided for @fuelStationOk.
+  ///
+  /// In pl, this message translates to:
+  /// **'Paliwa dostępne'**
+  String get fuelStationOk;
+
+  /// No description provided for @fuelStationNoData.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak danych o paliwach'**
+  String get fuelStationNoData;
+
+  /// No description provided for @fuelStationConfirm.
+  ///
+  /// In pl, this message translates to:
+  /// **'Potwierdź stan na stacji'**
+  String get fuelStationConfirm;
+
+  /// No description provided for @fuelStationConfirmTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Które paliwa są teraz dostępne?'**
+  String get fuelStationConfirmTitle;
+
+  /// No description provided for @fuelStationConfirmHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaznacz paliwa, które można teraz zatankować. Jeśli czegoś brakuje, użyj „Zgłoś brak paliwa”.'**
+  String get fuelStationConfirmHint;
+
+  /// No description provided for @fuelStationConfirmed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dziękujemy za potwierdzenie stanu paliw.'**
+  String get fuelStationConfirmed;
+
+  /// No description provided for @fuelStationAddress.
+  ///
+  /// In pl, this message translates to:
+  /// **'Adres'**
+  String get fuelStationAddress;
+
+  /// No description provided for @fuelStationLastConfirmed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ostatnie potwierdzenie'**
+  String get fuelStationLastConfirmed;
+
+  /// No description provided for @shelterOccupancy.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapełnienie'**
+  String get shelterOccupancy;
+
+  /// No description provided for @shelterAvailability.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tryb otwarcia'**
+  String get shelterAvailability;
+
+  /// No description provided for @shelterConfirmOccupancy.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ile jest miejsc?'**
+  String get shelterConfirmOccupancy;
+
+  /// No description provided for @reportObjectFuelTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Która stacja?'**
+  String get reportObjectFuelTitle;
+
+  /// No description provided for @reportObjectShelterTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Który schron?'**
+  String get reportObjectShelterTitle;
+
+  /// No description provided for @reportObjectHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaznaczyliśmy najbliższy obiekt — zmień, jeśli chodzi o inny.'**
+  String get reportObjectHint;
+
+  /// No description provided for @reportObjectNone.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie znaleźliśmy takich obiektów w pobliżu Twojej pozycji.'**
+  String get reportObjectNone;
+
+  /// No description provided for @reportFuelTypesTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czego brakuje?'**
+  String get reportFuelTypesTitle;
+
+  /// No description provided for @reportFuelTypesRequired.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaznacz co najmniej jedno paliwo.'**
+  String get reportFuelTypesRequired;
+
+  /// No description provided for @verificationPoiLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pytanie dotyczy obiektu'**
+  String get verificationPoiLabel;
+
+  /// No description provided for @incidentPoiTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dotyczy obiektu'**
+  String get incidentPoiTitle;
+
+  /// No description provided for @incidentMissingFuels.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brakuje: {fuels}'**
+  String incidentMissingFuels(String fuels);
+
+  /// No description provided for @incidentAreaObject.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zgłoszenie dotyczy jednego obiektu — bez strefy na mapie.'**
+  String get incidentAreaObject;
+
+  /// No description provided for @proceduresTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Co robić'**
+  String get proceduresTitle;
+
+  /// No description provided for @timelineTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Historia'**
+  String get timelineTitle;
+
+  /// No description provided for @previewQuestionFuel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak paliwa (pytanie o stację)'**
+  String get previewQuestionFuel;
+
+  /// No description provided for @fuelStationConfirmSend.
+  ///
+  /// In pl, this message translates to:
+  /// **'Potwierdź dostępne paliwa'**
+  String get fuelStationConfirmSend;
+
+  /// No description provided for @fuelStationReport.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zgłoś brak paliwa'**
+  String get fuelStationReport;
+
+  /// No description provided for @shelterReport.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zgłoś problem ze schronem'**
+  String get shelterReport;
+
+  /// No description provided for @reportObjectMapHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaznaczyliśmy najbliższy obiekt — dotknij innego na mapie, aby zmienić.'**
+  String get reportObjectMapHint;
+
+  /// No description provided for @reportObjectChangeHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dotknij innego obiektu na mapie, aby zmienić wybór.'**
+  String get reportObjectChangeHint;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

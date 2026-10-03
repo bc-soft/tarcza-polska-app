@@ -7,20 +7,40 @@ import "package:tarcza_polska/app/di/injection.dart";
 import "package:tarcza_polska/app/router/app_router.dart";
 import "package:tarcza_polska/app/theme/tarcza_colors.dart";
 import "package:tarcza_polska/core/utils/formatters.dart";
+import "package:tarcza_polska/core/widgets/guidance_widgets.dart";
 import "package:tarcza_polska/core/widgets/map_widgets.dart";
 import "package:tarcza_polska/core/widgets/widgets.dart";
 import "package:tarcza_polska/data/models/models.dart";
+import "package:tarcza_polska/data/repositories/repositories.dart";
 import "package:tarcza_polska/features/incident/bloc/incident_cubit.dart";
 import "package:tarcza_polska/features/map/bloc/map_bloc.dart";
 
 class IncidentPage extends StatelessWidget {
-  const IncidentPage({super.key, required this.incidentId});
+  const IncidentPage({
+    super.key,
+    required this.incidentId,
+    this.initial,
+    this.repository,
+    this.guidance,
+  });
 
   final String incidentId;
 
+  /// Dane z karty na mapie — ekran rysuje się od razu, `GET /incidents/{id}` je odświeża.
+  final Incident? initial;
+
+  /// Podgląd ekranów (ustawienia dev) podaje własne repozytorium ze stałymi danymi.
+  final IncidentRepository? repository;
+  final GuidanceRepository? guidance;
+
   @override
   Widget build(BuildContext context) => BlocProvider(
-    create: (_) => IncidentCubit(repository: getIt(), incidentId: incidentId)..load(),
+    create: (_) => IncidentCubit(
+      repository: repository ?? getIt(),
+      guidance: guidance ?? getIt(),
+      incidentId: incidentId,
+      initial: initial,
+    )..load(),
     child: const IncidentView(),
   );
 }
@@ -32,7 +52,7 @@ class IncidentView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.incidentTitle)),
+      appBar: TarczaAppBar(title: Text(l10n.incidentTitle)),
       body: BlocBuilder<IncidentCubit, IncidentState>(
         builder: (context, state) {
           final incident = state.incident;
@@ -45,7 +65,7 @@ class IncidentView extends StatelessWidget {
           }
           return RefreshIndicator(
             onRefresh: context.read<IncidentCubit>().load,
-            child: _IncidentDetails(incident: incident),
+            child: _IncidentDetails(incident: incident, state: state),
           );
         },
       ),
@@ -54,15 +74,15 @@ class IncidentView extends StatelessWidget {
 }
 
 class _IncidentDetails extends StatelessWidget {
-  const _IncidentDetails({required this.incident});
+  const _IncidentDetails({required this.incident, required this.state});
 
   final Incident incident;
+  final IncidentState state;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final color = context.statusColors.forConfidence(incident.confidenceLevel);
-    final community = incident.community;
     final percent = Formatters.percent(incident.confidenceScore);
 
     return ListView(
@@ -84,8 +104,16 @@ class _IncidentDetails extends StatelessWidget {
                         Text(incident.typeLabel, style: Theme.of(context).textTheme.titleLarge),
                         const SizedBox(height: 4),
                         Text(
-                          incident.status.label(l10n),
+                          incident.statusText(l10n),
                           style: const TextStyle(color: TarczaPalette.textSecondary),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          l10n.incidentDetectedAt(
+                            Formatters.dateTime(incident.startedAt),
+                            Formatters.relative(l10n, incident.startedAt),
+                          ),
+                          style: const TextStyle(color: TarczaPalette.textSecondary, fontSize: 13),
                         ),
                       ],
                     ),
@@ -146,65 +174,58 @@ class _IncidentDetails extends StatelessWidget {
             ],
           ),
         ),
-        SectionHeader(l10n.incidentCommunity),
-        TarczaCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                community.agreementPct != null
-                    ? l10n.communityAgreement(community.agreementPct!)
-                    : l10n.communityNoAnswers,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 6),
-              Text(
-                "${l10n.communityReports(community.reports)} · ${l10n.communityAnswers(community.answers)}",
-                style: const TextStyle(color: TarczaPalette.textSecondary),
-              ),
-            ],
+        if (incident.poi case final poi?) ...[
+          SectionHeader(l10n.incidentPoiTitle),
+          TarczaCard(
+            padding: EdgeInsets.zero,
+            child: ListTileRow(
+              icon: poi.kind.icon,
+              title: poi.name,
+              subtitle: incident.fuelTypes.isEmpty
+                  ? null
+                  : l10n.incidentMissingFuels(
+                      incident.fuelTypes.map((f) => f.displayLabel(l10n)).join(", "),
+                    ),
+              onTap: () => switch (poi.kind) {
+                PoiKind.fuelStation => context.push(AppRoutes.fuelStation(poi.id)),
+                PoiKind.shelter => context.push(AppRoutes.shelter(poi.id)),
+              },
+            ),
           ),
-        ),
+        ],
         SectionHeader(l10n.incidentArea),
-        _AreaPreview(incident: incident, color: color),
-        const SizedBox(height: 8),
+        // `area == null` — zasięg niewyznaczony (status `detected`), nie ma czego rysować.
+        if (incident.area != null) ...[
+          _AreaPreview(area: incident.area!, type: incident.type, color: color),
+          const SizedBox(height: 8),
+        ],
         Text(
-          incident.area is GeoPolygonArea ? l10n.incidentAreaPolygon : l10n.incidentAreaPoint,
+          switch (incident) {
+            Incident(scope: ReportScope.point) => l10n.incidentAreaObject,
+            Incident(area: GeoPolygonArea()) => l10n.incidentAreaPolygon,
+            _ => l10n.incidentAreaPoint,
+          },
           style: const TextStyle(color: TarczaPalette.textSecondary),
         ),
-        const SizedBox(height: 12),
-        TarczaCard(
-          child: Column(
-            children: [
-              InfoRow(label: l10n.incidentStarted, value: Formatters.dateTime(incident.startedAt)),
-              InfoRow(
-                label: l10n.incidentLastActivity,
-                value: Formatters.relative(l10n, incident.lastActivityAt),
-              ),
-              if (incident.lastConfirmedAt != null)
-                InfoRow(
-                  label: l10n.incidentLastConfirmed,
-                  value: Formatters.relative(l10n, incident.lastConfirmedAt!),
-                ),
-            ],
-          ),
-        ),
+        ProceduresSection(procedures: state.procedures),
+        IncidentTimeline(entries: state.timeline),
         const SizedBox(height: 20),
         PrimaryButton(
           icon: Icons.map_outlined,
           label: l10n.incidentShowOnMap,
           onPressed: () {
+            final points = incident.area?.outlinePoints ?? const [];
             context.read<MapBloc>().add(
-              MapFocusRequested(incident.area.outlinePoints, selectIncidentId: incident.id),
+              points.isEmpty
+                  ? MapIncidentSelected(incident.id)
+                  : MapFocusRequested(points, selectIncidentId: incident.id),
             );
-            context.go(AppRoutes.map);
+            // Ekran mógł być otwarty z karty (OpenContainer, trasa bez strony go_router) —
+            // najpierw go zamykamy, inaczej zostałby nad mapą.
+            final router = GoRouter.of(context);
+            Navigator.of(context).maybePop();
+            router.go(AppRoutes.map);
           },
-        ),
-        const SizedBox(height: 12),
-        SecondaryButton(
-          icon: Icons.night_shelter_outlined,
-          label: l10n.incidentNearestShelter,
-          onPressed: () => context.push(AppRoutes.shelters),
         ),
         const SizedBox(height: 16),
         Row(
@@ -227,14 +248,14 @@ class _IncidentDetails extends StatelessWidget {
 }
 
 class _AreaPreview extends StatelessWidget {
-  const _AreaPreview({required this.incident, required this.color});
+  const _AreaPreview({required this.area, required this.type, required this.color});
 
-  final Incident incident;
+  final GeoArea area;
+  final IncidentType type;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
-    final area = incident.area;
     final points = area.outlinePoints;
     return SizedBox(
       height: 200,
@@ -274,7 +295,7 @@ class _AreaPreview extends StatelessWidget {
                       point: point,
                       width: 40,
                       height: 40,
-                      child: IconCircleMarker(icon: incident.type.icon, color: color, size: 40),
+                      child: IconCircleMarker(icon: type.icon, color: color, size: 40),
                     ),
                   ],
                 ),

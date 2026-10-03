@@ -1,0 +1,5 @@
+{
+  "USE_MOCKS": "false",
+  "API_BASE_URL": "https://6d88-213-241-25-155.ngrok-free.app",
+  "ENABLE_PUSH": "true"
+}

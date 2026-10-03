@@ -145,6 +145,24 @@ abstract final class AppTheme {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
       ),
       dividerTheme: const DividerThemeData(color: TarczaPalette.outline, space: 1),
+      // M3 domyślnie rysuje wyłączony thumb kolorem `outline` — przy naszym jasnym
+      // `outline` był niewidoczny na jasnym torze.
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) =>
+              states.contains(WidgetState.selected) ? Colors.white : TarczaPalette.textSecondary,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? TarczaPalette.primary
+              : TarczaPalette.background,
+        ),
+        trackOutlineColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? TarczaPalette.primary
+              : TarczaPalette.textSecondary,
+        ),
+      ),
     );
   }
 }

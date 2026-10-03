@@ -46,7 +46,8 @@ class OnboardingView extends StatelessWidget {
       return Scaffold(
         appBar: state.step == OnboardingStep.welcome
             ? null
-            : AppBar(
+            : TarczaAppBar(
+                showLogo: false,
                 leading: canGoBack
                     ? IconButton(
                         tooltip: context.l10n.commonBack,
@@ -56,7 +57,7 @@ class OnboardingView extends StatelessWidget {
                     : null,
                 automaticallyImplyLeading: false,
                 title: progressIndex < 0
-                    ? null
+                    ? const SizedBox.shrink()
                     : Text(
                         context.l10n.onbStepOf(
                           progressIndex + 1,
@@ -90,6 +91,7 @@ class OnboardingView extends StatelessWidget {
     return switch (state.step) {
       OnboardingStep.welcome => _InfoStep(
         icon: Icons.shield_outlined,
+        image: const TarczaLogo(size: 150),
         title: l10n.onbWelcomeTitle,
         body: l10n.onbWelcomeBody,
         note: l10n.onbWelcomeAnon,
@@ -158,6 +160,7 @@ class _InfoStep extends StatelessWidget {
     required this.primary,
     this.secondary,
     this.note,
+    this.image,
   });
 
   final IconData icon;
@@ -167,6 +170,9 @@ class _InfoStep extends StatelessWidget {
   final Widget primary;
   final Widget? secondary;
 
+  /// Zamiast ikony w kółku (np. logo na ekranie powitalnym).
+  final Widget? image;
+
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
@@ -175,15 +181,17 @@ class _InfoStep extends StatelessWidget {
       children: [
         const Spacer(),
         Center(
-          child: Container(
-            width: 104,
-            height: 104,
-            decoration: BoxDecoration(
-              color: TarczaPalette.primary.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, size: 54, color: TarczaPalette.primary),
-          ),
+          child:
+              image ??
+              Container(
+                width: 104,
+                height: 104,
+                decoration: BoxDecoration(
+                  color: TarczaPalette.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 54, color: TarczaPalette.primary),
+              ),
         ),
         const SizedBox(height: 28),
         Text(title, textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineSmall),

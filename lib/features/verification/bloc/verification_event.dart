@@ -14,12 +14,15 @@ final class VerificationCheckRequested extends VerificationEvent {
 
 /// Push `data.type = verification` (pierwszy plan albo tapnięcie).
 final class VerificationPushReceived extends VerificationEvent {
-  const VerificationPushReceived(this.verificationId);
+  const VerificationPushReceived(this.verificationId, {this.expiresAt});
 
   final String verificationId;
 
+  /// `data.expiresAt` z pusha (jeśli jest).
+  final DateTime? expiresAt;
+
   @override
-  List<Object?> get props => [verificationId];
+  List<Object?> get props => [verificationId, expiresAt];
 }
 
 /// Użytkownik otworzył pytanie (karta na mapie, deep link `/verification/:id`).

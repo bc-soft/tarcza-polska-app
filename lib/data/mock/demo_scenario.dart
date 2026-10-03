@@ -106,9 +106,12 @@ class DemoScenario {
     switch (step) {
       case DemoStep.idle:
         _backend.incidents.remove(incidentId);
+        _backend.timelines.remove(incidentId);
         _backend.alerts.remove(alertId);
         _backend.questions.remove(verificationId);
       case DemoStep.detected:
+        _backend.timelines.remove(incidentId);
+        _backend.addTimeline(incidentId, "created", "Wykryto skupisko zgłoszeń", {"reports": 3});
         _putIncident(
           status: IncidentStatus.detected,
           level: ConfidenceLevel.unverified,
@@ -122,48 +125,71 @@ class DemoScenario {
           level: ConfidenceLevel.likely,
           score: 0.42,
           community: const Community(reports: 5),
-          area: GeoShapes.blob(center, radiusMeters: 380, radial: const [1, 0.85, 1.1, 0.95]),
+          area: GeoShapes.hexArea(center, radiusMeters: 380, radial: const [1, 0.85, 1.1, 0.95]),
         );
+        _backend
+          ..addTimeline(incidentId, "confidence_changed", "Zmienił się poziom wiarygodności", {
+            "from": "unverified",
+            "to": "likely",
+          })
+          ..addTimeline(incidentId, "wave_started", "Wysłano falę pytań weryfikacyjnych", {
+            "ring": 0,
+            "cells": 7,
+          });
         _askQuestion(t);
       case DemoStep.verified:
+        _backend
+          ..addTimeline(incidentId, "wave_closed", "Zakończono falę pytań")
+          ..addTimeline(incidentId, "confidence_changed", "Zmienił się poziom wiarygodności", {
+            "from": "likely",
+            "to": "high",
+          });
         _putIncident(
           status: IncidentStatus.verifying,
           level: ConfidenceLevel.high,
           score: 0.76,
           community: const Community(reports: 7, answers: 38, agreementPct: 84),
-          area: GeoShapes.blob(
+          area: GeoShapes.hexArea(
             center,
             radiusMeters: 650,
             radial: const [1, 0.9, 1.15, 1.05, 0.9, 1],
           ),
         );
       case DemoStep.boundary:
+        _backend.addTimeline(incidentId, "area_changed", "Zmienił się zasięg incydentu");
         // Część pytanych dalej od centrum odpowiada TAK — granica zawęża się na wschodzie.
         _putIncident(
           status: IncidentStatus.active,
           level: ConfidenceLevel.high,
           score: 0.81,
           community: const Community(reports: 8, answers: 64, agreementPct: 86),
-          area: GeoShapes.blob(
+          area: GeoShapes.hexArea(
             GeoShapes.offset(center, northMeters: 60, eastMeters: -90),
             radiusMeters: 640,
             radial: const [0.55, 0.8, 1.25, 1.2, 1.05, 0.95, 0.75, 0.6],
           ),
         );
       case DemoStep.confirmed:
+        _backend
+          ..addTimeline(incidentId, "source_added", "Dodano źródło: operator sieci energetycznej")
+          ..addTimeline(incidentId, "confidence_changed", "Zmienił się poziom wiarygodności", {
+            "from": "high",
+            "to": "confirmed",
+          });
         final current = _backend.incidents[incidentId];
         _putIncident(
           status: IncidentStatus.active,
           level: ConfidenceLevel.confirmed,
           score: 0.96,
           community: const Community(reports: 9, answers: 71, agreementPct: 86),
-          area: current?.area ?? GeoShapes.blob(center, radiusMeters: 640),
+          area: current?.area ?? GeoShapes.hexArea(center, radiusMeters: 640),
           summary:
               "Operator sieci energetycznej potwierdza awarię. "
               "Przewidywany czas usunięcia: ok. 3 godziny.",
           lastConfirmedAt: t,
         );
       case DemoStep.alerted:
+        _backend.addTimeline(incidentId, "alert_published", "Wysłano komunikat do obszaru");
         final incident = _backend.incidents[incidentId];
         _backend.alerts[alertId] = Alert(
           id: alertId,
@@ -228,7 +254,12 @@ class DemoScenario {
     );
     unawaited(
       _push.simulate(
-        const VerificationPushEvent(verificationId: verificationId, incidentId: incidentId),
+        VerificationPushEvent(
+          verificationId: verificationId,
+          incidentId: incidentId,
+          incidentType: IncidentType.powerOutage.apiValue,
+          expiresAt: t.add(const Duration(seconds: 90)),
+        ),
         title: "Tarcza pyta o Twoją okolicę",
         body: "Czy w tej chwili masz dostęp do prądu?",
       ),

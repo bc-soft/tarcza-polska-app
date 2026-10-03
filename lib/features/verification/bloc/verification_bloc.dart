@@ -49,6 +49,11 @@ class VerificationBloc extends Bloc<VerificationEvent, VerificationState> {
 
   Future<void> _onPush(VerificationPushReceived event, Emitter<VerificationState> emit) async {
     if (state.question?.verificationId == event.verificationId && state.isBusy) return;
+    // Push doszedł po czasie (słaby zasięg) — nie pokazujemy wygasłego pytania.
+    final expiresAt = event.expiresAt;
+    if (expiresAt != null && !_clock().isBefore(expiresAt)) return;
+    // Nie przerywamy innego pytania, na które użytkownik właśnie odpowiada.
+    if (state.isBusy && state.question?.verificationId != event.verificationId) return;
     await _load(event.verificationId, emit);
   }
 

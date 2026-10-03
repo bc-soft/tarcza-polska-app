@@ -706,4 +706,255 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get commonClear => 'Wyczyść';
+
+  @override
+  String reportRateLimitedFor(int minutes) {
+    return 'Wysłano zbyt wiele zgłoszeń w krótkim czasie. Spróbuj ponownie za $minutes min.';
+  }
+
+  @override
+  String incidentDetectedAt(String date, String ago) {
+    return 'Wykryto $date ($ago)';
+  }
+
+  @override
+  String get mapZoomIn => 'Przybliż';
+
+  @override
+  String get mapZoomOut => 'Oddal';
+
+  @override
+  String mapAllIncidents(int count) {
+    return 'Wszystkie ($count)';
+  }
+
+  @override
+  String get incidentsTitle => 'Problemy w okolicy';
+
+  @override
+  String get incidentsEmpty => 'Brak aktywnych problemów w widocznym obszarze mapy.';
+
+  @override
+  String get incidentsHint =>
+      'Problemy w obszarze widocznym na mapie, od najbardziej wiarygodnych.';
+
+  @override
+  String get reportTypePowerOutageDesc => 'Brak zasilania w domu, budynku lub na ulicy';
+
+  @override
+  String get reportTypePowerOutageHint =>
+      'np. Cała ulica bez światła od 14:30, sąsiednie bloki też';
+
+  @override
+  String get reportTypeWaterOutageDesc => 'Z kranów nie leci woda albo jest jej bardzo mało';
+
+  @override
+  String get reportTypeWaterOutageHint => 'np. Brak wody w całym budynku od rana';
+
+  @override
+  String get reportTypeFuelShortageDesc => 'Stacja nie ma paliwa lub są bardzo długie kolejki';
+
+  @override
+  String get reportTypeFuelShortageHint =>
+      'np. Stacja przy rondzie — brak benzyny, kolejka ok. 30 aut';
+
+  @override
+  String get reportTypeRoadBlockedDesc => 'Droga jest zablokowana albo nie da się przejechać';
+
+  @override
+  String get reportTypeRoadBlockedHint => 'np. Powalone drzewo blokuje oba pasy';
+
+  @override
+  String get reportTypeShelterIssueDesc => 'Schron jest zamknięty, pełny albo niedostępny';
+
+  @override
+  String get reportTypeShelterIssueHint => 'np. Wejście do schronu zamknięte, brak informacji';
+
+  @override
+  String get reportTypeOtherThreatDesc => 'Inna sytuacja zagrażająca mieszkańcom';
+
+  @override
+  String get reportTypeOtherThreatHint => 'Opisz krótko, co widzisz i gdzie dokładnie';
+
+  @override
+  String get verificationPowerYes => 'Mam prąd';
+
+  @override
+  String get verificationPowerNo => 'Nie mam prądu';
+
+  @override
+  String get verificationWaterYes => 'Mam wodę';
+
+  @override
+  String get verificationWaterNo => 'Nie mam wody';
+
+  @override
+  String get verificationFuelYes => 'Paliwo jest';
+
+  @override
+  String get verificationFuelNo => 'Brak paliwa';
+
+  @override
+  String get verificationRoadYes => 'Przejezdna';
+
+  @override
+  String get verificationRoadNo => 'Nieprzejezdna';
+
+  @override
+  String get verificationShelterYes => 'Schron dostępny';
+
+  @override
+  String get verificationShelterNo => 'Niedostępny';
+
+  @override
+  String get previewTitle => 'Podgląd ekranów';
+
+  @override
+  String get previewSub => 'Ekrany ze stałymi danymi — bez backendu';
+
+  @override
+  String get previewHint =>
+      'Stałe dane demo (awaria prądu na Jeżycach, 96%). Nic nie trafia do backendu.';
+
+  @override
+  String get previewVerification => 'Pytanie weryfikacyjne';
+
+  @override
+  String get previewScreens => 'Ekrany';
+
+  @override
+  String get previewQuestionPower => 'Brak prądu';
+
+  @override
+  String get previewQuestionWater => 'Brak wody';
+
+  @override
+  String get previewQuestionGeneric => 'Pytanie ogólne (TAK / NIE)';
+
+  @override
+  String get verificationCardLabel => 'Pytanie o Twoją okolicę';
+
+  @override
+  String get fuelPb95 => 'Benzyna 95';
+
+  @override
+  String get fuelPb98 => 'Benzyna 98';
+
+  @override
+  String get fuelDiesel => 'Diesel';
+
+  @override
+  String get fuelLpg => 'LPG';
+
+  @override
+  String get occupancyPlenty => 'Dużo miejsc';
+
+  @override
+  String get occupancyLimited => 'Mało miejsc';
+
+  @override
+  String get occupancyFull => 'Pełny';
+
+  @override
+  String get occupancyUnknown => 'Brak danych o miejscach';
+
+  @override
+  String get fuelStationTitle => 'Stacja paliw';
+
+  @override
+  String get fuelStationFuels => 'Dostępność paliw';
+
+  @override
+  String get fuelStationShortage => 'Brak części paliw';
+
+  @override
+  String get fuelStationOk => 'Paliwa dostępne';
+
+  @override
+  String get fuelStationNoData => 'Brak danych o paliwach';
+
+  @override
+  String get fuelStationConfirm => 'Potwierdź stan na stacji';
+
+  @override
+  String get fuelStationConfirmTitle => 'Które paliwa są teraz dostępne?';
+
+  @override
+  String get fuelStationConfirmHint =>
+      'Zaznacz paliwa, które można teraz zatankować. Jeśli czegoś brakuje, użyj „Zgłoś brak paliwa”.';
+
+  @override
+  String get fuelStationConfirmed => 'Dziękujemy za potwierdzenie stanu paliw.';
+
+  @override
+  String get fuelStationAddress => 'Adres';
+
+  @override
+  String get fuelStationLastConfirmed => 'Ostatnie potwierdzenie';
+
+  @override
+  String get shelterOccupancy => 'Zapełnienie';
+
+  @override
+  String get shelterAvailability => 'Tryb otwarcia';
+
+  @override
+  String get shelterConfirmOccupancy => 'Ile jest miejsc?';
+
+  @override
+  String get reportObjectFuelTitle => 'Która stacja?';
+
+  @override
+  String get reportObjectShelterTitle => 'Który schron?';
+
+  @override
+  String get reportObjectHint => 'Zaznaczyliśmy najbliższy obiekt — zmień, jeśli chodzi o inny.';
+
+  @override
+  String get reportObjectNone => 'Nie znaleźliśmy takich obiektów w pobliżu Twojej pozycji.';
+
+  @override
+  String get reportFuelTypesTitle => 'Czego brakuje?';
+
+  @override
+  String get reportFuelTypesRequired => 'Zaznacz co najmniej jedno paliwo.';
+
+  @override
+  String get verificationPoiLabel => 'Pytanie dotyczy obiektu';
+
+  @override
+  String get incidentPoiTitle => 'Dotyczy obiektu';
+
+  @override
+  String incidentMissingFuels(String fuels) {
+    return 'Brakuje: $fuels';
+  }
+
+  @override
+  String get incidentAreaObject => 'Zgłoszenie dotyczy jednego obiektu — bez strefy na mapie.';
+
+  @override
+  String get proceduresTitle => 'Co robić';
+
+  @override
+  String get timelineTitle => 'Historia';
+
+  @override
+  String get previewQuestionFuel => 'Brak paliwa (pytanie o stację)';
+
+  @override
+  String get fuelStationConfirmSend => 'Potwierdź dostępne paliwa';
+
+  @override
+  String get fuelStationReport => 'Zgłoś brak paliwa';
+
+  @override
+  String get shelterReport => 'Zgłoś problem ze schronem';
+
+  @override
+  String get reportObjectMapHint =>
+      'Zaznaczyliśmy najbliższy obiekt — dotknij innego na mapie, aby zmienić.';
+
+  @override
+  String get reportObjectChangeHint => 'Dotknij innego obiektu na mapie, aby zmienić wybór.';
 }

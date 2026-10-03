@@ -20,10 +20,18 @@ abstract interface class DeviceRepository {
   Future<DeviceProfile> getProfile();
 
   /// `PUT /devices/me/location` — zwraca komórkę H3 nadaną przez backend.
-  Future<String?> updateLocation(LatLng position, {double? accuracyMeters});
+  /// [source] pozwala backendowi odróżnić adres domowy od GPS i trybu czuwania.
+  Future<String?> updateLocation(
+    LatLng position, {
+    required LocationSource source,
+    double? accuracyMeters,
+  });
 
   /// `PUT /devices/me/push-token` (przy każdej rotacji tokena FCM).
   Future<void> updatePushToken(String pushToken);
+
+  /// `PUT /devices/me/preferences` — zgoda na przypomnienia `location_refresh`.
+  Future<void> updatePreferences({required bool locationRefresh});
 }
 
 abstract interface class MapRepository {
@@ -38,6 +46,9 @@ abstract interface class MapRepository {
 abstract interface class IncidentRepository {
   Future<Incident> getIncident(String id);
 
+  /// Oś czasu incydentu, rosnąco (`GET /incidents/{id}/timeline`).
+  Future<List<IncidentTimelineEntry>> getTimeline(String id);
+
   /// Incydenty obejmujące podaną pozycję.
   Future<List<Incident>> getIncidentsAt(LatLng position);
 }
@@ -46,10 +57,14 @@ abstract interface class ReportRepository {
   Future<List<ReportTypeOption>> getTypes();
 
   /// `POST /reports` (202). Rzuca `RateLimitedFailure` przy 429.
+  /// Zgłoszenia punktowe (`fuel_shortage`, `shelter_issue`) podają [poiId] (i [fuelTypes]);
+  /// bez `poiId` backend bierze najbliższy obiekt albo zwraca 422 `poi_required`.
   Future<ReportReceipt> createReport({
     required IncidentType type,
     required LatLng position,
     String? description,
+    String? poiId,
+    List<FuelType> fuelTypes = const [],
   });
 
   Future<ReportStatus> getReportStatus(String reportId);
@@ -72,7 +87,34 @@ abstract interface class ShelterRepository {
 
   Future<Shelter> getShelter(String id);
 
-  Future<Shelter> confirmStatus(String id, ShelterStatus status, {String? comment});
+  /// [occupancy] pomijamy dla `closed`.
+  Future<Shelter> confirmStatus(
+    String id,
+    ShelterStatus status, {
+    ShelterOccupancy? occupancy,
+    String? comment,
+  });
+}
+
+abstract interface class FuelStationRepository {
+  /// Najbliższe stacje (z `distanceMeters`).
+  Future<List<FuelStation>> getNearest(LatLng position);
+
+  Future<FuelStation> getStation(String id);
+
+  /// Potwierdzenie stanu przez osobę na stacji — bez tworzenia zgłoszenia.
+  Future<FuelStation> confirmStatus(
+    String id, {
+    required List<FuelType> fuelTypes,
+    required bool available,
+    String? comment,
+  });
+}
+
+/// Procedury „co robić” (`GET /procedures`).
+abstract interface class GuidanceRepository {
+  /// Procedury dla typu plus ogólne; bez [type] — wszystkie ogólne.
+  Future<List<Procedure>> getProcedures({IncidentType? type});
 }
 
 abstract interface class AlertRepository {

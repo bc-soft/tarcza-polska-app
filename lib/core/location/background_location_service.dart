@@ -232,7 +232,12 @@ void backgroundLocationDispatcher() {
         ..interceptors.add(StaticHeadersInterceptor());
       await dio.put<void>(
         "/api/v1/devices/me/location",
-        data: {"lat": position.latitude, "lng": position.longitude},
+        data: {
+          "lat": position.latitude,
+          "lng": position.longitude,
+          "accuracyMeters": position.accuracy,
+          "source": "background",
+        },
         options: Options(headers: {"Authorization": "Bearer $token"}),
       );
       await prefs.saveLastSent(cell: cell, at: DateTime.now(), source: LocationSource.background);

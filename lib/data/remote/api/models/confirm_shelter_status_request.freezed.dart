@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ConfirmShelterStatusRequest {
 
- ShelterStatus get status; String? get comment;
+ ShelterStatus get status; String? get comment; ShelterOccupancy2? get occupancy;
 /// Create a copy of ConfirmShelterStatusRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $ConfirmShelterStatusRequestCopyWith<ConfirmShelterStatusRequest> get copyWith =
 @override
 bool operator ==(Object other) {
   final _this = this as ConfirmShelterStatusRequest;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ConfirmShelterStatusRequest&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.comment, _this.comment) || other.comment == _this.comment));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ConfirmShelterStatusRequest&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.comment, _this.comment) || other.comment == _this.comment)&&(identical(other.occupancy, _this.occupancy) || other.occupancy == _this.occupancy));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ConfirmShelterStatusRequest;
-  return Object.hash(runtimeType,_this.status,_this.comment);
+  return Object.hash(runtimeType,_this.status,_this.comment,_this.occupancy);
 }
 
 @override
 String toString() {
   final _this = this as ConfirmShelterStatusRequest;
-  return 'ConfirmShelterStatusRequest(status: ${_this.status}, comment: ${_this.comment})';
+  return 'ConfirmShelterStatusRequest(status: ${_this.status}, comment: ${_this.comment}, occupancy: ${_this.occupancy})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $ConfirmShelterStatusRequestCopyWith<$Res>  {
   factory $ConfirmShelterStatusRequestCopyWith(ConfirmShelterStatusRequest value, $Res Function(ConfirmShelterStatusRequest) _then) = _$ConfirmShelterStatusRequestCopyWithImpl;
 @useResult
 $Res call({
- ShelterStatus status, String? comment
+ ShelterStatus status, String? comment, ShelterOccupancy2? occupancy
 });
 
 
@@ -71,11 +71,12 @@ class _$ConfirmShelterStatusRequestCopyWithImpl<$Res>
 
 /// Create a copy of ConfirmShelterStatusRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? comment = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? comment = freezed,Object? occupancy = freezed,}) {
   return _then(ConfirmShelterStatusRequest(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as ShelterStatus,comment: freezed == comment ? _self.comment : comment // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,occupancy: freezed == occupancy ? _self.occupancy : occupancy // ignore: cast_nullable_to_non_nullable
+as ShelterOccupancy2?,
   ));
 }
 
@@ -160,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ShelterStatus status,  String? comment)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ShelterStatus status,  String? comment,  ShelterOccupancy2? occupancy)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ConfirmShelterStatusRequest() when $default != null:
-return $default(_that.status,_that.comment);case _:
+return $default(_that.status,_that.comment,_that.occupancy);case _:
   return orElse();
 
 }
@@ -181,10 +182,10 @@ return $default(_that.status,_that.comment);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ShelterStatus status,  String? comment)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ShelterStatus status,  String? comment,  ShelterOccupancy2? occupancy)  $default,) {final _that = this;
 switch (_that) {
 case _ConfirmShelterStatusRequest():
-return $default(_that.status,_that.comment);case _:
+return $default(_that.status,_that.comment,_that.occupancy);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +202,10 @@ return $default(_that.status,_that.comment);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ShelterStatus status,  String? comment)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ShelterStatus status,  String? comment,  ShelterOccupancy2? occupancy)?  $default,) {final _that = this;
 switch (_that) {
 case _ConfirmShelterStatusRequest() when $default != null:
-return $default(_that.status,_that.comment);case _:
+return $default(_that.status,_that.comment,_that.occupancy);case _:
   return null;
 
 }
@@ -216,11 +217,12 @@ return $default(_that.status,_that.comment);case _:
 @JsonSerializable()
 
 class _ConfirmShelterStatusRequest implements ConfirmShelterStatusRequest {
-  const _ConfirmShelterStatusRequest({required this.status, required this.comment});
+  const _ConfirmShelterStatusRequest({required this.status, required this.comment, required this.occupancy});
   factory _ConfirmShelterStatusRequest.fromJson(Map<String, dynamic> json) => _$ConfirmShelterStatusRequestFromJson(json);
 
 @override final  ShelterStatus status;
 @override final  String? comment;
+@override final  ShelterOccupancy2? occupancy;
 
 /// Create a copy of ConfirmShelterStatusRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -235,18 +237,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConfirmShelterStatusRequest&&(identical(other.status, status) || other.status == status)&&(identical(other.comment, comment) || other.comment == comment));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConfirmShelterStatusRequest&&(identical(other.status, status) || other.status == status)&&(identical(other.comment, comment) || other.comment == comment)&&(identical(other.occupancy, occupancy) || other.occupancy == occupancy));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,status,comment);
+    return Object.hash(runtimeType,status,comment,occupancy);
 }
 
 @override
 String toString() {
-    return 'ConfirmShelterStatusRequest(status: $status, comment: $comment)';
+    return 'ConfirmShelterStatusRequest(status: $status, comment: $comment, occupancy: $occupancy)';
 }
 
 
@@ -257,7 +259,7 @@ abstract mixin class _$ConfirmShelterStatusRequestCopyWith<$Res> implements $Con
   factory _$ConfirmShelterStatusRequestCopyWith(_ConfirmShelterStatusRequest value, $Res Function(_ConfirmShelterStatusRequest) _then) = __$ConfirmShelterStatusRequestCopyWithImpl;
 @override @useResult
 $Res call({
- ShelterStatus status, String? comment
+ ShelterStatus status, String? comment, ShelterOccupancy2? occupancy
 });
 
 
@@ -274,11 +276,12 @@ class __$ConfirmShelterStatusRequestCopyWithImpl<$Res>
 
 /// Create a copy of ConfirmShelterStatusRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? comment = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? comment = freezed,Object? occupancy = freezed,}) {
   return _then(_ConfirmShelterStatusRequest(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as ShelterStatus,comment: freezed == comment ? _self.comment : comment // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,occupancy: freezed == occupancy ? _self.occupancy : occupancy // ignore: cast_nullable_to_non_nullable
+as ShelterOccupancy2?,
   ));
 }
 

@@ -81,7 +81,7 @@ Znaczenie nie może opierać się wyłącznie na kolorze (dostępność) — zaw
 **Po zgłoszeniu**
 > Dziękujemy, sprawdzamy to z innymi mieszkańcami.
 
-**Przypomnienie o lokalizacji (push `location_refresh`)** **[DO UZGODNIENIA]** treść z backendem
+**Przypomnienie o lokalizacji (push `location_refresh`)** — treść wysyła backend (ustalone)
 > Czy nadal jesteś w tej okolicy? Otwórz Tarczę, aby otrzymywać właściwe alerty.
 
 **Propozycja trybu czuwania**

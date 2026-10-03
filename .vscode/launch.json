@@ -7,6 +7,14 @@
             "type": "dart"
         },
         {
+            "name": "tarcza_polska (backend ngrok)",
+            "request": "launch",
+            "type": "dart",
+            "toolArgs": [
+                "--dart-define-from-file=dart_defines/remote.json"
+            ]
+        },
+        {
             "name": "tarcza_polska (profile mode)",
             "request": "launch",
             "type": "dart",

@@ -52,12 +52,19 @@
 | Wygaszanie pytań | 90 s (`expiresAt`); 409 = już odpowiedziano (traktuj jak sukces), 410 = wygasło. Odpowiedzi nie można zmienić |
 | Citizen vs Command | Citizen dostaje tylko dane zagregowane, bez pozycji zgłoszeń |
 
-## Otwarte punkty **[DO UZGODNIENIA]**
+## Ustalenia z 2026-10-03 (spec 1.1.0)
 
-1. **Schematy odpowiedzi w `openapi.json`** — obecnie brak (poza `POST /devices`), przez co Retrofit generuje `dynamic`. Do czasu uzupełnienia — ręczne DTO wg `backend-specs.md`.
-2. **Adres domowy** — osobne pole (`homeLocation`) czy nadpisanie jedynej pozycji `lastLocation`. Agent backend aktualizuje model danych.
-3. **Push `location_refresh`** — okresowe przypomnienie o otwarciu aplikacji w celu odświeżenia lokalizacji: kto wysyła (backend vs lokalny harmonogram w aplikacji), jak często, nowy `data.type`. Propozycja: backend wysyła tylko przy przestarzałym `locationUpdatedAt`, więc urządzenia w trybie czuwania go nie dostają.
-4. **Geokodowanie adresu** — systemowe (`geocoding`) po stronie aplikacji czy endpoint backendu.
+Szczegóły i status każdego punktu: [`backend-requests.md`](backend-requests.md).
+
+1. **Schematy odpowiedzi** — są w `openapi.json` dla wszystkich `/api/v1/*`; klient generowany w całości, ręczne DTO usunięte. Wyjątek: koperta `ErrorResponse` (generator jej nie emituje) — `lib/data/remote/dto/error_response_dto.dart`.
+2. **Adres domowy** — jedna pozycja; `source: home | gps | background` w `PUT /devices/me/location`.
+3. **Push `location_refresh`** — wysyła backend (pozycja > 24 h, maks. 1 / dobę, nie w nocy); wyłączenie: `PUT /devices/me/preferences`.
+4. **Geokodowanie** — systemowe, bez endpointu backendu.
+5. **Kody błędów** — `token_expired` (401), `verification_already_answered` (409), `verification_expired` (410), `Retry-After` + `error.retryAfter` przy 429.
+6. **Push `verification`** — `data.incidentType` (nie `data.type`!) i `data.expiresAt`.
+7. **`ETag` / `304`** — `GET /map`, `GET /verifications/pending`, `GET /alerts` (`EtagCacheInterceptor`).
+8. **Nullable** — `IncidentView.area` (`null` przy `detected`; na mapie wtedy `Point`), `ShelterView.address`.
+9. **Ponowna rejestracja po 401** — zawsze z `pushToken`, backend odpina go od starego urządzenia.
 
 ## Przykładowe payloady
 

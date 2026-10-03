@@ -77,30 +77,73 @@ class AlertsCubit extends Cubit<AlertsState> {
 }
 
 class AlertDetailState extends Equatable {
-  const AlertDetailState({this.alert, this.loading = true, this.failure});
+  const AlertDetailState({
+    this.alert,
+    this.loading = true,
+    this.failure,
+    this.procedures = const [],
+  });
 
   final Alert? alert;
   final bool loading;
   final TarczaFailure? failure;
 
+  /// „Co robić” — dla typu powiązanego incydentu, bez incydentu ogólne.
+  final List<Procedure> procedures;
+
   @override
-  List<Object?> get props => [alert, loading, failure];
+  List<Object?> get props => [alert, loading, failure, procedures];
 }
 
-/// Ekran alertu — `GET /alerts/{id}` (z `area`).
+/// Ekran alertu — `GET /alerts/{id}` (z `area`) i procedury „co robić”.
 class AlertDetailCubit extends Cubit<AlertDetailState> {
-  AlertDetailCubit({required this._repository, required this.alertId})
-    : super(const AlertDetailState());
+  AlertDetailCubit({
+    required this._repository,
+    required this._incidents,
+    required this._guidance,
+    required this.alertId,
+  }) : super(const AlertDetailState());
 
   final AlertRepository _repository;
+  final IncidentRepository _incidents;
+  final GuidanceRepository _guidance;
   final String alertId;
 
   Future<void> load() async {
-    emit(AlertDetailState(alert: state.alert));
+    emit(AlertDetailState(alert: state.alert, procedures: state.procedures));
     try {
-      emit(AlertDetailState(alert: await _repository.getAlert(alertId), loading: false));
+      final alert = await _repository.getAlert(alertId);
+      emit(AlertDetailState(alert: alert, loading: false, procedures: state.procedures));
+      await _loadProcedures(alert);
     } on TarczaFailure catch (e) {
-      emit(AlertDetailState(alert: state.alert, loading: false, failure: e));
+      emit(
+        AlertDetailState(
+          alert: state.alert,
+          loading: false,
+          failure: e,
+          procedures: state.procedures,
+        ),
+      );
+    }
+  }
+
+  /// Procedury są dodatkiem — ich błąd (albo zamknięty incydent) nie psuje ekranu.
+  Future<void> _loadProcedures(Alert alert) async {
+    try {
+      IncidentType? type;
+      if (alert.incidentId case final id?) {
+        try {
+          type = (await _incidents.getIncident(id)).type;
+        } on TarczaFailure {
+          type = null;
+        }
+      }
+      final procedures = await _guidance.getProcedures(type: type);
+      if (!isClosed) {
+        emit(AlertDetailState(alert: state.alert, loading: false, procedures: procedures));
+      }
+    } on TarczaFailure {
+      // Bez procedur.
     }
   }
 }

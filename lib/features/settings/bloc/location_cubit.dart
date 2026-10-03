@@ -18,11 +18,13 @@ class LocationState extends Equatable {
   const LocationState({
     this.homeAddress,
     this.position,
+    this.livePosition,
     this.source,
     this.lastSentAt,
     this.cell,
     this.access = LocationAccess.denied,
     this.backgroundEnabled = false,
+    this.locationRefresh = true,
     this.updating = false,
     this.notice = LocationNotice.none,
     this.noticeId = 0,
@@ -32,11 +34,17 @@ class LocationState extends Equatable {
 
   /// Ostatnio wysłana / ustalona pozycja (GPS lub tło); `null` → adres domowy.
   final LatLng? position;
+
+  /// Bieżąca pozycja GPS (tylko UI — znacznik „jesteś tutaj”); `null` bez zgody lub w tle.
+  final LatLng? livePosition;
   final LocationSource? source;
   final DateTime? lastSentAt;
   final String? cell;
   final LocationAccess access;
   final bool backgroundEnabled;
+
+  /// Zgoda na przypomnienia push `location_refresh` (`PUT /devices/me/preferences`).
+  final bool locationRefresh;
   final bool updating;
   final LocationNotice notice;
 
@@ -46,25 +54,33 @@ class LocationState extends Equatable {
   /// Pozycja, którą zna backend: najświeższa z dostępnych (tło → GPS → dom).
   LatLng? get effectivePosition => position ?? homeAddress?.location;
 
+  /// Najlepsza znana pozycja do centrowania mapy / domyślnej lokalizacji zgłoszenia.
+  LatLng? get bestPosition => livePosition ?? position ?? homeAddress?.location;
+
   LocationState copyWith({
     HomeAddress? homeAddress,
     LatLng? position,
     bool clearPosition = false,
+    LatLng? livePosition,
+    bool clearLivePosition = false,
     LocationSource? source,
     DateTime? lastSentAt,
     String? cell,
     LocationAccess? access,
     bool? backgroundEnabled,
+    bool? locationRefresh,
     bool? updating,
     LocationNotice? notice,
   }) => LocationState(
     homeAddress: homeAddress ?? this.homeAddress,
     position: clearPosition ? null : (position ?? this.position),
+    livePosition: clearLivePosition ? null : (livePosition ?? this.livePosition),
     source: source ?? this.source,
     lastSentAt: lastSentAt ?? this.lastSentAt,
     cell: cell ?? this.cell,
     access: access ?? this.access,
     backgroundEnabled: backgroundEnabled ?? this.backgroundEnabled,
+    locationRefresh: locationRefresh ?? this.locationRefresh,
     updating: updating ?? this.updating,
     notice: notice ?? this.notice,
     noticeId: notice == null ? noticeId : noticeId + 1,
@@ -74,11 +90,13 @@ class LocationState extends Equatable {
   List<Object?> get props => [
     homeAddress,
     position,
+    livePosition,
     source,
     lastSentAt,
     cell,
     access,
     backgroundEnabled,
+    locationRefresh,
     updating,
     notice,
     noticeId,
@@ -101,6 +119,7 @@ class LocationCubit extends Cubit<LocationState> {
   final BackgroundLocationService _background;
   final AppPreferences _prefs;
   StreamSubscription<BackgroundLocationUpdate>? _backgroundSub;
+  StreamSubscription<LatLng>? _liveSub;
 
   Future<void> start() async {
     // Uwaga: `await` przed `emit(state.copyWith(...))` — inaczej `state` zostałby odczytany
@@ -114,6 +133,7 @@ class LocationCubit extends Cubit<LocationState> {
         cell: _repository.lastSentCell,
         access: access,
         backgroundEnabled: _prefs.backgroundEnabled,
+        locationRefresh: _repository.locationRefreshEnabled,
       ),
     );
     _backgroundSub ??= _background.updates.listen(_onBackgroundUpdate);
@@ -207,6 +227,7 @@ class LocationCubit extends Cubit<LocationState> {
   Future<void> requestWhileInUse() async {
     final access = await _location.requestWhileInUse();
     emit(state.copyWith(access: access));
+    if (access != LocationAccess.denied) await startLiveTracking();
   }
 
   Future<void> setBackgroundEnabled({required bool enabled}) async {
@@ -237,6 +258,16 @@ class LocationCubit extends Cubit<LocationState> {
 
   Future<bool> openSystemSettings() => _location.openSettings();
 
+  Future<void> setLocationRefresh({required bool enabled}) async {
+    emit(state.copyWith(locationRefresh: enabled));
+    try {
+      await _repository.setLocationRefresh(enabled: enabled);
+    } on Object catch (e) {
+      // Wartość lokalna zostaje — wyślemy ją przy następnej synchronizacji urządzenia.
+      debugPrint("Preferencje urządzenia: $e");
+    }
+  }
+
   Future<void> _onBackgroundUpdate(BackgroundLocationUpdate update) async {
     try {
       final result = update.sentNatively
@@ -256,6 +287,27 @@ class LocationCubit extends Cubit<LocationState> {
     }
   }
 
+  /// Znacznik „jesteś tutaj” — wywoływane przy wejściu aplikacji na pierwszy plan.
+  Future<void> startLiveTracking() async {
+    if (_liveSub != null || await _location.access() == LocationAccess.denied) return;
+    _liveSub = _location.watchPosition().listen(
+      (p) {
+        if (!isClosed) emit(state.copyWith(livePosition: p));
+      },
+      onError: (Object e) {
+        debugPrint("Pozycja na żywo: $e");
+        stopLiveTracking();
+      },
+    );
+  }
+
+  /// Przy przejściu w tło — iOS i tak wstrzymałby aktualizacje, a nie chcemy GPS w tle
+  /// poza świadomie włączonym trybem czuwania.
+  void stopLiveTracking() {
+    unawaited(_liveSub?.cancel());
+    _liveSub = null;
+  }
+
   List<LatLng> neighbourhood() {
     final p = state.effectivePosition;
     return p == null ? const [] : _repository.neighbourhoodBoundary(p);
@@ -264,6 +316,7 @@ class LocationCubit extends Cubit<LocationState> {
   @override
   Future<void> close() async {
     await _backgroundSub?.cancel();
+    await _liveSub?.cancel();
     await super.close();
   }
 }

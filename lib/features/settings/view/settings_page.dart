@@ -27,8 +27,6 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  late bool _reminders = getIt<AppPreferences>().locationRefreshEnabled;
-
   Future<void> _resetApp() async {
     final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
@@ -57,7 +55,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final l10n = context.l10n;
     final cubit = context.read<LocationCubit>();
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsTitle)),
+      appBar: TarczaAppBar(title: Text(l10n.settingsTitle)),
       body: BlocBuilder<LocationCubit, LocationState>(
         builder: (context, state) {
           final sourceLabel = switch (state.source) {
@@ -91,10 +89,17 @@ class _SettingsPageState extends State<SettingsPage> {
                     borderRadius: BorderRadius.circular(14),
                     child: IgnorePointer(
                       child: FlutterMap(
-                        key: ValueKey(state.cell),
+                        key: ValueKey(hexagon.isEmpty ? state.cell : hexagon.first),
+                        // Kamera dopasowana do heksagonu komórki H3 — to „okolica”, nie punkt.
                         options: MapOptions(
                           initialCenter: state.effectivePosition!,
                           initialZoom: 15.5,
+                          initialCameraFit: hexagon.length < 3
+                              ? null
+                              : CameraFit.coordinates(
+                                  coordinates: hexagon,
+                                  padding: const EdgeInsets.all(28),
+                                ),
                         ),
                         children: [
                           osmTileLayer(),
@@ -109,6 +114,15 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ),
                               ],
                             ),
+                          // Skąd jest „okolica”: dom (pinezka) albo bieżąca pozycja (kropka).
+                          MarkerLayer(
+                            markers: [
+                              if (state.position == null || state.source == LocationSource.home)
+                                homeMarker(state.effectivePosition!, size: 40)
+                              else
+                                userLocationMarker(state.position!),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -184,11 +198,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       secondary: const Icon(Icons.alarm_outlined, color: TarczaPalette.primary),
                       title: Text(l10n.settingsLocationReminders),
                       subtitle: Text(l10n.settingsLocationRemindersSub),
-                      value: _reminders,
-                      onChanged: (v) {
-                        setState(() => _reminders = v);
-                        unawaited(getIt<AppPreferences>().setLocationRefreshEnabled(value: v));
-                      },
+                      value: state.locationRefresh,
+                      onChanged: (v) => cubit.setLocationRefresh(enabled: v),
                     ),
                   ],
                 ),
@@ -227,6 +238,14 @@ class _SettingsPageState extends State<SettingsPage> {
                         onTap: () => context.push(AppRoutes.demo),
                       ),
                     ],
+                    const Divider(indent: 70),
+                    ListTileRow(
+                      icon: Icons.preview_outlined,
+                      iconColor: TarczaPalette.high,
+                      title: l10n.previewTitle,
+                      subtitle: l10n.previewSub,
+                      onTap: () => context.push(AppRoutes.preview),
+                    ),
                     const Divider(indent: 70),
                     ListTileRow(
                       icon: Icons.restart_alt,

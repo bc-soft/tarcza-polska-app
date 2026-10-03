@@ -22,7 +22,7 @@ class DemoPage extends StatelessWidget {
     final l10n = context.l10n;
     if (!AppConfig.useMocks) {
       return Scaffold(
-        appBar: AppBar(title: Text(l10n.demoTitle)),
+        appBar: TarczaAppBar(title: Text(l10n.demoTitle)),
         body: Padding(padding: const EdgeInsets.all(24), child: Text(l10n.demoOnlyMock)),
       );
     }
@@ -50,7 +50,7 @@ class DemoView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.demoTitle)),
+      appBar: TarczaAppBar(title: Text(l10n.demoTitle)),
       body: BlocBuilder<DemoCubit, DemoState>(
         builder: (context, state) {
           final cubit = context.read<DemoCubit>();

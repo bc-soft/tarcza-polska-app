@@ -19,6 +19,7 @@ class MapState extends Equatable {
     this.status = MapStatus.initial,
     this.incidents = const [],
     this.shelters = const [],
+    this.fuelStations = const [],
     this.alerts = const [],
     this.bbox,
     this.refreshFailed = false,
@@ -29,6 +30,7 @@ class MapState extends Equatable {
   final MapStatus status;
   final List<Incident> incidents;
   final List<Shelter> shelters;
+  final List<FuelStation> fuelStations;
   final List<Alert> alerts;
   final BBox? bbox;
   final bool refreshFailed;
@@ -56,6 +58,10 @@ class MapState extends Equatable {
       for (final f in features)
         if (f case ShelterFeature(:final shelter)) shelter,
     ],
+    fuelStations: [
+      for (final f in features)
+        if (f case FuelStationFeature(:final station)) station,
+    ],
     alerts: [
       for (final f in features)
         if (f case AlertFeature(:final alert)) alert,
@@ -66,6 +72,7 @@ class MapState extends Equatable {
     MapStatus? status,
     List<Incident>? incidents,
     List<Shelter>? shelters,
+    List<FuelStation>? fuelStations,
     List<Alert>? alerts,
     BBox? bbox,
     bool? refreshFailed,
@@ -76,6 +83,7 @@ class MapState extends Equatable {
     status: status ?? this.status,
     incidents: incidents ?? this.incidents,
     shelters: shelters ?? this.shelters,
+    fuelStations: fuelStations ?? this.fuelStations,
     alerts: alerts ?? this.alerts,
     bbox: bbox ?? this.bbox,
     refreshFailed: refreshFailed ?? this.refreshFailed,
@@ -88,6 +96,7 @@ class MapState extends Equatable {
     status,
     incidents,
     shelters,
+    fuelStations,
     alerts,
     bbox,
     refreshFailed,

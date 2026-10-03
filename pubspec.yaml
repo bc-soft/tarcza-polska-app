@@ -8,6 +8,7 @@ environment:
   sdk: ^3.13.5
 
 dependencies:
+  animations: ^3.0.0
   bloc: ^9.2.0
   bloc_concurrency: ^0.3.0
   cupertino_icons: ^1.0.8
@@ -40,6 +41,7 @@ dependencies:
 dev_dependencies:
   bloc_test: ^10.0.0
   build_runner: ^2.16.1
+  flutter_launcher_icons: ^0.14.4
   flutter_test:
     sdk: flutter
   freezed: ^4.0.1
@@ -52,3 +54,5 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+  assets:
+    - assets/images/

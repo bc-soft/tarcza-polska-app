@@ -5,6 +5,8 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
+import '../models/health_status.dart';
+
 part 'fallback_client.g.dart';
 
 @RestApi()
@@ -13,5 +15,5 @@ abstract class FallbackClient {
 
   /// Liveness + database/PostGIS/H3 readiness
   @GET('/api/v1/health')
-  Future<void> getApiHealth();
+  Future<HealthStatus> getApiHealth();
 }

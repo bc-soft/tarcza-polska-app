@@ -42,10 +42,10 @@ Zasady trybu czuwania:
 
 Throttling: wysyłamy nową pozycję tylko gdy zmieniła się komórka H3 (`h3_flutter`) i nie częściej niż limit backendu (30/min).
 
-**[DO UZGODNIENIA]** z backendem (agent backend aktualizuje model danych):
-- czy adres domowy jest osobnym polem (`homeLocation`), czy nadpisuje `lastLocation` (wtedy po powrocie GPS-owa pozycja zastępuje dom do następnej aktualizacji),
-- kto wysyła push `location_refresh` (backend wg `locationUpdatedAt` vs lokalny harmonogram `flutter_local_notifications`) i jak często (propozycja: gdy pozycja starsza niż 24 h, max 1 dziennie, nie w nocy),
-- czy geokodowanie robimy po stronie aplikacji (`geocoding`) czy przez endpoint backendu.
+**Ustalone z backendem (2026-10-03, spec 1.1.0):**
+- adres domowy **nadpisuje** jedyną pozycję (`lastLocation`; wygrywa ostatni `PUT`). `PUT /devices/me/location` przyjmuje `source: home | gps | background` (brak = `gps`), profil zwraca `locationSource`. Osobne `homeLocation` odłożone na po demo,
+- push `location_refresh` wysyła **backend**: gdy `locationUpdatedAt` starsze niż 24 h, maks. 1 / dobę, nie między 21:00 a 8:00, nie do urządzeń niewidzianych od 30 dni. Użytkownik wyłącza przypomnienia przez `PUT /devices/me/preferences { "locationRefresh": false }` (przełącznik w ustawieniach),
+- geokodowanie zostaje **systemowe** (`geocoding`) — backend nie zna adresu, tylko współrzędne.
 
 ## Co to znaczy dla klienta Flutter
 

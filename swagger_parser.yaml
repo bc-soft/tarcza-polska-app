@@ -9,3 +9,4 @@ swagger_parser:
   include_paths:
     - "/api/v1/**"          # endpointy /api/command/* są dla panelu operatora, nie generujemy ich
   unknown_enum_value: true  # nowe wartości enumów z backendu nie wywalą parsowania
+  fallback_union: unknown   # nieznany `kind` na mapie nie wywraca parsowania całej kolekcji

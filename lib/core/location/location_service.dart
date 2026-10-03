@@ -63,6 +63,28 @@ class LocationService {
     }
   }
 
+  /// Pozycja na żywo do znacznika „jesteś tutaj” — tylko gdy aplikacja jest na pierwszym
+  /// planie (bez aktualizacji w tle). Nie trafia do backendu; wysyłka idzie przez
+  /// `LocationRepository` z throttlingiem H3.
+  Stream<LatLng> watchPosition() {
+    final LocationSettings settings = switch (defaultTargetPlatform) {
+      TargetPlatform.iOS => AppleSettings(
+        accuracy: LocationAccuracy.medium,
+        distanceFilter: 15,
+        allowBackgroundLocationUpdates: false,
+        pauseLocationUpdatesAutomatically: true,
+      ),
+      TargetPlatform.android => AndroidSettings(
+        accuracy: LocationAccuracy.medium,
+        distanceFilter: 15,
+      ),
+      _ => const LocationSettings(accuracy: LocationAccuracy.medium, distanceFilter: 15),
+    };
+    return Geolocator.getPositionStream(
+      locationSettings: settings,
+    ).map((p) => LatLng(p.latitude, p.longitude));
+  }
+
   /// Adres → współrzędne (geokodowanie systemowe).
   /// **[DO UZGODNIENIA]**: czy backend udostępni własny endpoint geokodowania.
   Future<List<GeocodedAddress>> geocode(String query) async {

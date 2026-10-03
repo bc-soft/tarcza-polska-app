@@ -32,6 +32,9 @@ abstract final class Formatters {
   static String failure(AppLocalizations l10n, Object error) => switch (error) {
     NetworkFailure() => l10n.errorNetwork,
     NotFoundFailure() => l10n.errorNotFound,
+    RateLimitedFailure(:final retryAfter?) => l10n.reportRateLimitedFor(
+      (retryAfter.inSeconds / 60).ceil().clamp(1, 60),
+    ),
     RateLimitedFailure() => l10n.reportRateLimited,
     _ => l10n.errorGeneric,
   };

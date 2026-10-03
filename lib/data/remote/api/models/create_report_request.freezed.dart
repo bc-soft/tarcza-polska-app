@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CreateReportRequest {
 
- ReportType get type; double get lat; double get lng; String? get description;
+ ReportType get type; double get lat; double get lng; String? get description; String? get poiId; List<FuelType2>? get fuelTypes;
 /// Create a copy of CreateReportRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $CreateReportRequestCopyWith<CreateReportRequest> get copyWith => _$CreateReport
 @override
 bool operator ==(Object other) {
   final _this = this as CreateReportRequest;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateReportRequest&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.lat, _this.lat) || other.lat == _this.lat)&&(identical(other.lng, _this.lng) || other.lng == _this.lng)&&(identical(other.description, _this.description) || other.description == _this.description));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateReportRequest&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.lat, _this.lat) || other.lat == _this.lat)&&(identical(other.lng, _this.lng) || other.lng == _this.lng)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.poiId, _this.poiId) || other.poiId == _this.poiId)&&const DeepCollectionEquality().equals(other.fuelTypes, _this.fuelTypes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as CreateReportRequest;
-  return Object.hash(runtimeType,_this.type,_this.lat,_this.lng,_this.description);
+  return Object.hash(runtimeType,_this.type,_this.lat,_this.lng,_this.description,_this.poiId,const DeepCollectionEquality().hash(_this.fuelTypes));
 }
 
 @override
 String toString() {
   final _this = this as CreateReportRequest;
-  return 'CreateReportRequest(type: ${_this.type}, lat: ${_this.lat}, lng: ${_this.lng}, description: ${_this.description})';
+  return 'CreateReportRequest(type: ${_this.type}, lat: ${_this.lat}, lng: ${_this.lng}, description: ${_this.description}, poiId: ${_this.poiId}, fuelTypes: ${_this.fuelTypes})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $CreateReportRequestCopyWith<$Res>  {
   factory $CreateReportRequestCopyWith(CreateReportRequest value, $Res Function(CreateReportRequest) _then) = _$CreateReportRequestCopyWithImpl;
 @useResult
 $Res call({
- ReportType type, double lat, double lng, String? description
+ ReportType type, double lat, double lng, String? description, String? poiId, List<FuelType2>? fuelTypes
 });
 
 
@@ -71,13 +71,15 @@ class _$CreateReportRequestCopyWithImpl<$Res>
 
 /// Create a copy of CreateReportRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? lat = null,Object? lng = null,Object? description = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? lat = null,Object? lng = null,Object? description = freezed,Object? poiId = freezed,Object? fuelTypes = freezed,}) {
   return _then(CreateReportRequest(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as ReportType,lat: null == lat ? _self.lat : lat // ignore: cast_nullable_to_non_nullable
 as double,lng: null == lng ? _self.lng : lng // ignore: cast_nullable_to_non_nullable
 as double,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,poiId: freezed == poiId ? _self.poiId : poiId // ignore: cast_nullable_to_non_nullable
+as String?,fuelTypes: freezed == fuelTypes ? _self.fuelTypes : fuelTypes // ignore: cast_nullable_to_non_nullable
+as List<FuelType2>?,
   ));
 }
 
@@ -162,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ReportType type,  double lat,  double lng,  String? description)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ReportType type,  double lat,  double lng,  String? description,  String? poiId,  List<FuelType2>? fuelTypes)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CreateReportRequest() when $default != null:
-return $default(_that.type,_that.lat,_that.lng,_that.description);case _:
+return $default(_that.type,_that.lat,_that.lng,_that.description,_that.poiId,_that.fuelTypes);case _:
   return orElse();
 
 }
@@ -183,10 +185,10 @@ return $default(_that.type,_that.lat,_that.lng,_that.description);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ReportType type,  double lat,  double lng,  String? description)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ReportType type,  double lat,  double lng,  String? description,  String? poiId,  List<FuelType2>? fuelTypes)  $default,) {final _that = this;
 switch (_that) {
 case _CreateReportRequest():
-return $default(_that.type,_that.lat,_that.lng,_that.description);case _:
+return $default(_that.type,_that.lat,_that.lng,_that.description,_that.poiId,_that.fuelTypes);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +205,10 @@ return $default(_that.type,_that.lat,_that.lng,_that.description);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ReportType type,  double lat,  double lng,  String? description)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ReportType type,  double lat,  double lng,  String? description,  String? poiId,  List<FuelType2>? fuelTypes)?  $default,) {final _that = this;
 switch (_that) {
 case _CreateReportRequest() when $default != null:
-return $default(_that.type,_that.lat,_that.lng,_that.description);case _:
+return $default(_that.type,_that.lat,_that.lng,_that.description,_that.poiId,_that.fuelTypes);case _:
   return null;
 
 }
@@ -218,13 +220,23 @@ return $default(_that.type,_that.lat,_that.lng,_that.description);case _:
 @JsonSerializable()
 
 class _CreateReportRequest implements CreateReportRequest {
-  const _CreateReportRequest({required this.type, required this.lat, required this.lng, required this.description});
+  const _CreateReportRequest({required this.type, required this.lat, required this.lng, required this.description, required this.poiId, required  List<FuelType2>? fuelTypes}): _fuelTypes = fuelTypes;
   factory _CreateReportRequest.fromJson(Map<String, dynamic> json) => _$CreateReportRequestFromJson(json);
 
 @override final  ReportType type;
 @override final  double lat;
 @override final  double lng;
 @override final  String? description;
+@override final  String? poiId;
+ final  List<FuelType2>? _fuelTypes;
+@override List<FuelType2>? get fuelTypes {
+  final value = _fuelTypes;
+  if (value == null) return null;
+  if (_fuelTypes is EqualUnmodifiableListView) return _fuelTypes;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
 
 /// Create a copy of CreateReportRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -239,18 +251,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateReportRequest&&(identical(other.type, type) || other.type == type)&&(identical(other.lat, lat) || other.lat == lat)&&(identical(other.lng, lng) || other.lng == lng)&&(identical(other.description, description) || other.description == description));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateReportRequest&&(identical(other.type, type) || other.type == type)&&(identical(other.lat, lat) || other.lat == lat)&&(identical(other.lng, lng) || other.lng == lng)&&(identical(other.description, description) || other.description == description)&&(identical(other.poiId, poiId) || other.poiId == poiId)&&const DeepCollectionEquality().equals(other.fuelTypes, _fuelTypes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,type,lat,lng,description);
+    return Object.hash(runtimeType,type,lat,lng,description,poiId,const DeepCollectionEquality().hash(_fuelTypes));
 }
 
 @override
 String toString() {
-    return 'CreateReportRequest(type: $type, lat: $lat, lng: $lng, description: $description)';
+    return 'CreateReportRequest(type: $type, lat: $lat, lng: $lng, description: $description, poiId: $poiId, fuelTypes: $fuelTypes)';
 }
 
 
@@ -261,7 +273,7 @@ abstract mixin class _$CreateReportRequestCopyWith<$Res> implements $CreateRepor
   factory _$CreateReportRequestCopyWith(_CreateReportRequest value, $Res Function(_CreateReportRequest) _then) = __$CreateReportRequestCopyWithImpl;
 @override @useResult
 $Res call({
- ReportType type, double lat, double lng, String? description
+ ReportType type, double lat, double lng, String? description, String? poiId, List<FuelType2>? fuelTypes
 });
 
 
@@ -278,13 +290,15 @@ class __$CreateReportRequestCopyWithImpl<$Res>
 
 /// Create a copy of CreateReportRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? lat = null,Object? lng = null,Object? description = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? lat = null,Object? lng = null,Object? description = freezed,Object? poiId = freezed,Object? fuelTypes = freezed,}) {
   return _then(_CreateReportRequest(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as ReportType,lat: null == lat ? _self.lat : lat // ignore: cast_nullable_to_non_nullable
 as double,lng: null == lng ? _self.lng : lng // ignore: cast_nullable_to_non_nullable
 as double,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,poiId: freezed == poiId ? _self.poiId : poiId // ignore: cast_nullable_to_non_nullable
+as String?,fuelTypes: freezed == fuelTypes ? _self._fuelTypes : fuelTypes // ignore: cast_nullable_to_non_nullable
+as List<FuelType2>?,
   ));
 }
 

@@ -43,6 +43,23 @@ class H3Service {
     return lib.cellToBoundary(index).map((c) => LatLng(c.lat, c.lon)).toList();
   }
 
+  /// Środek komórki (`null`, gdy H3 niedostępne).
+  LatLng? cellCenter(String cellHex) {
+    final lib = _lib;
+    final index = BigInt.tryParse(cellHex, radix: 16);
+    if (lib == null || index == null) return null;
+    final c = lib.cellToGeo(index);
+    return LatLng(c.lat, c.lon);
+  }
+
+  /// Komórki w promieniu [k] pierścieni od [cellHex] (pusta lista, gdy H3 niedostępne).
+  List<String> disk(String cellHex, int k) {
+    final lib = _lib;
+    final index = BigInt.tryParse(cellHex, radix: 16);
+    if (lib == null || index == null) return const [];
+    return lib.gridDisk(index, k).map((c) => c.toRadixString(16)).toList();
+  }
+
   /// Siatka ~150 m jako zapas, gdy biblioteka natywna nie jest dostępna.
   static String _fallbackCell(LatLng p) =>
       "grid:${(p.latitude / 0.00135).floor()}:${(p.longitude / 0.0022).floor()}";

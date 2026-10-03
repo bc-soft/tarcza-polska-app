@@ -43,6 +43,19 @@ class LocationRepository {
 
   Future<void> saveHomeAddress(HomeAddress address) => _prefs.setHomeAddress(address);
 
+  bool get locationRefreshEnabled => _prefs.locationRefreshEnabled;
+
+  /// Zgoda na przypomnienia `location_refresh` — lokalnie i w backendzie
+  /// (`PUT /devices/me/preferences`). Lokalna wartość zostaje także przy błędzie sieci;
+  /// [syncPreferences] wyśle ją przy następnym starcie.
+  Future<void> setLocationRefresh({required bool enabled}) async {
+    await _prefs.setLocationRefreshEnabled(value: enabled);
+    await _device.updatePreferences(locationRefresh: enabled);
+  }
+
+  Future<void> syncPreferences() =>
+      _device.updatePreferences(locationRefresh: _prefs.locationRefreshEnabled);
+
   /// Wysyła [position], jeśli zmieniła się komórka H3 (lub [force]).
   Future<LocationSendResult> send(
     LatLng position, {
@@ -62,7 +75,11 @@ class LocationRepository {
       }
     }
 
-    final backendCell = await _device.updateLocation(position, accuracyMeters: accuracyMeters);
+    final backendCell = await _device.updateLocation(
+      position,
+      source: source,
+      accuracyMeters: accuracyMeters,
+    );
     await _prefs.saveLastSent(cell: cell, at: now, source: source);
     return LocationSendResult(sent: true, cell: backendCell ?? cell, sentAt: now);
   }

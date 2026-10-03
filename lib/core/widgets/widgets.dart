@@ -5,6 +5,8 @@ import "package:tarcza_polska/core/utils/formatters.dart";
 import "package:tarcza_polska/core/widgets/visuals.dart";
 import "package:tarcza_polska/data/models/enums.dart";
 
+export "fuel_chips.dart";
+export "tarcza_app_bar.dart";
 export "visuals.dart";
 
 /// Biała karta „dokumentu” w stylu mObywatela — jedna informacja = jedna karta.

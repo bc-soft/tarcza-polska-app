@@ -185,6 +185,7 @@ final class BackgroundLocationManager: NSObject, CLLocationManagerDelegate {
       "lat": location.coordinate.latitude,
       "lng": location.coordinate.longitude,
       "accuracyMeters": max(location.horizontalAccuracy, 0),
+      "source": "background",
     ]
     request.httpBody = try? JSONSerialization.data(withJSONObject: body)
     return request

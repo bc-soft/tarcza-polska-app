@@ -1,23 +1,24 @@
+import "package:animations/animations.dart";
 import "package:flutter/material.dart";
 
+import "package:tarcza_polska/app/theme/app_theme.dart";
 import "package:tarcza_polska/app/theme/tarcza_colors.dart";
 import "package:tarcza_polska/core/utils/formatters.dart";
 import "package:tarcza_polska/core/widgets/widgets.dart";
 import "package:tarcza_polska/data/models/models.dart";
+import "package:tarcza_polska/features/incident/view/incident_page.dart";
 
-/// Kompaktowa karta incydentu (mapa, listy). Tylko dane zagregowane.
+/// Kompaktowa karta incydentu (mapa, listy): typ, czas, wiarygodność. Tylko dane zagregowane.
 class IncidentCard extends StatelessWidget {
-  const IncidentCard({super.key, required this.incident, this.onTap, this.highlighted = false});
+  const IncidentCard({super.key, required this.incident, this.onTap});
 
   final Incident incident;
   final VoidCallback? onTap;
-  final bool highlighted;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final color = context.statusColors.forConfidence(incident.confidenceLevel);
-    final agreement = incident.community.agreementPct;
     return TarczaCard(
       onTap: onTap,
       accent: color,
@@ -35,7 +36,10 @@ class IncidentCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        incident.typeLabel,
+                        // Incydent punktowy: od razu widać, której stacji / schronu dotyczy.
+                        incident.poi == null
+                            ? incident.typeLabel
+                            : "${incident.typeLabel} · ${incident.poi!.name}",
                         style: Theme.of(context).textTheme.titleMedium,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -55,23 +59,46 @@ class IncidentCard extends StatelessWidget {
                   score: incident.confidenceScore,
                   dense: true,
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  agreement != null
-                      ? l10n.communityAgreement(agreement)
-                      : "${incident.status.label(l10n)} · ${l10n.communityReports(incident.community.reports)}",
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: TarczaPalette.textSecondary),
-                ),
               ],
             ),
           ),
-          if (onTap != null) const Icon(Icons.chevron_right, color: TarczaPalette.textSecondary),
+          const Icon(Icons.chevron_right, color: TarczaPalette.textSecondary),
         ],
       ),
     );
   }
+}
+
+/// Karta, która rozwija się w ekran szczegółów (Material „container transform”).
+/// Ekran otwierany na głównym nawigatorze — nad dolnym paskiem, jak trasa `/incident/:id`.
+class IncidentOpenContainer extends StatelessWidget {
+  const IncidentOpenContainer({
+    super.key,
+    required this.incident,
+    this.onOpen,
+    this.elevation = 0,
+  });
+
+  final Incident incident;
+  final VoidCallback? onOpen;
+  final double elevation;
+
+  @override
+  Widget build(BuildContext context) => OpenContainer<void>(
+    useRootNavigator: true,
+    transitionDuration: const Duration(milliseconds: 420),
+    closedElevation: elevation,
+    openColor: Theme.of(context).scaffoldBackgroundColor,
+    middleColor: Colors.white,
+    closedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radius)),
+    tappable: false,
+    closedBuilder: (context, open) => IncidentCard(
+      incident: incident,
+      onTap: () {
+        onOpen?.call();
+        open();
+      },
+    ),
+    openBuilder: (context, _) => IncidentPage(incidentId: incident.id, initial: incident),
+  );
 }

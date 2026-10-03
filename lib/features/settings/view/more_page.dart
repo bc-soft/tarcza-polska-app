@@ -17,7 +17,7 @@ class MorePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.moreTitle)),
+      appBar: TarczaAppBar(title: Text(l10n.moreTitle)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

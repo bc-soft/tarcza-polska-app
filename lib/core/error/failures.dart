@@ -17,9 +17,11 @@ final class NetworkFailure extends TarczaFailure {
   const NetworkFailure([super.message]);
 }
 
-/// 401 — token wygasł lub urządzenie usunięte.
+/// 401 — brak / zły token (`unauthorized`) albo wygasły (`token_expired`).
 final class UnauthorizedFailure extends TarczaFailure {
-  const UnauthorizedFailure([super.message]);
+  const UnauthorizedFailure({this.expired = false, String? message}) : super(message);
+
+  final bool expired;
 }
 
 /// 404 — zły identyfikator albo cudzy zasób.
@@ -36,7 +38,10 @@ final class ValidationFailure extends TarczaFailure {
 
 /// 429 — limit zgłoszeń (10 / 10 min) lub lokalizacji (30 / min). Nie ponawiamy automatycznie.
 final class RateLimitedFailure extends TarczaFailure {
-  const RateLimitedFailure([super.message]);
+  const RateLimitedFailure({this.retryAfter, String? message}) : super(message);
+
+  /// Z nagłówka `Retry-After` / `error.retryAfter`; `null`, gdy backend nie podał.
+  final Duration? retryAfter;
 }
 
 /// 409 przy odpowiedzi na pytanie — traktujemy jak sukces.

@@ -12,19 +12,27 @@ import "package:tarcza_polska/core/utils/formatters.dart";
 import "package:tarcza_polska/core/widgets/map_widgets.dart";
 import "package:tarcza_polska/core/widgets/widgets.dart";
 import "package:tarcza_polska/data/models/models.dart";
+import "package:tarcza_polska/data/repositories/repositories.dart";
 import "package:tarcza_polska/features/map/bloc/map_bloc.dart";
+import "package:tarcza_polska/features/report/bloc/report_cubit.dart";
 import "package:tarcza_polska/features/shelters/bloc/shelters_cubit.dart";
 
 class ShelterPage extends StatelessWidget {
-  const ShelterPage({super.key, required this.shelterId, this.initial});
+  const ShelterPage({super.key, required this.shelterId, this.initial, this.repository});
 
   final String shelterId;
   final Shelter? initial;
 
+  /// Podgląd ekranów (ustawienia dev) podaje własne repozytorium ze stałymi danymi.
+  final ShelterRepository? repository;
+
   @override
   Widget build(BuildContext context) => BlocProvider(
-    create: (_) =>
-        ShelterDetailCubit(repository: getIt(), shelterId: shelterId, initial: initial)..load(),
+    create: (_) => ShelterDetailCubit(
+      repository: repository ?? getIt(),
+      shelterId: shelterId,
+      initial: initial,
+    )..load(),
     child: const ShelterView(),
   );
 }
@@ -51,7 +59,7 @@ class ShelterView extends StatelessWidget {
       builder: (context, state) {
         final shelter = state.shelter;
         return Scaffold(
-          appBar: AppBar(title: Text(shelter?.name ?? l10n.sheltersTitle)),
+          appBar: TarczaAppBar(title: Text(shelter?.name ?? l10n.sheltersTitle)),
           body: shelter == null
               ? (state.loading
                     ? const Center(child: CircularProgressIndicator())
@@ -114,12 +122,20 @@ class _ShelterDetails extends StatelessWidget {
             children: [
               StatusChip(label: shelter.statusLabel, color: color, icon: shelter.status.icon),
               const SizedBox(height: 12),
-              InfoRow(label: l10n.shelterAddress, value: shelter.address),
+              if (shelter.address != null)
+                InfoRow(label: l10n.shelterAddress, value: shelter.address!),
               if (shelter.distanceMeters != null)
                 InfoRow(
                   label: l10n.shelterDistanceLabel,
                   value: l10n.shelterDistance(Formatters.distance(l10n, shelter.distanceMeters!)),
                 ),
+              if (shelter.occupancy != ShelterOccupancy.unknown || shelter.occupancyLabel != null)
+                InfoRow(
+                  label: l10n.shelterOccupancy,
+                  value: shelter.occupancyLabel ?? shelter.occupancy.label(l10n),
+                ),
+              if (shelter.availabilityLabel != null)
+                InfoRow(label: l10n.shelterAvailability, value: shelter.availabilityLabel!),
               if (shelter.capacity != null)
                 InfoRow(
                   label: l10n.shelterCapacity,
@@ -144,6 +160,28 @@ class _ShelterDetails extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         SecondaryButton(
+          icon: Icons.report_problem_outlined,
+          label: l10n.shelterReport,
+          onPressed: () => context.push(
+            AppRoutes.reportObject,
+            extra: ReportStart(
+              type: IncidentType.shelterIssue,
+              candidate: PoiCandidate(
+                poi: PoiRef(
+                  kind: PoiKind.shelter,
+                  id: shelter.id,
+                  name: shelter.name,
+                  location: shelter.location,
+                ),
+                location: shelter.location,
+                subtitle: shelter.address,
+                distanceMeters: shelter.distanceMeters,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SecondaryButton(
           icon: Icons.map_outlined,
           label: l10n.incidentShowOnMap,
           onPressed: () {
@@ -163,7 +201,9 @@ class _ShelterDetails extends StatelessWidget {
         isScrollControlled: true,
         builder: (_) => _ConfirmSheet(
           initial: shelter.status,
-          onSubmit: (status, comment) => cubit.confirmStatus(status, comment: comment),
+          initialOccupancy: shelter.occupancy,
+          onSubmit: (status, occupancy, comment) =>
+              cubit.confirmStatus(status, occupancy: occupancy, comment: comment),
         ),
       ),
     );
@@ -171,10 +211,15 @@ class _ShelterDetails extends StatelessWidget {
 }
 
 class _ConfirmSheet extends StatefulWidget {
-  const _ConfirmSheet({required this.initial, required this.onSubmit});
+  const _ConfirmSheet({
+    required this.initial,
+    required this.initialOccupancy,
+    required this.onSubmit,
+  });
 
   final ShelterStatus initial;
-  final void Function(ShelterStatus status, String comment) onSubmit;
+  final ShelterOccupancy initialOccupancy;
+  final void Function(ShelterStatus status, ShelterOccupancy? occupancy, String comment) onSubmit;
 
   @override
   State<_ConfirmSheet> createState() => _ConfirmSheetState();
@@ -182,6 +227,7 @@ class _ConfirmSheet extends StatefulWidget {
 
 class _ConfirmSheetState extends State<_ConfirmSheet> {
   late ShelterStatus _status = widget.initial;
+  late ShelterOccupancy _occupancy = widget.initialOccupancy;
   final _comment = TextEditingController();
 
   @override
@@ -194,7 +240,7 @@ class _ConfirmSheetState extends State<_ConfirmSheet> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final colors = context.statusColors;
-    return Padding(
+    return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(20, 0, 20, 20 + MediaQuery.viewInsetsOf(context).bottom),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -218,7 +264,10 @@ class _ConfirmSheetState extends State<_ConfirmSheet> {
                 ),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(12),
-                  onTap: () => setState(() => _status = status),
+                  onTap: () => setState(() {
+                    _status = status;
+                    if (status == ShelterStatus.full) _occupancy = ShelterOccupancy.full;
+                  }),
                   child: Padding(
                     padding: const EdgeInsets.all(14),
                     child: Row(
@@ -238,6 +287,30 @@ class _ConfirmSheetState extends State<_ConfirmSheet> {
                 ),
               ),
             ),
+          // Zapełnienie tylko dla otwartego schronu — dla „Zamknięty” pomijamy (`§19`).
+          if (_status == ShelterStatus.open) ...[
+            const SizedBox(height: 8),
+            Text(l10n.shelterConfirmOccupancy, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final o in [
+                  ShelterOccupancy.plenty,
+                  ShelterOccupancy.limited,
+                  ShelterOccupancy.unknown,
+                ])
+                  ChoiceChip(
+                    avatar: Icon(o.icon, size: 18),
+                    label: Text(o.label(l10n)),
+                    selected: _occupancy == o,
+                    onSelected: (_) => setState(() => _occupancy = o),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
           const SizedBox(height: 4),
           TextField(
             controller: _comment,
@@ -250,7 +323,15 @@ class _ConfirmSheetState extends State<_ConfirmSheet> {
           PrimaryButton(
             label: l10n.shelterConfirmSend,
             onPressed: () {
-              widget.onSubmit(_status, _comment.text);
+              widget.onSubmit(
+                _status,
+                switch (_status) {
+                  ShelterStatus.closed => null,
+                  ShelterStatus.full => ShelterOccupancy.full,
+                  _ => _occupancy,
+                },
+                _comment.text,
+              );
               Navigator.of(context).pop();
             },
           ),

@@ -4,6 +4,8 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'location_source.dart';
+
 part 'update_location_request.freezed.dart';
 part 'update_location_request.g.dart';
 
@@ -13,6 +15,7 @@ abstract class UpdateLocationRequest with _$UpdateLocationRequest {
     required double lat,
     required double lng,
     required double? accuracyMeters,
+    required LocationSource? source,
   }) = _UpdateLocationRequest;
   
   factory UpdateLocationRequest.fromJson(Map<String, Object?> json) => _$UpdateLocationRequestFromJson(json);

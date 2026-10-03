@@ -12,6 +12,10 @@ _CreateReportRequest _$CreateReportRequestFromJson(Map<String, dynamic> json) =>
       lat: (json['lat'] as num).toDouble(),
       lng: (json['lng'] as num).toDouble(),
       description: json['description'] as String?,
+      poiId: json['poiId'] as String?,
+      fuelTypes: (json['fuelTypes'] as List<dynamic>?)
+          ?.map((e) => FuelType2.fromJson(e as String))
+          .toList(),
     );
 
 Map<String, dynamic> _$CreateReportRequestToJson(
@@ -21,6 +25,8 @@ Map<String, dynamic> _$CreateReportRequestToJson(
   'lat': instance.lat,
   'lng': instance.lng,
   'description': instance.description,
+  'poiId': instance.poiId,
+  'fuelTypes': instance.fuelTypes?.map((e) => _$FuelType2EnumMap[e]!).toList(),
 };
 
 const _$ReportTypeEnumMap = {
@@ -31,4 +37,12 @@ const _$ReportTypeEnumMap = {
   ReportType.shelterIssue: 'shelter_issue',
   ReportType.otherThreat: 'other_threat',
   ReportType.$unknown: r'$unknown',
+};
+
+const _$FuelType2EnumMap = {
+  FuelType2.pb95: 'pb95',
+  FuelType2.pb98: 'pb98',
+  FuelType2.diesel: 'diesel',
+  FuelType2.lpg: 'lpg',
+  FuelType2.$unknown: r'$unknown',
 };

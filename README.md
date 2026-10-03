@@ -11,15 +11,39 @@ fvm dart run build_runner build          # freezed / json_serializable / retrofi
 fvm flutter run                          # tryb mock (domyślny) — scenariusz demo bez backendu
 ```
 
-Prawdziwy backend (`backend-specs.md` §1, §14):
+Prawdziwy backend — tunel ngrok zespołu (`dart_defines/remote.json`, w VS Code konfiguracja
+„tarcza_polska (backend ngrok)”):
 
 ```bash
+fvm flutter run --dart-define-from-file=dart_defines/remote.json
+# lokalny backend:
 fvm flutter run --dart-define=USE_MOCKS=false --dart-define=API_BASE_URL=http://localhost
 # + push FCM/APNs (wymaga google-services.json / GoogleService-Info.plist):
 fvm flutter run --dart-define=USE_MOCKS=false --dart-define=ENABLE_PUSH=true
 ```
 
 Bez `ENABLE_PUSH` aplikacja działa na samym pollingu (`pending`, `alerts`, mapa co 30 s).
+
+### Push (FCM / APNs)
+
+- `dart_defines/remote.json` ma `ENABLE_PUSH=true`. iOS: `ios/Runner/GoogleService-Info.plist`
+  (projekt Firebase `tarcza-polska`, nie commitujemy) + `ios/Runner/Runner.entitlements`
+  (`aps-environment`, *Time Sensitive Notifications*). Android: brak `google-services.json` —
+  aplikacja przechodzi na polling.
+- **Prawdziwy token APNs wymaga zespołu Apple Developer** (`DEVELOPMENT_TEAM` w Xcode) — bez
+  niego FCM nie wyda tokena i `PUT /devices/me/push-token` nie pójdzie (w logu: „Brak tokena APNs”).
+  W Firebase Console musi być wgrany klucz APNs (`.p8`).
+- Test obsługi pushy na symulatorze bez APNs (payload musi mieć `gcm.message_id`, inaczej
+  `firebase_messaging` go nie przekaże):
+
+```bash
+cat > /tmp/push.apns <<'JSON'
+{"Simulator Target Bundle":"com.example.tarczaPolska","gcm.message_id":"test-1",
+ "aps":{"alert":{"title":"Czy nadal jesteś w tej okolicy?","body":"Otwórz Tarczę."}},
+ "type":"location_refresh"}
+JSON
+xcrun simctl push booted com.example.tarczaPolska /tmp/push.apns
+```
 Każde żądanie ma nagłówek `ngrok-skip-browser-warning: 1` (backend za tunelem ngrok).
 
 ## Scenariusz demo (tryb mock)
@@ -30,10 +54,13 @@ potwierdzenie 96% → alert dla obszaru. Adres demo: Poznań, Jeżyce.
 
 ## Klient API
 
-`docs/openapi.json` → `fvm dart run swagger_parser` → `lib/data/remote/api/` (nie edytować ręcznie).
-Spec nie opisuje jeszcze schematów odpowiedzi, więc odpowiedzi czytamy przez ręczny interfejs
-Retrofit `lib/data/remote/citizen_api.dart` z DTO w `lib/data/remote/dto/` (wg `backend-specs.md`).
-Po uzupełnieniu spec: regenerować klienta i usunąć ręczne DTO.
+```bash
+curl -s -H "ngrok-skip-browser-warning: 1" <API>/api/doc.json | python3 -m json.tool --indent 4 > docs/openapi.json
+fvm dart run swagger_parser && fvm dart run build_runner build
+```
+
+Wygenerowany klient: `lib/data/remote/api/` (nie edytować ręcznie). Mapowanie na modele domenowe:
+`lib/data/remote/mappers.dart`. Zgłoszenia do backendu: `docs/backend-requests.md`.
 
 ## Struktura
 

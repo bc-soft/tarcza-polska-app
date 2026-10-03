@@ -4,6 +4,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'shelter_occupancy2.dart';
 import 'shelter_status.dart';
 
 part 'confirm_shelter_status_request.freezed.dart';
@@ -14,6 +15,7 @@ abstract class ConfirmShelterStatusRequest with _$ConfirmShelterStatusRequest {
   const factory ConfirmShelterStatusRequest({
     required ShelterStatus status,
     required String? comment,
+    required ShelterOccupancy2? occupancy,
   }) = _ConfirmShelterStatusRequest;
   
   factory ConfirmShelterStatusRequest.fromJson(Map<String, Object?> json) => _$ConfirmShelterStatusRequestFromJson(json);

@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$UpdateLocationRequest {
 
- double get lat; double get lng; double? get accuracyMeters;
+ double get lat; double get lng; double? get accuracyMeters; LocationSource? get source;
 /// Create a copy of UpdateLocationRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $UpdateLocationRequestCopyWith<UpdateLocationRequest> get copyWith => _$UpdateLo
 @override
 bool operator ==(Object other) {
   final _this = this as UpdateLocationRequest;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateLocationRequest&&(identical(other.lat, _this.lat) || other.lat == _this.lat)&&(identical(other.lng, _this.lng) || other.lng == _this.lng)&&(identical(other.accuracyMeters, _this.accuracyMeters) || other.accuracyMeters == _this.accuracyMeters));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateLocationRequest&&(identical(other.lat, _this.lat) || other.lat == _this.lat)&&(identical(other.lng, _this.lng) || other.lng == _this.lng)&&(identical(other.accuracyMeters, _this.accuracyMeters) || other.accuracyMeters == _this.accuracyMeters)&&(identical(other.source, _this.source) || other.source == _this.source));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as UpdateLocationRequest;
-  return Object.hash(runtimeType,_this.lat,_this.lng,_this.accuracyMeters);
+  return Object.hash(runtimeType,_this.lat,_this.lng,_this.accuracyMeters,_this.source);
 }
 
 @override
 String toString() {
   final _this = this as UpdateLocationRequest;
-  return 'UpdateLocationRequest(lat: ${_this.lat}, lng: ${_this.lng}, accuracyMeters: ${_this.accuracyMeters})';
+  return 'UpdateLocationRequest(lat: ${_this.lat}, lng: ${_this.lng}, accuracyMeters: ${_this.accuracyMeters}, source: ${_this.source})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $UpdateLocationRequestCopyWith<$Res>  {
   factory $UpdateLocationRequestCopyWith(UpdateLocationRequest value, $Res Function(UpdateLocationRequest) _then) = _$UpdateLocationRequestCopyWithImpl;
 @useResult
 $Res call({
- double lat, double lng, double? accuracyMeters
+ double lat, double lng, double? accuracyMeters, LocationSource? source
 });
 
 
@@ -71,12 +71,13 @@ class _$UpdateLocationRequestCopyWithImpl<$Res>
 
 /// Create a copy of UpdateLocationRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? lat = null,Object? lng = null,Object? accuracyMeters = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? lat = null,Object? lng = null,Object? accuracyMeters = freezed,Object? source = freezed,}) {
   return _then(UpdateLocationRequest(
 lat: null == lat ? _self.lat : lat // ignore: cast_nullable_to_non_nullable
 as double,lng: null == lng ? _self.lng : lng // ignore: cast_nullable_to_non_nullable
 as double,accuracyMeters: freezed == accuracyMeters ? _self.accuracyMeters : accuracyMeters // ignore: cast_nullable_to_non_nullable
-as double?,
+as double?,source: freezed == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
+as LocationSource?,
   ));
 }
 
@@ -161,10 +162,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double lat,  double lng,  double? accuracyMeters)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double lat,  double lng,  double? accuracyMeters,  LocationSource? source)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UpdateLocationRequest() when $default != null:
-return $default(_that.lat,_that.lng,_that.accuracyMeters);case _:
+return $default(_that.lat,_that.lng,_that.accuracyMeters,_that.source);case _:
   return orElse();
 
 }
@@ -182,10 +183,10 @@ return $default(_that.lat,_that.lng,_that.accuracyMeters);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double lat,  double lng,  double? accuracyMeters)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double lat,  double lng,  double? accuracyMeters,  LocationSource? source)  $default,) {final _that = this;
 switch (_that) {
 case _UpdateLocationRequest():
-return $default(_that.lat,_that.lng,_that.accuracyMeters);case _:
+return $default(_that.lat,_that.lng,_that.accuracyMeters,_that.source);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +203,10 @@ return $default(_that.lat,_that.lng,_that.accuracyMeters);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double lat,  double lng,  double? accuracyMeters)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double lat,  double lng,  double? accuracyMeters,  LocationSource? source)?  $default,) {final _that = this;
 switch (_that) {
 case _UpdateLocationRequest() when $default != null:
-return $default(_that.lat,_that.lng,_that.accuracyMeters);case _:
+return $default(_that.lat,_that.lng,_that.accuracyMeters,_that.source);case _:
   return null;
 
 }
@@ -217,12 +218,13 @@ return $default(_that.lat,_that.lng,_that.accuracyMeters);case _:
 @JsonSerializable()
 
 class _UpdateLocationRequest implements UpdateLocationRequest {
-  const _UpdateLocationRequest({required this.lat, required this.lng, required this.accuracyMeters});
+  const _UpdateLocationRequest({required this.lat, required this.lng, required this.accuracyMeters, required this.source});
   factory _UpdateLocationRequest.fromJson(Map<String, dynamic> json) => _$UpdateLocationRequestFromJson(json);
 
 @override final  double lat;
 @override final  double lng;
 @override final  double? accuracyMeters;
+@override final  LocationSource? source;
 
 /// Create a copy of UpdateLocationRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -237,18 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateLocationRequest&&(identical(other.lat, lat) || other.lat == lat)&&(identical(other.lng, lng) || other.lng == lng)&&(identical(other.accuracyMeters, accuracyMeters) || other.accuracyMeters == accuracyMeters));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateLocationRequest&&(identical(other.lat, lat) || other.lat == lat)&&(identical(other.lng, lng) || other.lng == lng)&&(identical(other.accuracyMeters, accuracyMeters) || other.accuracyMeters == accuracyMeters)&&(identical(other.source, source) || other.source == source));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,lat,lng,accuracyMeters);
+    return Object.hash(runtimeType,lat,lng,accuracyMeters,source);
 }
 
 @override
 String toString() {
-    return 'UpdateLocationRequest(lat: $lat, lng: $lng, accuracyMeters: $accuracyMeters)';
+    return 'UpdateLocationRequest(lat: $lat, lng: $lng, accuracyMeters: $accuracyMeters, source: $source)';
 }
 
 
@@ -259,7 +261,7 @@ abstract mixin class _$UpdateLocationRequestCopyWith<$Res> implements $UpdateLoc
   factory _$UpdateLocationRequestCopyWith(_UpdateLocationRequest value, $Res Function(_UpdateLocationRequest) _then) = __$UpdateLocationRequestCopyWithImpl;
 @override @useResult
 $Res call({
- double lat, double lng, double? accuracyMeters
+ double lat, double lng, double? accuracyMeters, LocationSource? source
 });
 
 
@@ -276,12 +278,13 @@ class __$UpdateLocationRequestCopyWithImpl<$Res>
 
 /// Create a copy of UpdateLocationRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? lat = null,Object? lng = null,Object? accuracyMeters = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? lat = null,Object? lng = null,Object? accuracyMeters = freezed,Object? source = freezed,}) {
   return _then(_UpdateLocationRequest(
 lat: null == lat ? _self.lat : lat // ignore: cast_nullable_to_non_nullable
 as double,lng: null == lng ? _self.lng : lng // ignore: cast_nullable_to_non_nullable
 as double,accuracyMeters: freezed == accuracyMeters ? _self.accuracyMeters : accuracyMeters // ignore: cast_nullable_to_non_nullable
-as double?,
+as double?,source: freezed == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
+as LocationSource?,
   ));
 }
 

@@ -95,10 +95,19 @@ class ShelterDetailCubit extends Cubit<ShelterDetailState> {
     }
   }
 
-  Future<void> confirmStatus(ShelterStatus status, {String? comment}) async {
+  Future<void> confirmStatus(
+    ShelterStatus status, {
+    ShelterOccupancy? occupancy,
+    String? comment,
+  }) async {
     emit(state.copyWith(confirm: ShelterConfirmStatus.sending));
     try {
-      final updated = await _repository.confirmStatus(shelterId, status, comment: comment);
+      final updated = await _repository.confirmStatus(
+        shelterId,
+        status,
+        occupancy: occupancy,
+        comment: comment,
+      );
       emit(
         state.copyWith(
           shelter: updated.copyWith(distanceMeters: state.shelter?.distanceMeters),

@@ -4,6 +4,7 @@ import "package:flutter/material.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
 import "package:flutter_map/flutter_map.dart";
 import "package:go_router/go_router.dart";
+import "package:latlong2/latlong.dart";
 
 import "package:tarcza_polska/app/router/app_router.dart";
 import "package:tarcza_polska/app/theme/tarcza_colors.dart";
@@ -12,6 +13,7 @@ import "package:tarcza_polska/core/widgets/map_widgets.dart";
 import "package:tarcza_polska/core/widgets/widgets.dart";
 import "package:tarcza_polska/data/models/models.dart";
 import "package:tarcza_polska/features/alerts/bloc/alerts_cubit.dart";
+import "package:tarcza_polska/features/fuel_stations/view/fuel_station_page.dart";
 import "package:tarcza_polska/features/map/bloc/map_bloc.dart";
 import "package:tarcza_polska/features/map/view/incident_card.dart";
 import "package:tarcza_polska/features/settings/bloc/location_cubit.dart";
@@ -33,17 +35,19 @@ class MapView extends StatefulWidget {
   State<MapView> createState() => _MapViewState();
 }
 
-class _MapViewState extends State<MapView> with SingleTickerProviderStateMixin {
+class _MapViewState extends State<MapView> with TickerProviderStateMixin {
   final _controller = MapController();
   final LayerHitNotifier<String> _hitNotifier = ValueNotifier(null);
   late final AnimationController _pulse = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1600),
   )..repeat(reverse: true);
+  AnimationController? _cameraAnimation;
   bool _ready = false;
 
   @override
   void dispose() {
+    _cameraAnimation?.dispose();
     _pulse.dispose();
     _hitNotifier.dispose();
     _controller.dispose();
@@ -68,20 +72,48 @@ class _MapViewState extends State<MapView> with SingleTickerProviderStateMixin {
     );
   }
 
+  /// Płynny ruch kamery (zoom, „moja pozycja”, „pokaż na mapie”).
+  void _animateTo(LatLng center, double zoom) {
+    if (!_ready) return;
+    _cameraAnimation?.dispose();
+    final camera = _controller.camera;
+    final latTween = Tween(begin: camera.center.latitude, end: center.latitude);
+    final lngTween = Tween(begin: camera.center.longitude, end: center.longitude);
+    final zoomTween = Tween(begin: camera.zoom, end: zoom.clamp(5.0, 19.0));
+    final controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 350),
+    );
+    final curve = CurvedAnimation(parent: controller, curve: Curves.easeInOutCubic);
+    controller
+      ..addListener(() {
+        _controller.move(
+          LatLng(latTween.evaluate(curve), lngTween.evaluate(curve)),
+          zoomTween.evaluate(curve),
+        );
+      })
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) _emitViewport();
+      });
+    _cameraAnimation = controller;
+    controller.forward();
+  }
+
+  void _zoomBy(double delta) =>
+      _animateTo(_controller.camera.center, _controller.camera.zoom + delta);
+
   void _focus(MapFocus focus) {
     if (!_ready || focus.points.isEmpty) return;
     if (focus.points.length == 1) {
-      _controller.move(focus.points.first, focus.zoom ?? 16);
-    } else {
-      _controller.fitCamera(
-        CameraFit.coordinates(
-          coordinates: focus.points,
-          padding: const EdgeInsets.fromLTRB(48, 140, 48, 260),
-          maxZoom: 16,
-        ),
-      );
+      _animateTo(focus.points.first, focus.zoom ?? 16);
+      return;
     }
-    _emitViewport();
+    final fitted = CameraFit.coordinates(
+      coordinates: focus.points,
+      padding: const EdgeInsets.fromLTRB(48, 100, 72, 220),
+      maxZoom: 16,
+    ).fit(_controller.camera);
+    _animateTo(fitted.center, fitted.zoom);
   }
 
   void _openIncident(Incident incident) {
@@ -99,7 +131,8 @@ class _MapViewState extends State<MapView> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final location = context.watch<LocationCubit>().state;
-    final center = location.effectivePosition ?? defaultMapCenter;
+    final center = location.bestPosition ?? defaultMapCenter;
+    final topInset = MediaQuery.paddingOf(context).top;
     return BlocConsumer<MapBloc, MapState>(
       listenWhen: (a, b) => a.focus?.id != b.focus?.id && b.focus != null,
       listener: (context, state) => _focus(state.focus!),
@@ -112,6 +145,7 @@ class _MapViewState extends State<MapView> with SingleTickerProviderStateMixin {
                 initialCenter: center,
                 initialZoom: 14.5,
                 minZoom: 5,
+                maxZoom: 19,
                 interactionOptions: const InteractionOptions(
                   flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
                 ),
@@ -130,11 +164,52 @@ class _MapViewState extends State<MapView> with SingleTickerProviderStateMixin {
                 _AlertAreasLayer(alerts: state.alerts),
                 GestureDetector(
                   onTap: _onPolygonTap,
-                  child: AnimatedBuilder(
-                    animation: _pulse,
-                    builder: (context, _) => PolygonLayer<String>(
-                      hitNotifier: _hitNotifier,
-                      polygons: _incidentPolygons(context, state),
+                  child: PolygonLayer<String>(
+                    hitNotifier: _hitNotifier,
+                    polygons: _incidentPolygons(context, state),
+                  ),
+                ),
+                // Strefy w trakcie weryfikacji „oddychają”: animujemy tylko przezroczystość
+                // osobnej warstwy wypełnień (bez przebudowy poligonów co klatkę).
+                IgnorePointer(
+                  child: FadeTransition(
+                    opacity: _pulse,
+                    child: PolygonLayer(polygons: _pulsePolygons(context, state)),
+                  ),
+                ),
+                ClusteredMarkerLayer<Shelter>(
+                  items: state.shelters,
+                  pointOf: (s) => s.location,
+                  clusterColor: (group) => shelterGroupColor(context, group),
+                  clusterIcon: Icons.night_shelter,
+                  markerBuilder: (context, shelter) => GestureDetector(
+                    onTap: () => context.push(AppRoutes.shelter(shelter.id), extra: shelter),
+                    child: Semantics(
+                      label: "${shelter.name} — ${shelter.statusLabel}",
+                      child: IconCircleMarker(
+                        icon: Icons.night_shelter,
+                        color: context.statusColors.forShelter(shelter.status),
+                        size: 30,
+                      ),
+                    ),
+                  ),
+                ),
+                ClusteredMarkerLayer<FuelStation>(
+                  items: state.fuelStations,
+                  pointOf: (s) => s.location,
+                  clusterColor: (group) => group.any((s) => s.shortage)
+                      ? TarczaPalette.confirmed
+                      : TarczaPalette.unverified,
+                  clusterIcon: Icons.local_gas_station,
+                  markerBuilder: (context, station) => GestureDetector(
+                    onTap: () => context.push(AppRoutes.fuelStation(station.id), extra: station),
+                    child: Semantics(
+                      label: station.name,
+                      child: IconCircleMarker(
+                        icon: Icons.local_gas_station,
+                        color: fuelStationColor(context, station),
+                        size: 30,
+                      ),
                     ),
                   ),
                 ),
@@ -142,25 +217,26 @@ class _MapViewState extends State<MapView> with SingleTickerProviderStateMixin {
                 const OsmAttribution(),
               ],
             ),
-            SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-                child: _TopBar(state: state),
+            if (state.refreshFailed)
+              Positioned(
+                left: 12,
+                right: 12,
+                top: topInset + 8,
+                child: const _RefreshFailedBanner(),
               ),
-            ),
             Positioned(
               right: 12,
-              top: MediaQuery.paddingOf(context).top + (state.refreshFailed ? 136 : 84),
+              top: topInset + (state.refreshFailed ? 64 : 12),
               child: _MapButtons(
-                onMyLocation: () {
-                  final p = context.read<LocationCubit>().state.effectivePosition;
-                  if (p != null) context.read<MapBloc>().add(MapFocusRequested([p], zoom: 15.5));
-                },
+                loading: state.status == MapStatus.loading,
+                onZoomIn: () => _zoomBy(1),
+                onZoomOut: () => _zoomBy(-1),
+                onMyLocation: location.bestPosition == null
+                    ? null
+                    : () => _animateTo(location.bestPosition!, 16),
                 onHome: location.homeAddress == null
                     ? null
-                    : () => context.read<MapBloc>().add(
-                        MapFocusRequested([location.homeAddress!.location], zoom: 15.5),
-                      ),
+                    : () => _animateTo(location.homeAddress!.location, 16),
                 onRefresh: () => context.read<MapBloc>().add(const MapRefreshRequested()),
               ),
             ),
@@ -181,15 +257,13 @@ class _MapViewState extends State<MapView> with SingleTickerProviderStateMixin {
       final area = incident.area;
       if (area is! GeoPolygonArea) continue;
       final color = colors.forConfidence(incident.confidenceLevel);
-      // Strefa w trakcie weryfikacji „oddycha” — widać, że obszar żyje.
-      final live = incident.status != IncidentStatus.active ? _pulse.value * 0.12 : 0.0;
       final selected = incident.id == state.selectedIncidentId;
       for (final p in area.polygons) {
         polygons.add(
           Polygon<String>(
             points: p.outer,
             holePointsList: p.holes.isEmpty ? null : p.holes,
-            color: color.withValues(alpha: 0.28 + live),
+            color: color.withValues(alpha: 0.28),
             borderColor: color,
             borderStrokeWidth: selected ? 4 : 2.5,
             hitValue: incident.id,
@@ -200,24 +274,26 @@ class _MapViewState extends State<MapView> with SingleTickerProviderStateMixin {
     return polygons;
   }
 
-  List<Marker> _markers(BuildContext context, MapState state, LocationState location) {
+  /// Dodatkowe wypełnienie stref, które jeszcze się zmieniają (nie `active`).
+  List<Polygon> _pulsePolygons(BuildContext context, MapState state) {
     final colors = context.statusColors;
     return [
-      for (final shelter in state.shelters)
-        Marker(
-          point: shelter.location,
-          child: GestureDetector(
-            onTap: () => context.push(AppRoutes.shelter(shelter.id), extra: shelter),
-            child: Tooltip(
-              message: "${shelter.name} — ${shelter.statusLabel}",
-              child: IconCircleMarker(
-                icon: Icons.night_shelter,
-                color: colors.forShelter(shelter.status),
-                size: 30,
+      for (final incident in state.incidents)
+        if (incident.status != IncidentStatus.active)
+          if (incident.area case GeoPolygonArea(:final polygons))
+            for (final p in polygons)
+              Polygon(
+                points: p.outer,
+                holePointsList: p.holes.isEmpty ? null : p.holes,
+                color: colors.forConfidence(incident.confidenceLevel).withValues(alpha: 0.14),
               ),
-            ),
-          ),
-        ),
+    ];
+  }
+
+  List<Marker> _markers(BuildContext context, MapState state, LocationState location) {
+    final colors = context.statusColors;
+    final me = location.livePosition ?? location.position;
+    return [
       for (final incident in state.incidents)
         if (incident.area case GeoPointArea(:final point))
           Marker(
@@ -233,24 +309,9 @@ class _MapViewState extends State<MapView> with SingleTickerProviderStateMixin {
               ),
             ),
           ),
-      if (location.homeAddress != null)
-        Marker(
-          point: location.homeAddress!.location,
-          width: 32,
-          height: 32,
-          child: const IconCircleMarker(
-            icon: Icons.home_rounded,
-            color: TarczaPalette.primaryDark,
-            size: 32,
-          ),
-        ),
-      if (location.position != null)
-        Marker(
-          point: location.position!,
-          width: 22,
-          height: 22,
-          child: const IconCircleMarker(icon: Icons.circle, color: TarczaPalette.info, size: 22),
-        ),
+      if (me != null) userLocationMarker(me),
+      // Dom na wierzchu — pinezka, wyraźnie inna niż okrągłe schrony.
+      if (location.homeAddress != null) homeMarker(location.homeAddress!.location),
     ];
   }
 }
@@ -280,111 +341,107 @@ class _AlertAreasLayer extends StatelessWidget {
   }
 }
 
-class _TopBar extends StatelessWidget {
-  const _TopBar({required this.state});
-
-  final MapState state;
+class _RefreshFailedBanner extends StatelessWidget {
+  const _RefreshFailedBanner();
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final count = state.incidents.length;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    margin: const EdgeInsets.only(right: 60),
+    decoration: BoxDecoration(
+      color: const Color(0xFFFFF4E5),
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: TarczaPalette.likely),
+    ),
+    child: Row(
       children: [
-        TarczaCard(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          child: Row(
-            children: [
-              const Icon(Icons.shield_outlined, color: TarczaPalette.primary),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.appTitle,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: TarczaPalette.heading,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    Text(
-                      count == 0 ? l10n.mapNoIncidents : l10n.mapIncidentsCount(count),
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: TarczaPalette.textSecondary),
-                    ),
-                  ],
-                ),
-              ),
-              if (state.status == MapStatus.loading)
-                const SizedBox.square(
-                  dimension: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-            ],
-          ),
+        const Icon(Icons.wifi_off, size: 18, color: TarczaPalette.high),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(context.l10n.mapRefreshFailed, style: const TextStyle(fontSize: 13)),
         ),
-        if (state.refreshFailed) ...[
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF4E5),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: TarczaPalette.likely),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.wifi_off, size: 18, color: TarczaPalette.high),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(l10n.mapRefreshFailed, style: const TextStyle(fontSize: 13)),
-                ),
-              ],
-            ),
-          ),
-        ],
       ],
-    );
-  }
+    ),
+  );
 }
 
 class _MapButtons extends StatelessWidget {
-  const _MapButtons({required this.onMyLocation, required this.onHome, required this.onRefresh});
+  const _MapButtons({
+    required this.loading,
+    required this.onZoomIn,
+    required this.onZoomOut,
+    required this.onMyLocation,
+    required this.onHome,
+    required this.onRefresh,
+  });
 
-  final VoidCallback onMyLocation;
+  final bool loading;
+  final VoidCallback onZoomIn;
+  final VoidCallback onZoomOut;
+  final VoidCallback? onMyLocation;
   final VoidCallback? onHome;
   final VoidCallback onRefresh;
+
+  static const _shadow = [BoxShadow(blurRadius: 6, color: Colors.black26, offset: Offset(0, 2))];
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    Widget button(IconData icon, String tooltip, VoidCallback? onPressed) => Padding(
+    Widget round(Widget child) => Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: Material(
-        color: Colors.white,
-        shape: const CircleBorder(side: BorderSide(color: TarczaPalette.outline)),
-        elevation: 2,
-        child: IconButton(
-          tooltip: tooltip,
-          icon: Icon(icon, color: TarczaPalette.primary),
-          onPressed: onPressed,
+      child: DecoratedBox(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: _shadow,
         ),
+        child: child,
       ),
+    );
+    Widget icon(IconData icon, String tooltip, VoidCallback? onPressed) => IconButton(
+      tooltip: tooltip,
+      icon: Icon(icon, color: onPressed == null ? TarczaPalette.outline : TarczaPalette.primary),
+      onPressed: onPressed,
     );
     return Column(
       children: [
-        button(Icons.my_location, l10n.mapMyLocation, onMyLocation),
-        if (onHome != null) button(Icons.home_outlined, l10n.mapHome, onHome),
-        button(Icons.refresh, l10n.mapRefresh, onRefresh),
+        // Zoom jako jedna „pigułka” — jak w aplikacjach mapowych.
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: _shadow,
+            ),
+            child: Column(
+              children: [
+                icon(Icons.add, l10n.mapZoomIn, onZoomIn),
+                const SizedBox(width: 28, child: Divider(height: 1)),
+                icon(Icons.remove, l10n.mapZoomOut, onZoomOut),
+              ],
+            ),
+          ),
+        ),
+        round(icon(Icons.my_location, l10n.mapMyLocation, onMyLocation)),
+        if (onHome != null) round(icon(Icons.home_outlined, l10n.mapHome, onHome)),
+        round(
+          loading
+              ? const Padding(
+                  padding: EdgeInsets.all(14),
+                  child: SizedBox.square(
+                    dimension: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              : icon(Icons.refresh, l10n.mapRefresh, onRefresh),
+        ),
       ],
     );
   }
 }
 
-/// Dół mapy: oczekujące pytanie, aktywny alert, karty incydentów.
+/// Dół mapy: oczekujące pytanie, aktywny alert, karty incydentów + lista wszystkich.
 class _BottomPanel extends StatelessWidget {
   const _BottomPanel({required this.state, required this.onIncidentTap});
 
@@ -433,24 +490,122 @@ class _BottomPanel extends StatelessWidget {
             ),
             const SizedBox(height: 8),
           ],
-          if (incidents.isNotEmpty)
-            SizedBox(
-              height: 108,
-              child: PageView.builder(
-                controller: PageController(viewportFraction: incidents.length > 1 ? 0.92 : 1),
-                padEnds: false,
-                itemCount: incidents.length,
-                itemBuilder: (context, index) => Padding(
-                  padding: EdgeInsets.only(right: incidents.length > 1 ? 8 : 0),
-                  child: IncidentCard(
-                    incident: incidents[index],
-                    highlighted: incidents[index].id == state.selectedIncidentId,
-                    onTap: () => onIncidentTap(incidents[index]),
-                  ),
-                ),
-              ),
+          if (incidents.isNotEmpty) ...[
+            Align(
+              alignment: Alignment.centerRight,
+              child: _AllIncidentsButton(count: incidents.length),
             ),
+            const SizedBox(height: 8),
+            _IncidentCarousel(
+              incidents: incidents,
+              selectedId: state.selectedIncidentId,
+              onTap: onIncidentTap,
+            ),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+class _AllIncidentsButton extends StatelessWidget {
+  const _AllIncidentsButton({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) => Material(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(999),
+    elevation: 2,
+    child: InkWell(
+      borderRadius: BorderRadius.circular(999),
+      onTap: () => context.push(AppRoutes.incidents),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.format_list_bulleted, size: 18, color: TarczaPalette.primary),
+            const SizedBox(width: 6),
+            Text(
+              context.l10n.mapAllIncidents(count),
+              style: const TextStyle(color: TarczaPalette.primary, fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+/// Poziome karty incydentów. Kontroler żyje ze stanem (nie odtwarzamy go przy każdym
+/// odświeżeniu mapy), a wysokość rośnie z rozmiarem czcionki — karty nie są przycinane.
+class _IncidentCarousel extends StatefulWidget {
+  const _IncidentCarousel({
+    required this.incidents,
+    required this.selectedId,
+    required this.onTap,
+  });
+
+  final List<Incident> incidents;
+  final String? selectedId;
+  final ValueChanged<Incident> onTap;
+
+  @override
+  State<_IncidentCarousel> createState() => _IncidentCarouselState();
+}
+
+class _IncidentCarouselState extends State<_IncidentCarousel> {
+  late PageController _controller = _create();
+
+  PageController _create() =>
+      PageController(viewportFraction: widget.incidents.length > 1 ? 0.9 : 1);
+
+  @override
+  void didUpdateWidget(_IncidentCarousel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final wasMany = oldWidget.incidents.length > 1;
+    final isMany = widget.incidents.length > 1;
+    if (wasMany != isMany) {
+      _controller.dispose();
+      _controller = _create();
+    } else if (widget.selectedId != oldWidget.selectedId && _controller.hasClients) {
+      // Wybrany incydent jest pierwszy na liście.
+      _controller.animateToPage(
+        0,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final many = widget.incidents.length > 1;
+    return SizedBox(
+      height: MediaQuery.textScalerOf(context).scale(56) + 36,
+      child: PageView.builder(
+        controller: _controller,
+        padEnds: false,
+        itemCount: widget.incidents.length,
+        itemBuilder: (context, index) {
+          final incident = widget.incidents[index];
+          return Padding(
+            padding: EdgeInsets.only(right: many ? 8 : 0),
+            child: IncidentOpenContainer(
+              incident: incident,
+              elevation: 3,
+              onOpen: () => context.read<MapBloc>().add(MapIncidentSelected(incident.id)),
+            ),
+          );
+        },
       ),
     );
   }

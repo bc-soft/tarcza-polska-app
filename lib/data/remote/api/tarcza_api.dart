@@ -5,6 +5,8 @@
 import 'package:dio/dio.dart';
 
 import 'alerts/alerts_client.dart';
+import 'fuel_stations/fuel_stations_client.dart';
+import 'guidance/guidance_client.dart';
 import 'devices/devices_client.dart';
 import 'incidents/incidents_client.dart';
 import 'reports/reports_client.dart';
@@ -12,14 +14,16 @@ import 'fallback/fallback_client.dart';
 import 'shelters/shelters_client.dart';
 import 'verification/verification_client.dart';
 
-/// Tarcza Polska API `v1.0.0`.
+/// Tarcza Polska API `v1.1.0`.
 ///
 /// Backend for the Tarcza Polska civil resilience platform.
 ///
 /// * `/api/v1/*` - Citizen mobile app (Flutter). Authenticate with the JWT returned by `POST /api/v1/devices`.
 /// * `/api/command/*` - Command Center. Authenticate with the JWT returned by `POST /api/command/login`.
 ///
-/// All spatial payloads are GeoJSON (WGS84, `[lng, lat]` order).
+/// All spatial payloads are GeoJSON (WGS84, `[lng, lat]` order). Every error is an `ErrorResponse`.
+/// `GET /map`, `GET /verifications/pending` and `GET /alerts` send an `ETag`; repeat the value in.
+/// `If-None-Match` to get `304 Not Modified`.
 ///
 class TarczaApi {
   TarczaApi(
@@ -31,9 +35,11 @@ class TarczaApi {
   final Dio _dio;
   final String? _baseUrl;
 
-  static String get version => '1.0.0';
+  static String get version => '1.1.0';
 
   AlertsClient? _alerts;
+  FuelStationsClient? _fuelStations;
+  GuidanceClient? _guidance;
   DevicesClient? _devices;
   IncidentsClient? _incidents;
   ReportsClient? _reports;
@@ -42,6 +48,10 @@ class TarczaApi {
   VerificationClient? _verification;
 
   AlertsClient get alerts => _alerts ??= AlertsClient(_dio, baseUrl: _baseUrl);
+
+  FuelStationsClient get fuelStations => _fuelStations ??= FuelStationsClient(_dio, baseUrl: _baseUrl);
+
+  GuidanceClient get guidance => _guidance ??= GuidanceClient(_dio, baseUrl: _baseUrl);
 
   DevicesClient get devices => _devices ??= DevicesClient(_dio, baseUrl: _baseUrl);
 

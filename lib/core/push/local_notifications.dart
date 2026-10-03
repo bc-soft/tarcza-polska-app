@@ -41,7 +41,7 @@ class LocalNotifications {
           ),
         ),
         onDidReceiveNotificationResponse: (response) {
-          final event = _decode(response.payload);
+          final event = _decode(response.payload, opened: true);
           if (event != null) _taps.add(event);
         },
       );
@@ -55,7 +55,7 @@ class LocalNotifications {
     try {
       final details = await _plugin.getNotificationAppLaunchDetails();
       if (details?.didNotificationLaunchApp ?? false) {
-        return _decode(details?.notificationResponse?.payload);
+        return _decode(details?.notificationResponse?.payload, opened: true);
       }
     } on Object {
       // Brak wsparcia platformy.
@@ -98,11 +98,11 @@ class LocalNotifications {
     }
   }
 
-  static PushEvent? _decode(String? payload) {
+  static PushEvent? _decode(String? payload, {bool opened = false}) {
     if (payload == null) return null;
     try {
       final data = jsonDecode(payload);
-      return data is Map<String, dynamic> ? PushEvent.fromData(data) : null;
+      return data is Map<String, dynamic> ? PushEvent.fromData(data, opened: opened) : null;
     } on FormatException {
       return null;
     }

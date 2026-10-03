@@ -8,26 +8,30 @@
 > Priorytety: **P1** — blokuje regenerację klienta / grozi błędem parsowania, **P2** — decyzja
 > produktowa potrzebna przed demo, **P3** — usprawnienie.
 >
+> **Status (2026-10-03):** backend odpowiedział i wdrożył punkty 1–13 (spec **1.1.0**, pkt 7 —
+> decyzja „nie”). Mobile: klient zregenerowany z `GET /api/doc.json`, wszystko wdrożone i sprawdzone
+> na symulatorze iPhone 15 Pro na backendzie przez ngrok — patrz „Wdrożenie po stronie mobile” na końcu.
+>
 > Po każdej zmianie kontraktu: `make openapi` i skopiowanie pliku do `docs/openapi.json` w repo
 > mobile (klient generujemy `swagger_parser` → Retrofit).
 
 ## Spis
 
-| # | Priorytet | Temat |
-|---|---|---|
-| 1 | P1 | Schematy odpowiedzi w `openapi.json` |
-| 2 | P1 | Schemat błędów i kody 4xx w `openapi.json` |
-| 3 | P1 | `id` w `properties` każdego Feature z `GET /map` |
-| 4 | P1 | `required` w schemacie `POST /devices` |
-| 5 | P2 | Adres domowy vs ostatnia pozycja (`source` w `PUT /devices/me/location`) |
-| 6 | P2 | Push `location_refresh` + wyłączenie przypomnień przez użytkownika |
-| 7 | P2 | Geokodowanie adresu — decyzja |
-| 8 | P3 | Etykiety tam, gdzie ich brakuje (`statusLabel` incydentu, skrót incydentu w raporcie) |
-| 9 | P3 | Odrębne kody błędów dla 409 / 410 przy weryfikacji |
-| 10 | P3 | `Retry-After` przy 429 |
-| 11 | P3 | Ponowna rejestracja po 401 bez osieroconych urządzeń |
-| 12 | P3 | Pola alertu w `GET /map` i push weryfikacyjny z `expiresAt` |
-| 13 | P3 | Tańszy polling mapy (`ETag`) |
+| # | Priorytet | Temat | Backend | Mobile |
+|---|---|---|---|---|
+| 1 | P1 | Schematy odpowiedzi w `openapi.json` | zrobione | ✅ klient zregenerowany, ręczne DTO usunięte |
+| 2 | P1 | Schemat błędów i kody 4xx w `openapi.json` | zrobione | ✅ mapowanie po `error.code` |
+| 3 | P1 | `id` w `properties` każdego Feature z `GET /map` | już było | ✅ |
+| 4 | P1 | `required` w schemacie `POST /devices` | zrobione | ✅ |
+| 5 | P2 | Adres domowy vs ostatnia pozycja (`source` w `PUT /devices/me/location`) | opcja 2 | ✅ `source` wysyłane (także natywnie z tła) |
+| 6 | P2 | Push `location_refresh` + wyłączenie przypomnień przez użytkownika | zrobione | ✅ przełącznik → `PUT /devices/me/preferences` |
+| 7 | P2 | Geokodowanie adresu — decyzja | nie | ✅ zostaje systemowe |
+| 8 | P3 | Etykiety tam, gdzie ich brakuje | zrobione | ✅ `statusLabel`, etykiety w raporcie |
+| 9 | P3 | Odrębne kody błędów dla 409 / 410 przy weryfikacji | zrobione | ✅ |
+| 10 | P3 | `Retry-After` przy 429 | zrobione | ✅ „Spróbuj ponownie za N min” |
+| 11 | P3 | Ponowna rejestracja po 401 bez osieroconych urządzeń | zrobione | ✅ re-rejestracja zawsze z `pushToken` |
+| 12 | P3 | Pola alertu w `GET /map` i push weryfikacyjny z `expiresAt` | zrobione | ✅ `data.incidentType`, `data.expiresAt`; ⏳ capability *Time Sensitive* |
+| 13 | P3 | Tańszy polling mapy (`ETag`) | zrobione | ✅ `EtagCacheInterceptor` (`304` widoczne w logach) |
 
 ---
 
@@ -299,3 +303,81 @@ demo (`make simulate`) warto dodać `ETag` / `If-None-Match` → `304 Not Modifi
 - **Rejestracja z symulatora** — mobile wysyła `platform: "simulator"` na symulatorze iOS.
 - **Confidence** — mobile niczego nie liczy, tylko prezentuje `confidenceLevel`, `confidenceScore`,
   `community.agreementPct`.
+
+---
+
+## Wdrożenie po stronie mobile (2026-10-03)
+
+- `docs/openapi.json` = `GET /api/doc.json` z backendu (1.1.0); `dart run swagger_parser` z
+  `fallback_union: unknown` (nowy `kind` na mapie nie wywraca parsowania).
+- Repozytoria `Remote*` używają wygenerowanego `TarczaApi`; mapowanie na domenę:
+  `lib/data/remote/mappers.dart`. Ręcznie zostaje tylko `ErrorResponse`
+  (`lib/data/remote/dto/error_response_dto.dart`) — generator nie emituje schematów używanych
+  wyłącznie w odpowiedziach 4xx.
+- Domena: `Incident.area` i `Shelter.address` nullable, `Incident.statusLabel`, etykiety w
+  `ReportStatus`, `DeviceProfile.locationSource` / `locationRefresh`.
+- Sprawdzone na prawdziwym backendzie (ngrok): rejestracja, `PUT location` z `source`,
+  `PUT preferences → 204`, mapa z incydentem (MultiPolygon z komórek H3, streszczenie AI),
+  schrony, `GET /incidents/{id}`, polling z `304`.
+- Nie sprawdzone na backendzie (zapisują wspólne dane demo): `POST /reports`,
+  `POST /shelters/{id}/status`, odpowiedź na pytanie — działają w trybie mock na tym samym kodzie UI.
+- Push: `GoogleService-Info.plist` (projekt `tarcza-polska`) i entitlements *Push Notifications*
+  + *Time Sensitive* są w projekcie; obsługa `onMessage` / `onMessageOpenedApp` sprawdzona przez
+  `xcrun simctl push`. **Otwarte:** zespół Apple Developer w podpisie (bez niego brak tokena APNs →
+  brak tokena FCM) i klucz APNs `.p8` w Firebase Console; po stronie backendu
+  `FIREBASE_CREDENTIALS` z tego samego projektu `tarcza-polska`.
+
+### Do backendu (drobne, z wdrożenia)
+
+- `docs/backend-specs.md` w repo mobile jest sprzed 1.1.0 — prosimy o aktualny
+  `flutter-agent-guide.md` / `api.md`, podmienimy.
+- Repo `bc-soft/tarcza-polska-backend` na GitHubie ma tylko „Initial commit” — spec pobraliśmy
+  z działającego backendu (`/api/doc.json`). Wypchnięcie zmian ułatwi synchronizację.
+
+---
+
+## 14. [P2] Etykiety odpowiedzi w pytaniu weryfikacyjnym (nowe)
+
+**Kontekst.** Ekran pytania pokazuje teraz duże przyciski z etykietami zależnymi od typu, np.
+„Mam prąd” / „Nie mam prądu” zamiast TAK / NIE. Mobile wysyła nadal dosłownie `yes` / `no`.
+
+**Problem.** Etykietę trzeba dopasować do sformułowania pytania — przy pytaniu zaprzeczonym
+(„Czy nadal brakuje prądu?”) „TAK” znaczy coś odwrotnego. Dziś mobile podstawia etykiety tylko,
+gdy treść pasuje do znanego pozytywnego wzorca („Czy masz dostęp do prądu?”), w innym razie
+zostaje TAK / NIE. Znamy tylko pytanie dla `power_outage`.
+
+**Prośba.** Dodać do `VerificationQuestion` pole
+`optionLabels: { yes: string, no: string, unknown: string }` (np. `"Mam prąd"`, `"Nie mam prądu"`,
+`"Nie wiem"`) — backend jest właścicielem treści pytania, więc i etykiet. Do tego czasu: lista
+pytań (`question`) dla każdego `ReportType`, żeby mobile mógł dopasować wzorce.
+
+---
+
+## Wdrożenie przewodnika v2 (2026-10-03, §15–20)
+
+`docs/backend-specs.md` podmieniony na nowy przewodnik, `docs/openapi.json` pobrany z `/api/doc.json`
+i klient zregenerowany (stacje paliw, historia, procedury, paczka offline, zdjęcia).
+
+| § | Co | Mobile |
+|---|---|---|
+| 1 | HTTP po LAN na iOS | ✅ `NSAllowsArbitraryLoads` w `Info.plist` (do usunięcia przed wydaniem — produkcja ma TLS) |
+| 10 | push `verification` po czasie | ✅ tapnięty wygasły push otwiera ekran „pytanie wygasło”; na pierwszym planie wygasły jest pomijany |
+| 11 | `GET /devices/me` przy starcie | ✅ (401 → ponowna rejestracja z `pushToken`) |
+| 17 | procedury „co robić” | ✅ szczegóły incydentu i ekran alertu (`GET /procedures?type=`) |
+| 17 | paczka offline (cache) | ⏳ nie wdrożone — wymaga lokalnej bazy i trybu „dane z cache” w UI |
+| 18 | historia incydentu | ✅ oś czasu w szczegółach (ETag) |
+| 19 | zapełnienie / tryb otwarcia schronu | ✅ lista, szczegóły, potwierdzenie z `occupancy` (pomijane dla `closed`) |
+| 16 | zdjęcia do zgłoszenia | ⏳ nie wdrożone — wymaga `image_picker` i uprawnień aparatu/galerii |
+| 20 | zgłoszenia punktowe (paliwo, schron) | ✅ krok „Która stacja? / Który schron?” (najbliższy zaznaczony), wybór paliw, `poiId` + `fuelTypes`, 422 `poi_required` wraca do wyboru |
+| 20 | stacje paliw na mapie | ✅ warstwa z grupowaniem, kolor wg `shortage`, ekran stacji z potwierdzeniem dostępności |
+| 20 | `poi` w pytaniu | ✅ nazwa obiektu wyraźnie w karcie pytania |
+
+### Do backendu (z wdrożenia v2)
+
+- Spec dostał 20 nowych schematów i 7 ścieżek, ale `info.version` nadal `1.1.0` — prosimy o podbicie
+  (np. `1.2.0`), żeby było widać, że trzeba regenerować klienta.
+- Pkt 14 (etykiety odpowiedzi `optionLabels`) nadal otwarty — pytania o stację mają teraz nazwę paliwa
+  w treści, więc etykiety z backendu byłyby jeszcze bardziej przydatne.
+- `GET /fuel-stations?lat&lng` zwraca zdublowane stacje (np. dwie pozycje „MOL, Stefana Żeromskiego 3”
+  w tej samej odległości) — prawdopodobnie duplikat w imporcie danych; użytkownik widzi dwa identyczne
+  wiersze przy wyborze stacji w zgłoszeniu.

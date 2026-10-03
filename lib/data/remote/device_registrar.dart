@@ -8,6 +8,8 @@ import "package:tarcza_polska/data/remote/api/export.dart";
 ///
 /// Używany przez `RemoteDeviceRepository` i `AuthInterceptor` (ponowna
 /// rejestracja po 401). Działa na osobnym `Dio` bez interceptora autoryzacji.
+/// Token FCM podajemy od razu — backend odpina go wtedy od poprzedniego urządzenia,
+/// więc telefon nie dostaje podwójnych pytań.
 class DeviceRegistrar {
   DeviceRegistrar({
     required this._client,
@@ -27,13 +29,8 @@ class DeviceRegistrar {
         pushToken: pushToken ?? await _pushTokenProvider(),
       ),
     );
-    final token = response.token;
-    final deviceId = response.deviceId;
-    if (token == null || deviceId == null) {
-      throw StateError("POST /devices bez tokena w odpowiedzi");
-    }
-    await _tokenStorage.save(token: token, deviceId: deviceId);
-    return deviceId;
+    await _tokenStorage.save(token: response.token, deviceId: response.deviceId);
+    return response.deviceId;
   }
 
   static RegisterDeviceRequestPlatform get currentPlatform {

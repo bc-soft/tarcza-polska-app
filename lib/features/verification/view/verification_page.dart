@@ -8,6 +8,7 @@ import "package:tarcza_polska/core/utils/formatters.dart";
 import "package:tarcza_polska/core/widgets/widgets.dart";
 import "package:tarcza_polska/data/models/models.dart";
 import "package:tarcza_polska/features/verification/bloc/verification_bloc.dart";
+import "package:tarcza_polska/l10n/app_localizations.dart";
 
 /// Pełnoekranowe pytanie weryfikacyjne. `VerificationBloc` jest globalny —
 /// pytanie może przyjść w dowolnym momencie (push / polling).
@@ -30,8 +31,10 @@ class _VerificationPageState extends State<VerificationPage> {
 
   void _close() {
     context.read<VerificationBloc>().add(const VerificationDismissed());
-    if (context.canPop()) {
-      context.pop();
+    // `Navigator` obsługuje i strony go_router, i trasy otwarte imperatywnie (podgląd ekranów).
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.pop();
     } else {
       context.go(AppRoutes.map);
     }
@@ -45,7 +48,8 @@ class _VerificationPageState extends State<VerificationPage> {
         if (didPop) context.read<VerificationBloc>().add(const VerificationDismissed());
       },
       child: Scaffold(
-        appBar: AppBar(
+        appBar: TarczaAppBar(
+          showLogo: true,
           title: Text(l10n.verificationTitle),
           automaticallyImplyLeading: false,
           actions: [
@@ -100,6 +104,156 @@ class _VerificationPageState extends State<VerificationPage> {
   }
 }
 
+/// Karta pytania: typ zdarzenia, kontekst z API, pytanie i odliczanie do `expiresAt`.
+class _QuestionCard extends StatelessWidget {
+  const _QuestionCard({
+    required this.question,
+    required this.secondsLeft,
+    required this.progress,
+  });
+
+  final VerificationQuestion question;
+  final int secondsLeft;
+  final double progress;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    // Ostatnie sekundy na czerwono — widać, że trzeba się pospieszyć.
+    final urgent = secondsLeft <= 15;
+    final timerColor = urgent ? TarczaPalette.accentRed : TarczaPalette.primary;
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            color: TarczaPalette.primary.withValues(alpha: 0.06),
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: TarczaPalette.primary.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(question.type.icon, color: TarczaPalette.primary),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.verificationCardLabel.toUpperCase(),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: TarczaPalette.primary,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        question.context,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: TarczaPalette.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(),
+          // Pytanie o obiekt — może dotyczyć sąsiedniej stacji, nie tej zgłoszonej.
+          if (question.poi case final poi?)
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: TarczaPalette.background,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: TarczaPalette.outline),
+              ),
+              child: Row(
+                children: [
+                  Icon(poi.kind.icon, color: TarczaPalette.primary),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.verificationPoiLabel,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: TarczaPalette.textSecondary,
+                          ),
+                        ),
+                        Text(
+                          poi.name,
+                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
+            child: Text(
+              question.question,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                height: 1.25,
+                color: TarczaPalette.heading,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.timer_outlined, size: 18, color: timerColor),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        l10n.verificationExpiresIn(secondsLeft),
+                        style: TextStyle(color: timerColor, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(99),
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(end: progress),
+                    duration: const Duration(milliseconds: 900),
+                    builder: (context, value, _) => LinearProgressIndicator(
+                      value: value,
+                      minHeight: 8,
+                      color: timerColor,
+                      backgroundColor: TarczaPalette.outline,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _QuestionView extends StatelessWidget {
   const _QuestionView({required this.state, required this.onLater});
 
@@ -119,52 +273,7 @@ class _QuestionView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TarczaCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(question.type.icon, color: TarczaPalette.primary),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        question.context,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: TarczaPalette.textSecondary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  question.question,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(height: 1.25),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              const Icon(Icons.timer_outlined, size: 18, color: TarczaPalette.textSecondary),
-              const SizedBox(width: 6),
-              Text(
-                l10n.verificationExpiresIn(state.secondsLeft),
-                style: const TextStyle(color: TarczaPalette.textSecondary),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(99),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 6,
-              backgroundColor: TarczaPalette.outline,
-            ),
-          ),
+          _QuestionCard(question: question, secondsLeft: state.secondsLeft, progress: progress),
           const Spacer(),
           if (state.failure != null)
             Padding(
@@ -175,15 +284,9 @@ class _QuestionView extends StatelessWidget {
                 style: const TextStyle(color: TarczaPalette.accentRed),
               ),
             ),
-          // Trzy równorzędne przyciski — nie sugerujemy „właściwej” odpowiedzi.
-          for (final answer in question.options) ...[
-            _AnswerButton(
-              answer: answer,
-              loading: submitting && state.answer == answer,
-              enabled: !submitting,
-            ),
-            const SizedBox(height: 12),
-          ],
+          // TAK i NIE obok siebie, NIE WIEM pod nimi — równorzędne, nie sugerujemy odpowiedzi.
+          _AnswerGrid(question: question, state: state, enabled: !submitting),
+          const SizedBox(height: 12),
           Text(
             l10n.verificationWhy,
             textAlign: TextAlign.center,
@@ -198,37 +301,165 @@ class _QuestionView extends StatelessWidget {
   }
 }
 
-class _AnswerButton extends StatelessWidget {
-  const _AnswerButton({required this.answer, required this.loading, required this.enabled});
+/// Etykiety TAK / NIE zależne od typu pytania. Podstawiamy je tylko wtedy, gdy treść pytania
+/// pasuje do znanego, pozytywnego sformułowania („Czy masz dostęp do prądu?”) — przy innym
+/// (np. zaprzeczonym) pytaniu etykieta odwróciłaby sens odpowiedzi. Wysyłamy zawsze dosłownie
+/// `yes` / `no`; interpretację robi backend.
+({String yes, String no})? _semanticLabels(VerificationQuestion q, AppLocalizations l10n) {
+  final text = q.question.toLowerCase();
+  if (text.contains("brak") || RegExp(r"\bnie\b").hasMatch(text)) return null;
+  bool has(String pattern) => RegExp(pattern).hasMatch(text);
+  return switch (q.type) {
+    IncidentType.powerOutage when has("(masz|jest).{0,30}(prąd|zasilani)") => (
+      yes: l10n.verificationPowerYes,
+      no: l10n.verificationPowerNo,
+    ),
+    IncidentType.waterOutage when has("(masz|jest|leci).{0,30}wod") => (
+      yes: l10n.verificationWaterYes,
+      no: l10n.verificationWaterNo,
+    ),
+    IncidentType.fuelShortage when has("(jest|dostępn|można).{0,40}paliw") => (
+      yes: l10n.verificationFuelYes,
+      no: l10n.verificationFuelNo,
+    ),
+    IncidentType.roadBlocked when has("przejezdn") => (
+      yes: l10n.verificationRoadYes,
+      no: l10n.verificationRoadNo,
+    ),
+    IncidentType.shelterIssue when has("schron.{0,30}(otwart|dostępn)") => (
+      yes: l10n.verificationShelterYes,
+      no: l10n.verificationShelterNo,
+    ),
+    _ => null,
+  };
+}
 
-  final VerificationAnswer answer;
-  final bool loading;
+class _AnswerGrid extends StatelessWidget {
+  const _AnswerGrid({required this.question, required this.state, required this.enabled});
+
+  final VerificationQuestion question;
+  final VerificationState state;
   final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final label = switch (answer) {
-      VerificationAnswer.yes => l10n.verificationYes,
-      VerificationAnswer.no => l10n.verificationNo,
-      VerificationAnswer.unknown => l10n.verificationUnknown,
-    };
+    final labels = _semanticLabels(question, l10n);
+    final options = question.options.toSet();
+    bool loading(VerificationAnswer a) =>
+        state.phase == VerificationPhase.submitting && state.answer == a;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            if (options.contains(VerificationAnswer.yes))
+              Expanded(
+                child: _AnswerButton(
+                  answer: VerificationAnswer.yes,
+                  title: labels?.yes ?? l10n.verificationYes,
+                  caption: labels == null ? null : l10n.verificationYes,
+                  icon: Icons.check_rounded,
+                  loading: loading(VerificationAnswer.yes),
+                  enabled: enabled,
+                  height: 112,
+                ),
+              ),
+            if (options.contains(VerificationAnswer.yes) && options.contains(VerificationAnswer.no))
+              const SizedBox(width: 12),
+            if (options.contains(VerificationAnswer.no))
+              Expanded(
+                child: _AnswerButton(
+                  answer: VerificationAnswer.no,
+                  title: labels?.no ?? l10n.verificationNo,
+                  caption: labels == null ? null : l10n.verificationNo,
+                  icon: Icons.close_rounded,
+                  loading: loading(VerificationAnswer.no),
+                  enabled: enabled,
+                  height: 112,
+                ),
+              ),
+          ],
+        ),
+        if (options.contains(VerificationAnswer.unknown)) ...[
+          const SizedBox(height: 12),
+          _AnswerButton(
+            answer: VerificationAnswer.unknown,
+            title: l10n.verificationUnknown,
+            icon: Icons.help_outline_rounded,
+            loading: loading(VerificationAnswer.unknown),
+            enabled: enabled,
+            height: 60,
+            horizontal: true,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _AnswerButton extends StatelessWidget {
+  const _AnswerButton({
+    required this.answer,
+    required this.title,
+    required this.icon,
+    required this.loading,
+    required this.enabled,
+    required this.height,
+    this.caption,
+    this.horizontal = false,
+  });
+
+  final VerificationAnswer answer;
+  final String title;
+
+  /// Dosłowna odpowiedź („TAK” / „NIE”) pod etykietą zależną od typu.
+  final String? caption;
+  final IconData icon;
+  final bool loading;
+  final bool enabled;
+  final double height;
+  final bool horizontal;
+
+  @override
+  Widget build(BuildContext context) {
+    final children = <Widget>[
+      Icon(icon, size: horizontal ? 22 : 30),
+      SizedBox(width: horizontal ? 8 : 0, height: horizontal ? 0 : 6),
+      Flexible(
+        child: Text(
+          title,
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, height: 1.15),
+        ),
+      ),
+      if (caption != null && !horizontal) ...[
+        const SizedBox(height: 2),
+        Text(
+          caption!,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 1),
+        ),
+      ],
+    ];
     return SizedBox(
-      height: 64,
+      height: height,
       child: OutlinedButton(
         style: OutlinedButton.styleFrom(
           backgroundColor: Colors.white,
-          textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: 1),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         ),
         onPressed: enabled
             ? () => context.read<VerificationBloc>().add(VerificationAnswerSubmitted(answer))
             : null,
         child: loading
             ? const SizedBox.square(
-                dimension: 24,
+                dimension: 26,
                 child: CircularProgressIndicator(strokeWidth: 2.5),
               )
-            : Text(label),
+            : horizontal
+            ? Row(mainAxisAlignment: MainAxisAlignment.center, children: children)
+            : Column(mainAxisAlignment: MainAxisAlignment.center, children: children),
       ),
     );
   }
