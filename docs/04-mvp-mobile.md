@@ -4,8 +4,11 @@ MVP ma pokazać przede wszystkim unikalny mechanizm Tarczy (Active Crowd Verific
 
 ## Zakres MVP
 
+### 0. Onboarding
+Zgoda na powiadomienia, wpisanie adresu domowego (pozycja bazowa), opcjonalna zgoda na lokalizację „podczas używania”, rejestracja anonimowego urządzenia (`POST /devices`).
+
 ### 1. Mapa
-Użytkownik widzi: swoją lokalizację, aktywne incydenty, obszary problemów, schrony.
+Użytkownik widzi: swoją lokalizację (lub dom), aktywne incydenty, obszary problemów, schrony, aktywne alerty — jedno wywołanie `GET /map?bbox`.
 
 ### 2. Raportowanie
 Typy zgłoszeń: brak prądu, brak wody, brak paliwa, nieprzejezdna droga, problem ze schronem, inne zagrożenie.
@@ -15,22 +18,26 @@ Flow: **typ → lokalizacja → opcjonalny opis → wyślij**.
 Flow ma być jak najkrótszy — to sytuacja kryzysowa.
 
 ### 3. Active Verification
-Push / in-app prompt, np.:
+Push (FCM / APNs) + in-app prompt (`GET /verifications/pending` przy otwarciu), np.:
 
-> W Twojej okolicy zgłoszono brak prądu. Czy u Ciebie również występuje ten problem?
+> W Twojej okolicy zgłoszono: brak prądu. Czy w tej chwili masz dostęp do prądu?
 
 Odpowiedzi: **TAK / NIE / NIE WIEM**.
 
 ### 4. Schrony
-Mapa schronów ze statusem: otwarty / zamknięty / brak danych. Użytkownik może potwierdzić status.
+Mapa schronów ze statusem: otwarty / pełny / zamknięty / brak danych. Użytkownik może potwierdzić status.
 
 ### 5. Alerty
-Użytkownik widzi komunikaty dotyczące obszaru, w którym się znajduje.
+Użytkownik widzi komunikaty dotyczące obszaru, w którym się znajduje (push + `GET /alerts?lat&lng`).
+
+### 6. Aktualizacja lokalizacji
+Push `location_refresh` okresowo zachęca do otwarcia aplikacji; przy otwarciu wysyłamy aktualną pozycję (patrz `08-bezpieczenstwo-prywatnosc.md`).
 
 ## Proponowane ekrany
 
 | Ekran | Cel |
 |---|---|
+| Onboarding | zgody, adres domowy (z pinezką na mapie) |
 | Mapa (główny) | incydenty, strefy, schrony, moja pozycja |
 | Szczegóły incydentu | status, confidence, zasięg, aktualny komunikat |
 | Nowe zgłoszenie | wybór typu → lokalizacja → opis → wyślij |
@@ -38,6 +45,9 @@ Użytkownik widzi komunikaty dotyczące obszaru, w którym się znajduje.
 | Szczegóły schronu | status, pojemność, ostatnie potwierdzenie, przycisk potwierdzenia |
 | Lista alertów | alerty dla mojego obszaru |
 | Ekran alertu | pełnoekranowy alert z komunikatem operatora |
+| Ustawienia | zmiana adresu domowego, powiadomienia, (dev) tryb mock / scenariusz demo |
+
+Stylistyka ekranów: w duchu mObywatela (patrz `07-ux-i-komunikaty.md`).
 
 ## Poza MVP (nie robimy teraz)
 
@@ -47,13 +57,15 @@ Użytkownik widzi komunikaty dotyczące obszaru, w którym się znajduje.
 - perfekcyjny algorytm granic,
 - produkcyjne bezpieczeństwo klasy państwowej.
 
-Zdjęcia, tryb offline, dostępność schronów (dużo/mało/pełny), historia incydentu i automatyczne push — patrz `10-roadmapa-priorytety.md`.
+Zdjęcia, tryb offline, historia incydentu, śledzenie lokalizacji w tle — patrz `10-roadmapa-priorytety.md`.
 
 ## Kryteria „gotowe”
 
 - [ ] Użytkownik zgłasza problem i widzi go na mapie.
-- [ ] Użytkownik odbiera verification prompt i odpowiada.
+- [ ] Użytkownik podaje adres domowy, urządzenie ma pozycję w backendzie.
+- [ ] Użytkownik odbiera verification prompt (push i polling) i odpowiada.
 - [ ] Mapa pokazuje strefę incydentu i jej zmiany.
 - [ ] Widać status/confidence incydentu.
 - [ ] Użytkownik w obszarze dostaje alert od operatora.
-- [ ] Całość działa na danych mockowych bez backendu (patrz `05-architektura-flutter.md`).
+- [ ] Push `location_refresh` otwiera aplikację i aktualizuje pozycję.
+- [ ] Całość działa na danych mockowych bez backendu i na prawdziwym API (przełącznik `USE_MOCKS`, patrz `05-architektura-flutter.md`).

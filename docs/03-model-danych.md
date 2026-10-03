@@ -1,79 +1,103 @@
 # 03. Model danych
 
-Modele opisują to, co aplikacja mobilna wysyła i odbiera. Kształt JSON jest do potwierdzenia z backendem (`06-kontrakt-api.md`). W Dart modele powinny być niemutowalne (np. `freezed`).
+> Modele opisują to, co aplikacja wysyła i odbiera, zgodnie z [`openapi.json`](openapi.json) i [`backend-specs.md`](backend-specs.md).
+> **Model danych zostanie jeszcze zaktualizowany przez agenta backend** — po zmianie spec regenerujemy klienta Retrofit i aktualizujemy ten plik. Modele domenowe w Dart są niemutowalne (`freezed`).
 
-## Report
+Wartości enumów są stałe, po angielsku, małymi literami. Etykiety po polsku przychodzą z backendu (`typeLabel`, `statusLabel`, `confidenceLabel`).
 
-Pojedyncze zgłoszenie użytkownika (aplikacja go **tworzy**).
+## Device
 
-| Pole | Opis |
-|---|---|
-| `type` | `power_outage`, `water_outage`, `fuel_shortage`, `road_blocked`, `shelter_issue`, `other_hazard` |
-| `location` | lat/lng (patrz `08-bezpieczenstwo-prywatnosc.md`) |
-| `timestamp` | czas zgłoszenia |
-| `description` | opcjonalny opis |
-| `photo` | opcjonalne zdjęcie (po MVP) |
-| `reporterId` | anonimowy identyfikator (nie dane osobowe) |
-| `sourceConfidence` | wiarygodność źródła — ustawia backend, nie klient |
-
-## Incident
-
-Zdarzenie zbudowane z jednego lub wielu raportów (aplikacja go **odczytuje**).
-
-Przykład: `Power outage — Poznań / Jeżyce`.
+Anonimowa instalacja aplikacji (brak kont).
 
 | Pole | Opis |
 |---|---|
-| `id`, `type`, `status` | podstawowe dane |
-| `confidence` | poziom wiarygodności (patrz niżej) |
-| `area` | obszar zdarzenia **[DO UZGODNIENIA]** — poligon GeoJSON vs lista komórek H3/geohash z confidence na komórkę |
-| `startedAt` | czas rozpoczęcia |
-| `lastConfirmedAt` | czas ostatniego potwierdzenia |
-| `summary` | krótki opis dla Citizen (bez danych wrażliwych) |
-| `responseStats` | zagregowane odpowiedzi, np. odsetek „NIE” wśród odpowiadających |
+| `deviceId` | UUID |
+| `token` | JWT (tylko w odpowiedzi `POST /devices`), przechowywany w `flutter_secure_storage` |
+| `platform` | `ios` / `android` / `web` / `simulator` |
+| `hasPushToken` | czy backend zna token FCM |
+| `lastLocation` | GeoJSON `Point` lub `null` |
+| `h3Cell` | komórka H3 res 9 ostatniej pozycji |
+| `locationUpdatedAt` | czas ostatniej aktualizacji |
 
-Citizen **nie** dostaje powiązanych raportów, dokładnych współrzędnych źródeł ani surowych danych (to domena Command).
+**[DO UZGODNIENIA]**: pole na adres domowy (`homeLocation` / `homeAddress`) — patrz `08-bezpieczenstwo-prywatnosc.md`. Lokalnie adres domowy (tekst + współrzędne) trzymamy w `shared_preferences`.
 
-## Verification Request
+## Report (aplikacja **tworzy**)
 
-Pytanie do użytkownika, np. „Czy w tej chwili masz dostęp do prądu?”
+Request `CreateReportRequest`:
 
-Pola: `id`, `incidentId`, `question`, `type`, `expiresAt`.
+| Pole | Opis |
+|---|---|
+| `type` | `ReportType`: `power_outage`, `water_outage`, `fuel_shortage`, `road_blocked`, `shelter_issue`, `other_threat` |
+| `lat`, `lng` | lokalizacja zgłoszenia |
+| `description` | opcjonalny, maks. 1000 znaków |
 
-## Verification Response
+Odpowiedź 202: `reportId`, `h3Cell`, `createdAt`. Status (`GET /reports/{id}`): `reportId`, `type`, `createdAt`, `incident` (`id`, `status`, `confidenceLevel`, `confidenceScore`) lub `null`, dopóki zgłoszenie nie zostanie dołączone.
 
-Odpowiedź użytkownika: `YES` / `NO` / `UNKNOWN` (w UI: TAK / NIE / NIE WIEM) + `requestId` + `timestamp` + lokalizacja w momencie odpowiedzi **[DO UZGODNIENIA]**.
+Zdjęcia: brak endpointu — nie w MVP.
+
+## Incident (aplikacja **odczytuje**)
+
+| Pole | Opis |
+|---|---|
+| `id`, `type`, `typeLabel` | |
+| `status` | `detected` / `verifying` / `active` / `resolved` (resolved nie pojawia się na mapie) |
+| `confidenceLevel`, `confidenceLabel` | patrz Confidence |
+| `confidenceScore` | 0–1, pokazujemy jako procent |
+| `startedAt`, `lastActivityAt`, `lastConfirmedAt?` | |
+| `community` | `reports`, `answers`, `agreementPct` (`null`, gdy brak odpowiedzi) |
+| `summary?` | krótki opis dla Citizen |
+| `area` | GeoJSON `MultiPolygon` (zasięg) albo `Point` (zasięg niewyznaczony). Na mapie jako `geometry` Feature |
+
+Citizen **nie** dostaje surowych zgłoszeń, ich pozycji ani źródeł.
+
+## Map (`GET /map?bbox`)
+
+GeoJSON `FeatureCollection`; `properties.kind` ∈ `incident` | `shelter` | `alert`. Mapujemy na sealed class `MapFeature` (`IncidentFeature`, `ShelterFeature`, `AlertFeature`). Parsowanie współrzędnych: `LatLng(c[1], c[0])`.
+
+## VerificationQuestion
+
+| Pole | Opis |
+|---|---|
+| `verificationId`, `incidentId` | |
+| `type`, `typeLabel` | typ incydentu |
+| `question` | np. „Czy w tej chwili masz dostęp do prądu?” |
+| `context` | np. „W Twojej okolicy zgłoszono: brak prądu.” |
+| `options` | `["yes", "no", "unknown"]` |
+| `sentAt`, `expiresAt` | pytanie żyje 90 s |
+| `answered` | bool |
+
+## VerificationResponse
+
+Request `RespondRequest`: `{ "answer": "yes" | "no" | "unknown" }` (w UI: TAK / NIE / NIE WIEM). Wysyłamy dosłownie kliknięty przycisk — interpretację („NIE” na „czy masz prąd?” = problem) robi backend. Lokalizacja przy odpowiedzi nie jest wysyłana (backend zna ostatnią pozycję urządzenia).
+
+Odpowiedź: `verificationId`, `incidentId`, `thanks`.
 
 ## Shelter
 
 | Pole | Opis |
 |---|---|
-| `id`, `name`, `location` | podstawowe dane |
-| `status` | `open` / `closed` / `unknown` |
-| `capacity` | pojemność |
-| `availability` | po MVP: `many` / `few` / `full` |
-| `lastConfirmedAt` | ostatnie potwierdzenie |
-| `userReportsCount` | liczba raportów użytkowników |
+| `id`, `name`, `address` | |
+| `location` | GeoJSON `Point` |
+| `status`, `statusLabel` | `ShelterStatus`: `open` / `closed` / `full` / `unknown` |
+| `capacity` | |
+| `lastConfirmedAt`, `confirmationCount` | |
+| `distanceMeters` | tylko w wariancie `?lat&lng` (10 najbliższych) |
 
-Użytkownik może potwierdzić status schronu.
+Potwierdzenie: `ConfirmShelterStatusRequest` `{ "status": "open", "comment": "..." }` → zaktualizowany schron.
 
 ## Alert
 
-Komunikat przypisany do obszaru: `id`, `title`, `body`, `area`, `severity`, `createdAt`, `incidentId?`.
+`id`, `title`, `body`, `severity` (`info` / `warning` / `danger`), `incidentId?`, `createdAt`, `expiresAt`, `active`, `area` (GeoJSON, tylko w `GET /alerts/{id}` i na mapie).
 
 ## Confidence
 
-Cztery poziomy, które aplikacja wyświetla:
-
-| Poziom | Znaczenie |
-|---|---|
-| `UNVERIFIED` | Pojedynczy raport |
-| `LIKELY` | Wiele niezależnych raportów z tego samego obszaru |
-| `HIGH_CONFIDENCE` | Crowdsourcing potwierdzony przez większą liczbę użytkowników |
-| `CONFIRMED` | Potwierdzenie społeczności + wiarygodne źródło zewnętrzne lub oficjalne |
-
-Wartość liczbowa (np. 42% → 76% → 96% w demo) jest opcjonalnym dodatkiem. **[DO UZGODNIENIA]**: czy backend zwraca obie wartości.
+| `confidenceLevel` | Etykieta | Znaczenie |
+|---|---|---|
+| `unverified` | Niezweryfikowane | pojedyncze zgłoszenie |
+| `likely` | Prawdopodobne | wiele niezależnych zgłoszeń z obszaru |
+| `high` | Wysoka wiarygodność | potwierdzone przez większą liczbę odpowiadających |
+| `confirmed` | Potwierdzone | społeczność + źródło zewnętrzne/oficjalne |
 
 ### Zasada
 
-Confidence liczy backend, możliwie deterministycznie, na podstawie: liczby niezależnych raportów, rozkładu geograficznego, świeżości, liczby potwierdzeń i zaprzeczeń, jakości źródeł zewnętrznych oraz wiarygodności reporterów. AI dostarcza dowodów, ale nie jest jedynym arbitrem. **Aplikacja mobilna nigdy nie liczy confidence samodzielnie.**
+Confidence liczy backend deterministycznie (liczba niezależnych raportów, rozkład geograficzny, świeżość, potwierdzenia/zaprzeczenia, źródła zewnętrzne). **Aplikacja mobilna nigdy nie liczy confidence samodzielnie** — tylko prezentuje `confidenceLevel`, `confidenceScore` i `community.agreementPct`.

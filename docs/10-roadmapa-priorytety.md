@@ -3,12 +3,14 @@
 ## Fazy
 
 ### Faza 1 — Fundament
-- podstawowe UI, mapa, lokalizacja użytkownika,
-- ekran zgłoszenia, podstawowe kategorie incydentów.
+- theme w stylu mObywatela, nawigacja, DI (`get_it`), klient Retrofit z `openapi.json`,
+- onboarding: rejestracja urządzenia, adres domowy, lokalizacja,
+- mapa (`GET /map`), ekran zgłoszenia.
 
 **Cel:** użytkownik zgłasza problem i widzi go w systemie.
 
 ### Faza 2 — Core Tarczy (najważniejsza)
+- push FCM / APNs (`verification`, `alert`, `location_refresh`) + polling `pending`,
 - verification prompt i odpowiedzi TAK / NIE / NIE WIEM,
 - wyświetlanie stref incydentów,
 - confidence / status incydentu.
@@ -46,9 +48,9 @@ Brak większych zmian po stronie mobile (ewentualnie wyświetlenie źródeł/str
 
 - **Zdjęcia** jako materiał weryfikacyjny (z usuwaniem EXIF).
 - **Offline / degraded mode**: cache schronów, podstawowych procedur, ostatnich alertów i ostatniego stanu mapy.
-- **Dostępność schronów**: dużo miejsc / mało miejsc / pełny.
 - **Historia incydentu**: kiedy wykryto, kiedy potwierdzono, jak zmieniał się zasięg.
-- **Powiadomienia push** — automatyczne alerty geograficzne.
+- **Lokalizacja w tle** (opcjonalnie, za zgodą) zamiast przypomnień push.
+- **Zasięg incydentu jako komórki H3** z confidence na komórkę (jeśli backend udostępni).
 
 ## Nice to have
 
