@@ -31,7 +31,7 @@ Mapa schronów ze statusem: otwarty / pełny / zamknięty / brak danych. Użytko
 Użytkownik widzi komunikaty dotyczące obszaru, w którym się znajduje (push + `GET /alerts?lat&lng`).
 
 ### 6. Aktualizacja lokalizacji
-Push `location_refresh` okresowo zachęca do otwarcia aplikacji; przy otwarciu wysyłamy aktualną pozycję (patrz `08-bezpieczenstwo-prywatnosc.md`).
+Push `location_refresh` okresowo zachęca do otwarcia aplikacji; przy otwarciu wysyłamy aktualną pozycję. Opcjonalnie **tryb czuwania** (śledzenie w tle za zgodą „zawsze”) — po fazie core, patrz `08-bezpieczenstwo-prywatnosc.md`.
 
 ## Proponowane ekrany
 
@@ -57,7 +57,7 @@ Stylistyka ekranów: w duchu mObywatela (patrz `07-ux-i-komunikaty.md`).
 - perfekcyjny algorytm granic,
 - produkcyjne bezpieczeństwo klasy państwowej.
 
-Zdjęcia, tryb offline, historia incydentu, śledzenie lokalizacji w tle — patrz `10-roadmapa-priorytety.md`.
+Zdjęcia, tryb offline, historia incydentu — patrz `10-roadmapa-priorytety.md`.
 
 ## Kryteria „gotowe”
 
@@ -68,4 +68,5 @@ Zdjęcia, tryb offline, historia incydentu, śledzenie lokalizacji w tle — pat
 - [ ] Widać status/confidence incydentu.
 - [ ] Użytkownik w obszarze dostaje alert od operatora.
 - [ ] Push `location_refresh` otwiera aplikację i aktualizuje pozycję.
+- [ ] (opcjonalnie) Tryb czuwania: zmiana okolicy przy zamkniętej aplikacji aktualizuje pozycję w backendzie (iOS i Android).
 - [ ] Całość działa na danych mockowych bez backendu i na prawdziwym API (przełącznik `USE_MOCKS`, patrz `05-architektura-flutter.md`).

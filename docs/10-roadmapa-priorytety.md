@@ -19,7 +19,8 @@
 
 ### Faza 3 — Alerty i schrony
 - alerty dla obszaru,
-- mapa schronów, status schronu, potwierdzanie.
+- mapa schronów, status schronu, potwierdzanie,
+- tryb czuwania: lokalizacja w tle (iOS Significant Location Change, Android foreground service + `workmanager`).
 
 **Cel:** pokazać pętlę społeczeństwo → system → operator → społeczeństwo.
 
@@ -49,7 +50,6 @@ Brak większych zmian po stronie mobile (ewentualnie wyświetlenie źródeł/str
 - **Zdjęcia** jako materiał weryfikacyjny (z usuwaniem EXIF).
 - **Offline / degraded mode**: cache schronów, podstawowych procedur, ostatnich alertów i ostatniego stanu mapy.
 - **Historia incydentu**: kiedy wykryto, kiedy potwierdzono, jak zmieniał się zasięg.
-- **Lokalizacja w tle** (opcjonalnie, za zgodą) zamiast przypomnień push.
 - **Zasięg incydentu jako komórki H3** z confidence na komórkę (jeśli backend udostępni).
 
 ## Nice to have

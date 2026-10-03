@@ -44,7 +44,7 @@
 |---|---|
 | Obszar incydentu | GeoJSON `MultiPolygon` (zasięg) albo `Point` (zasięg jeszcze niewyznaczony). Wewnętrznie backend liczy na H3 res 9 |
 | Confidence | Oba: `confidenceLevel` (`unverified`/`likely`/`high`/`confirmed`) + `confidenceScore` 0–1 + `confidenceLabel` |
-| Lokalizacja urządzenia | Jedna ostatnia pozycja, bez historii. Model mobile: adres domowy + odświeżenie przy otwarciu aplikacji (patrz `08`) |
+| Lokalizacja urządzenia | Jedna ostatnia pozycja, bez historii. Model mobile: adres domowy + odświeżenie przy otwarciu aplikacji + opcjonalnie tło (patrz `08`) |
 | Push | FCM (Android) / APNs przez FCM (iOS) + obowiązkowy fallback na polling |
 | Transport live | Polling + push. SSE (Mercure) tylko dla panelu operatora |
 | Tożsamość | Anonimowe urządzenie, JWT wydawany przez `POST /devices` |
@@ -56,7 +56,7 @@
 
 1. **Schematy odpowiedzi w `openapi.json`** — obecnie brak (poza `POST /devices`), przez co Retrofit generuje `dynamic`. Do czasu uzupełnienia — ręczne DTO wg `backend-specs.md`.
 2. **Adres domowy** — osobne pole (`homeLocation`) czy nadpisanie jedynej pozycji `lastLocation`. Agent backend aktualizuje model danych.
-3. **Push `location_refresh`** — okresowe przypomnienie o otwarciu aplikacji w celu odświeżenia lokalizacji: kto wysyła (backend vs lokalny harmonogram w aplikacji), jak często, nowy `data.type`.
+3. **Push `location_refresh`** — okresowe przypomnienie o otwarciu aplikacji w celu odświeżenia lokalizacji: kto wysyła (backend vs lokalny harmonogram w aplikacji), jak często, nowy `data.type`. Propozycja: backend wysyła tylko przy przestarzałym `locationUpdatedAt`, więc urządzenia w trybie czuwania go nie dostają.
 4. **Geokodowanie adresu** — systemowe (`geocoding`) po stronie aplikacji czy endpoint backendu.
 
 ## Przykładowe payloady

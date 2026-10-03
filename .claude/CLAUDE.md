@@ -17,7 +17,7 @@ Zasada przewodnia: każda funkcja musi pomagać szybciej wykryć problem, lepiej
 - @docs/05-architektura-flutter.md — BLoC, get_it, Retrofit, push, H3, struktura, mocki
 - @docs/06-kontrakt-api.md — ustalony kontrakt API (skrót), otwarte punkty
 - @docs/07-ux-i-komunikaty.md — stylistyka (mObywatel), statusy, kolory, teksty
-- @docs/08-bezpieczenstwo-prywatnosc.md — lokalizacja (adres domowy + push), dane wrażliwe
+- @docs/08-bezpieczenstwo-prywatnosc.md — lokalizacja (adres domowy, tło, push), dane wrażliwe
 - @docs/09-demo-scenariusz.md — demo i dane seed
 - @docs/10-roadmapa-priorytety.md — fazy i priorytety
 
@@ -26,7 +26,7 @@ Zasada przewodnia: każda funkcja musi pomagać szybciej wykryć problem, lepiej
 - State management: **BLoC** (`flutter_bloc`), DI: `get_it`. Nie używaj Riverpod ani Provider.
 - Klient API: **Retrofit** generowany z `docs/openapi.json` (`swagger_parser` → `lib/data/remote/api/`, nie edytuj ręcznie). Brakujące schematy odpowiedzi → ręczne DTO wg `backend-specs.md`.
 - Push: Firebase Cloud Messaging (Android) / APNs przez FCM (iOS); zawsze z fallbackiem na polling.
-- Lokalizacja: adres domowy + aktualizacja przy otwarciu aplikacji (push `location_refresh`), bez śledzenia w tle. H3 res 9.
+- Lokalizacja: adres domowy + aktualizacja przy otwarciu aplikacji (push `location_refresh`) + opcjonalny tryb czuwania w tle (opt-in, zgoda „zawsze”): iOS — Significant Location Change (natywnie, działa po zamknięciu), Android — foreground service `geolocator` + `workmanager`. Niska dokładność, wysyłka tylko po zmianie komórki H3 res 9, bez historii.
 - UI w stylu zbliżonym do mObywatela (bez logo/godła).
 - Pracuj na interfejsach repozytoriów z implementacjami `Mock*` i `Remote*`; przełącznik `USE_MOCKS`.
 - Model danych może się jeszcze zmienić (aktualizuje go agent backend) — po zmianie `openapi.json` regeneruj klienta.

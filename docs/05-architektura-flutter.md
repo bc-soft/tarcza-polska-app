@@ -27,7 +27,9 @@ UI (widgets)  →  BLoC / Cubit  →  Repository (interfejs)  →  Mock* | Remot
 | Modele domenowe | `freezed` + `json_serializable` | niemutowalne; mapowane z DTO |
 | Mapa | `flutter_map` + `latlong2` (OSM) | alternatywa: `maplibre_gl` z OpenFreeMap; obie bez klucza API |
 | H3 | `h3_flutter` | komórki H3 (rozdzielczość 9), patrz niżej |
-| Lokalizacja (GPS) | `geolocator` | tylko pozycja „na pierwszym planie”, bez śledzenia w tle |
+| Lokalizacja (GPS) | `geolocator` | pozycja przy otwarciu + strumień w tle na Androidzie (foreground service) |
+| Lokalizacja w tle iOS | własny `MethodChannel` (Swift, `CLLocationManager`) | Significant Location Change — `geolocator` tego nie obsługuje, a działa po zamknięciu aplikacji |
+| Zadania okresowe (Android) | `workmanager` | zapasowa aktualizacja pozycji co 15 min |
 | Adres domowy → współrzędne | `geocoding` | geokodowanie systemowe; **[DO UZGODNIENIA]** czy backend da własny endpoint geokodowania |
 | Push | `firebase_core` + `firebase_messaging` | Android: FCM; iOS: APNs przez FCM |
 | Powiadomienia na pierwszym planie | `flutter_local_notifications` | wyświetlenie pusha, gdy aplikacja jest otwarta |
@@ -112,15 +114,31 @@ Typy pushy (`data.type`):
 
 Aplikacja musi działać także bez pushy (backend lokalnie tylko loguje pushe, gdy brak `FIREBASE_CREDENTIALS`): polling `GET /verifications/pending` i `GET /alerts` przy starcie, wznowieniu i co 30 s na ekranie mapy.
 
-## Lokalizacja: adres domowy + odświeżanie na żądanie
+## Lokalizacja: adres domowy, tło (opt-in), odświeżanie na żądanie
 
 Model (szczegóły i uzasadnienie w `08-bezpieczenstwo-prywatnosc.md`):
 
 1. **Onboarding**: użytkownik wpisuje adres domowy → geokodowanie (`geocoding`) → potwierdzenie pinezką na mapie → `PUT /devices/me/location`. To jest bazowa pozycja urządzenia.
 2. **Otwarcie aplikacji** (ręcznie albo z pusha `location_refresh`): jeśli jest zgoda na GPS, pobieramy jednorazowo pozycję (`geolocator`) i wysyłamy `PUT /devices/me/location`. Bez zgody — zostaje adres domowy.
-3. **Brak śledzenia w tle.** Aplikacja nie zbiera lokalizacji, gdy jest zamknięta.
+3. **Tryb czuwania (opt-in, zgoda „zawsze”)**: aktualizacja w tle, także po zamknięciu aplikacji (iOS). Szczegóły platformowe w `08-bezpieczenstwo-prywatnosc.md`.
 
-Za to odpowiada `LocationRepository` + `LocationCubit` (stan: `homeAddress`, `lastSentAt`, `h3Cell`, `source: home | gps`).
+Za to odpowiada `LocationRepository` + `LocationCubit` (stan: `homeAddress`, `lastSentAt`, `h3Cell`, `source: home | gps | background`, `backgroundEnabled`).
+
+### Śledzenie w tle — implementacja
+
+```
+BackgroundLocationService (interfejs, core/location/)
+  ├─ IosSignificantChangeService   — MethodChannel → Swift: startMonitoringSignificantLocationChanges
+  └─ AndroidForegroundService      — geolocator getPositionStream(AndroidSettings + ForegroundNotificationConfig)
+                                     + workmanager (co 15 min) jako zapas
+```
+
+- **Wysyłka z tła bez UI.** Po wybudzeniu przez system (szczególnie iOS po zamknięciu aplikacji) nie ma działającego drzewa widgetów ani BLoC-ów. Dlatego wysyłka pozycji w tle to osobna, minimalna ścieżka: odczyt tokena i `API_BASE_URL` → policzenie komórki H3 → jeśli inna niż ostatnio wysłana: `PUT /devices/me/location`. Bez `get_it` z pełnym grafem zależności.
+  - iOS: najprościej i najpewniej wysyłać **natywnie w Swift** (`URLSession`) w handlerze `didUpdateLocations` — token zapisany w Keychain przez `flutter_secure_storage` jest dostępny natywnie (ten sam service/account), ostatnią komórkę H3 trzymamy w `UserDefaults`. Porównanie komórek można też zastąpić progiem odległości ~150 m po stronie Swift.
+  - Android: callback `workmanager` / strumień foreground service działa w izolacie Dart — używa lekkiego `Dio` + `flutter_secure_storage` + `h3_flutter`.
+- Wszystkie ścieżki (otwarcie, tło, zgłoszenie) zapisują lokalnie `lastSentCell` i `lastSentAt`, żeby nie dublować wysyłek.
+- Konfiguracja natywna: iOS `Info.plist` (`NSLocationWhenInUseUsageDescription`, `NSLocationAlwaysAndWhenInUseUsageDescription`, `UIBackgroundModes: location, remote-notification`); Android `AndroidManifest.xml` (`ACCESS_COARSE_LOCATION`, `ACCESS_FINE_LOCATION`, `ACCESS_BACKGROUND_LOCATION`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_LOCATION`, `POST_NOTIFICATIONS`).
+- Tryb czuwania jest **po fazie core** (patrz `10-roadmapa-priorytety.md`) — demo musi działać bez niego.
 
 **[DO UZGODNIENIA]** z backendem (agent backend aktualizuje model danych): czy adres domowy jest osobnym polem (`homeLocation`) obok `lastLocation`, czy oba nadpisują jedną pozycję. Do tego czasu oba trafiają w `PUT /devices/me/location`.
 
@@ -130,7 +148,7 @@ Backend indeksuje pozycje w komórkach **H3 rozdzielczości 9** (krawędź ~175 
 
 Użycie po stronie aplikacji (`h3_flutter`):
 
-- **Throttling wysyłki lokalizacji**: wysyłamy nową pozycję tylko gdy zmieniła się komórka H3 (zamiast progu „150 m”) i nie częściej niż limit backendu (30/min).
+- **Throttling wysyłki lokalizacji** (otwarcie i tło): wysyłamy nową pozycję tylko gdy zmieniła się komórka H3 (zamiast progu „150 m”) i nie częściej niż limit backendu (30/min).
 - **Prezentacja prywatności**: w ustawieniach pokazujemy użytkownikowi „Twoja okolica” jako heksagon komórki, nie dokładny punkt.
 - **Opcjonalnie (mapa)**: gdy backend zacznie zwracać zasięg incydentu jako listę komórek, rysujemy heksagony (`cellToBoundary`) zamiast `MultiPolygon`. Obecnie API zwraca GeoJSON `MultiPolygon`/`Point`.
 
@@ -145,7 +163,7 @@ lib/
   core/
     error/                # wyjątki domenowe, mapowanie error.code
     push/                 # PushService (FCM/APNs), routing z pushy
-    location/             # geolocator, geocoding, h3 helpers
+    location/             # geolocator, geocoding, h3 helpers, BackgroundLocationService
     widgets/              # wspólne komponenty UI (karty, przyciski, status chip)
   data/
     models/               # modele domenowe (freezed): Incident, Shelter, Alert, VerificationQuestion, Report...
@@ -164,7 +182,7 @@ lib/
     incident/
     shelters/
     alerts/
-    settings/             # adres domowy, powiadomienia, dev: tryb mock / scenariusz demo
+    settings/             # adres domowy, tryb czuwania (tło), powiadomienia, dev: tryb mock / scenariusz demo
 test/
 ```
 
@@ -174,7 +192,7 @@ Każdy `feature` ma `bloc/` (bloc/cubit, state, event) i `view/` (strony, widget
 
 | Moduł | BLoC | Odpowiada za |
 |---|---|---|
-| `onboarding` | `OnboardingCubit` | zgody (powiadomienia, lokalizacja), adres domowy, rejestracja urządzenia |
+| `onboarding` | `OnboardingCubit` | zgody (powiadomienia, lokalizacja), adres domowy, rejestracja urządzenia, propozycja trybu czuwania |
 | `map` | `MapBloc` | `GET /map?bbox`, polling 30 s, warstwy incydentów/schronów/alertów, pozycja użytkownika |
 | `report` | `ReportCubit` | typ → lokalizacja → opis → `POST /reports`, obsługa 429 |
 | `verification` | `VerificationBloc` | `pending` + pushe, odliczanie do `expiresAt`, odpowiedź, 409/410 |

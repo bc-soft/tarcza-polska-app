@@ -84,6 +84,10 @@ Znaczenie nie może opierać się wyłącznie na kolorze (dostępność) — zaw
 **Przypomnienie o lokalizacji (push `location_refresh`)** **[DO UZGODNIENIA]** treść z backendem
 > Czy nadal jesteś w tej okolicy? Otwórz Tarczę, aby otrzymywać właściwe alerty.
 
+**Propozycja trybu czuwania**
+> Włącz tryb czuwania, aby dostawać alerty i pytania tam, gdzie właśnie jesteś — nie tylko w domu. Tarcza nie zapisuje historii Twoich lokalizacji.
+> [Włącz] [Nie teraz]
+
 **Alert / INFORM** — `title` + `body` z API, np.
 > Potwierdzono awarię prądu. Problem zgłasza większość użytkowników w Twojej okolicy.
 > [Pokaż na mapie] [Najbliższy schron]
@@ -93,7 +97,8 @@ Znaczenie nie może opierać się wyłącznie na kolorze (dostępność) — zaw
 
 ## Stany specjalne do zaprojektowania
 
-- onboarding: zgoda na powiadomienia, adres domowy, zgoda na lokalizację (opcjonalna),
+- onboarding: zgoda na powiadomienia, adres domowy, zgoda na lokalizację (opcjonalna), propozycja trybu czuwania (zgoda „zawsze”, dwuetapowa),
+- tryb czuwania aktywny: stała notyfikacja na Androidzie („Tarcza czuwa w Twojej okolicy”), status i przełącznik w ustawieniach,
 - brak lokalizacji / odmowa GPS (działamy na adresie domowym),
 - brak sieci (komunikat; pełny offline po MVP),
 - pytanie weryfikacyjne wygasło (410) / już odpowiedziane (409 → jak sukces),

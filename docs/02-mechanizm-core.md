@@ -30,7 +30,7 @@ Po stronie backendu użytkownicy są wybierani z trzech grup: wewnątrz potencja
 ## Co to oznacza dla aplikacji mobilnej
 
 - Aplikacja **musi** umieć odebrać pytanie weryfikacyjne w dowolnym momencie (push + in-app) i odpowiedzieć w 1–2 tapnięciach.
-- Aplikacja **musi** przekazywać backendowi swoją lokalizację, żeby backend mógł wybrać, kogo zapytać i komu wysłać alert. Model: adres domowy podany przy onboardingu + aktualizacja przy otwarciu aplikacji, do którego push okresowo zachęca (patrz `08-bezpieczenstwo-prywatnosc.md`). Backend indeksuje pozycje w komórkach H3 (res 9).
+- Aplikacja **musi** przekazywać backendowi swoją lokalizację, żeby backend mógł wybrać, kogo zapytać i komu wysłać alert. Model: adres domowy podany przy onboardingu + aktualizacja przy otwarciu aplikacji, do którego push okresowo zachęca, + opcjonalne śledzenie w tle (opt-in) (patrz `08-bezpieczenstwo-prywatnosc.md`). Backend indeksuje pozycje w komórkach H3 (res 9).
 - Pytanie przychodzi pushem (FCM / APNs) **i** jest dostępne przez `GET /verifications/pending` — aplikacja sprawdza `pending` przy każdym otwarciu. Pytanie żyje 90 s.
 - Odpowiedź „NIE WIEM” jest pełnoprawną odpowiedzią i musi być równie łatwa do wybrania jak TAK i NIE.
 - Strefa incydentu może się zmieniać w czasie — mapa musi umieć odświeżyć obszar bez przeładowania ekranu.
