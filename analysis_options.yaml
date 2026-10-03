@@ -3,6 +3,9 @@ include: package:lint/strict.yaml
 analyzer:
   exclude:
     - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - lib/data/remote/api/**
+    - lib/l10n/app_localizations*.dart
     - build/**
     - android/**
     - ios/**
@@ -26,6 +29,14 @@ linter:
     implicit_call_tearoffs: true
     invalid_case_patterns: true
     avoid_escaping_inner_quotes: false
+    # Nowa składnia Dart (primary constructors) — generatory (freezed, retrofit) jej nie używają,
+    # trzymamy jeden styl w całym projekcie.
+    use_primary_constructors: false
+    unnecessary_type_name_in_constructor: false
+    # Stałe i helpery grupujemy w przestrzeniach nazw (AppConfig, MockSeed, GeoShapes).
+    avoid_classes_with_only_static_members: false
+    # Pliki z @pragma("vm:entry-point") (handlery tła) analizator traktuje jak skrypty.
+    unreachable_from_main: false
 
 formatter:
   page_width: 100

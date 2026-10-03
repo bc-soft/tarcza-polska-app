@@ -5,15 +5,19 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<string>pl</string>
 	<key>CFBundleDisplayName</key>
-	<string>Tarcza Polska</string>
+	<string>Tarcza</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>pl</string>
+	</array>
 	<key>CFBundleName</key>
 	<string>tarcza_polska</string>
 	<key>CFBundlePackageType</key>
@@ -26,6 +30,15 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Tryb czuwania: Tarcza aktualizuje Twoją okolicę także w tle, aby alerty i pytania trafiały tam, gdzie jesteś. Nie zapisujemy historii lokalizacji.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Tarcza używa Twojej przybliżonej lokalizacji (ok. 150 m), aby pytać o sytuację i wysyłać alerty dla okolicy, w której jesteś. Nie zapisujemy historii lokalizacji.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -49,6 +62,12 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>remote-notification</string>
+		<string>fetch</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
