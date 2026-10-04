@@ -30,6 +30,21 @@ Scenariusz demo: **Więcej → Scenariusz demo** — krok po kroku albo „Odtwa
 Klaster 42% → pytanie weryfikacyjne (push + `pending`) → odpowiedź → 76% → granica strefy →
 potwierdzenie 96% → alert dla obszaru. Adres demo: Poznań, Jeżyce.
 
+### Ekrany deweloperskie (celowo zostawione w buildzie)
+
+W **Ustawienia → sekcja „Deweloperskie”** zostały celowo pozostawione dwa ekrany, żeby dało się
+ocenić/przetestować aplikację bez dostępu do backendu:
+
+- **Scenariusz demo** (`/demo`, tylko w trybie mock) — odgrywa pełny flow DETECT → VERIFY → MAP
+  → INFORM krok po kroku lub automatycznie, opisany wyżej. Dostępny też z zakładki „Więcej” oraz
+  przez długie przytrzymanie napisu wersji na dole tej zakładki.
+- **Podgląd ekranów** (`/preview`) — galeria ekranów (alert, incydent, weryfikacja, schron,
+  stacja paliw) na stałych danych testowych z prywatnego, odizolowanego `MockBackend`. Działa w
+  **każdym** trybie (mock i backend), nie dotyka prawdziwego API ani globalnego stanu aplikacji —
+  pozwala pokazać dowolny ekran bez odtwarzania całego scenariusza.
+
+To świadoma decyzja na potrzeby hackathonu/oceny, nie pozostałość po debugowaniu.
+
 ## Uruchomienie z prawdziwym backendem
 
 Backend wymaga pliku z dart-defines (nie jest w repo — zawiera adres tunelu zespołu):
