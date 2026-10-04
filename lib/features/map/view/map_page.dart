@@ -7,20 +7,14 @@ import "package:go_router/go_router.dart";
 import "package:latlong2/latlong.dart";
 
 import "package:tarcza_polska/app/config/app_config.dart";
-import "package:tarcza_polska/app/di/injection.dart";
 import "package:tarcza_polska/app/router/app_router.dart";
 import "package:tarcza_polska/app/theme/app_theme.dart";
 import "package:tarcza_polska/app/theme/tarcza_colors.dart";
 import "package:tarcza_polska/app/theme/tarcza_typography.dart";
-import "package:tarcza_polska/core/push/local_notifications.dart";
-import "package:tarcza_polska/core/push/push_event.dart";
 import "package:tarcza_polska/core/utils/formatters.dart";
 import "package:tarcza_polska/core/utils/geometry.dart";
 import "package:tarcza_polska/core/widgets/map_widgets.dart";
 import "package:tarcza_polska/core/widgets/widgets.dart";
-import "package:tarcza_polska/data/mock/mock_backend.dart";
-import "package:tarcza_polska/data/mock/mock_repositories.dart";
-import "package:tarcza_polska/data/mock/mock_seed.dart";
 import "package:tarcza_polska/data/models/models.dart";
 import "package:tarcza_polska/features/alerts/bloc/alerts_cubit.dart";
 import "package:tarcza_polska/features/fuel_stations/view/fuel_station_page.dart";
@@ -28,7 +22,6 @@ import "package:tarcza_polska/features/map/bloc/map_bloc.dart";
 import "package:tarcza_polska/features/map/view/incident_card.dart";
 import "package:tarcza_polska/features/settings/bloc/location_cubit.dart";
 import "package:tarcza_polska/features/verification/bloc/verification_bloc.dart";
-import "package:tarcza_polska/features/verification/view/verification_page.dart";
 
 /// Ekran główny. `MapBloc` jest globalny (alert / incydent mogą przesunąć kamerę),
 /// dlatego strona nie tworzy własnego `BlocProvider`.
@@ -274,15 +267,7 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
                 onHome: location.homeAddress == null
                     ? null
                     : () => _animateTo(location.homeAddress!.location, 16),
-                onRefresh: () {
-                  // DEV: podgląd ekranu pytania weryfikacyjnego pod przyciskiem odświeżania.
-                  // Usuń ten `return` (i import `_DevVerificationPreview`), żeby przywrócić
-                  // zwykłe odświeżenie mapy — reszta funkcji zostaje nietknięta.
-                  unawaited(_openDevVerificationQuestion(context));
-                  return;
-                  // ignore: dead_code
-                  context.read<MapBloc>().add(const MapRefreshRequested());
-                },
+                onRefresh: () => context.read<MapBloc>().add(const MapRefreshRequested()),
               ),
             ),
             Align(
@@ -360,57 +345,6 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
       if (location.homeAddress != null) homeMarker(location.homeAddress!.location),
     ];
   }
-}
-
-/// DEV: za kilka sekund pokazuje systemowe powiadomienie „Tarcza pyta o Twoją okolicę” —
-/// dopiero jego **kliknięcie** otwiera ekran z pytaniem, jak prawdziwy push. Pytanie żyje
-/// na własnym, izolowanym `MockBackend` (nie dotyka prawdziwego API), więc działa też na
-/// prawdziwym backendzie. Tymczasowy hak pod przycisk odświeżania mapy (`onRefresh` niżej).
-///
-/// Powiadomienie leci przez globalny `LocalNotifications`, więc tapnięcie przechodzi też
-/// przez prawdziwy `PushService` do globalnego `VerificationBloc` — ten dostanie nieznane
-/// mu `verificationId`, nie znajdzie go na serwerze i po cichu przejdzie w `failed` (nie
-/// nawiguje nigdzie, bo ekran otwiera się tylko przy `phase == asking`). Nieszkodliwe przy
-/// hacku testowym, do wywalenia razem z nim.
-Future<void> _openDevVerificationQuestion(BuildContext context) async {
-  final id = "dev-push-${DateTime.now().millisecondsSinceEpoch}";
-  final now = DateTime.now();
-  final expiresAt = now.add(const Duration(seconds: 90));
-
-  final backend = MockBackend(latency: Duration.zero);
-  backend.questions[id] = VerificationQuestion(
-    verificationId: id,
-    incidentId: "dev-incident",
-    type: IncidentType.powerOutage,
-    typeLabel: MockSeed.typeLabel(IncidentType.powerOutage),
-    question: "Czy w tej chwili masz dostęp do prądu?",
-    context: "W Twojej okolicy zgłoszono: brak prądu.",
-    sentAt: now,
-    expiresAt: expiresAt,
-  );
-
-  final local = getIt<LocalNotifications>();
-  late final StreamSubscription<PushEvent> subscription;
-  subscription = local.taps.listen((event) {
-    if (event is! VerificationPushEvent || event.verificationId != id) return;
-    subscription.cancel();
-    if (!context.mounted) return;
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => BlocProvider(
-          create: (_) => VerificationBloc(repository: MockVerificationRepository(backend)),
-          child: VerificationPage(verificationId: id),
-        ),
-      ),
-    );
-  });
-
-  await Future<void>.delayed(const Duration(seconds: 4));
-  await local.show(
-    title: "Tarcza pyta o Twoją okolicę",
-    body: "Czy w tej chwili masz dostęp do prądu?",
-    event: VerificationPushEvent(verificationId: id, expiresAt: expiresAt),
-  );
 }
 
 class _AlertAreasLayer extends StatelessWidget {
