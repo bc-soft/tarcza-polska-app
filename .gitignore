@@ -35,3 +35,8 @@ app.*.map.json
 /android/app/release
 
 .fvm
+
+# Sekrety / konfiguracja lokalna — nie commitować
+.mcp.json
+ios/Runner/GoogleService-Info.plist
+android/app/google-services.json
