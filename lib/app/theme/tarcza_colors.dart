@@ -2,25 +2,53 @@ import "package:flutter/material.dart";
 
 import "package:tarcza_polska/data/models/enums.dart";
 
-/// Paleta w duchu mObywatela (`docs/07`). Inspiracja stylem, bez logo i godła.
+/// Paleta „command center” w wariancie jasnym — ta sama stylistyka co panel operatora
+/// (siatka w tle, moduły z cienkim obrysem, czerwień sygnałowa jako jedyny mocny akcent),
+/// tylko z odwróconymi wartościami jasności (`docs/07`).
 abstract final class TarczaPalette {
-  static const primary = Color(0xFF0052A5);
-  static const primaryDark = Color(0xFF003B7A);
-  static const accentRed = Color(0xFFDC143C);
-  static const background = Color(0xFFF5F6F8);
-  static const surface = Colors.white;
-  static const outline = Color(0xFFE1E5EB);
-  static const textPrimary = Color(0xFF1B2330);
-  static const textSecondary = Color(0xFF5B6575);
-  static const heading = Color(0xFF0B2A55);
+  /// Czerwień sygnałowa — akcja główna, aktywna zakładka, marka.
+  static const primary = Color(0xFFE11D2E);
 
-  // Confidence — jak w panelu operatora (`backend-specs.md` §5).
-  static const unverified = Color(0xFF64748B);
-  static const likely = Color(0xFFF59E0B);
-  static const high = Color(0xFFF97316);
-  static const confirmed = Color(0xFFEF4444);
+  /// Ciemniejszy wariant czerwieni (naciśnięty przycisk, obrys).
+  static const primaryDark = Color(0xFF9E1020);
 
-  static const success = Color(0xFF16A34A);
+  /// Czerwień do tekstu i ikon na jasnym tle — mocniejsza, żeby utrzymać kontrast.
+  static const primaryLight = Color(0xFFC2142A);
+
+  static const accentRed = Color(0xFFE11D2E);
+
+  /// Tło ekranu — bardzo jasna szarość, z delikatną siatką (`GridBackground`).
+  static const background = Color(0xFFF3F5F8);
+
+  /// Karta / panel.
+  static const surface = Color(0xFFFFFFFF);
+
+  /// Element wewnątrz karty (kafelek liczby, pole formularza, pigułka).
+  static const surfaceAlt = Color(0xFFF1F3F7);
+
+  /// Element wyżej (bottom sheet, menu, pasek nawigacji).
+  static const surfaceHigh = Color(0xFFFFFFFF);
+
+  static const outline = Color(0xFFE1E5EC);
+  static const outlineStrong = Color(0xFFC8CEDA);
+
+  static const textPrimary = Color(0xFF161A21);
+  static const textSecondary = Color(0xFF59616F);
+
+  /// Etykiety wersalikowe („OTWARTE INCYDENTY”) — jeszcze ciszej niż `textSecondary`.
+  static const textMuted = Color(0xFF858E9D);
+  static const heading = Color(0xFF0B0E14);
+
+  /// Linie siatki w tle ekranu.
+  static const grid = Color(0xFFE6EAF0);
+
+  // Confidence — jak w panelu operatora (`backend-specs.md` §5), przyciemnione pod jasne tło.
+  static const unverified = Color(0xFF68748A);
+  static const likely = Color(0xFFD97706);
+  static const high = Color(0xFFEA580C);
+  static const confirmed = Color(0xFFDC2626);
+
+  static const success = Color(0xFF15803D);
   static const info = Color(0xFF2563EB);
 }
 
@@ -81,3 +109,10 @@ class StatusColors extends ThemeExtension<StatusColors> {
 extension StatusColorsContext on BuildContext {
   StatusColors get statusColors => Theme.of(this).extension<StatusColors>() ?? StatusColors.light;
 }
+
+/// Kolor statusu w wersji „do tekstu”: na jasnym tle przyciemniamy go, żeby etykieta na
+/// delikatnym wypełnieniu (patrz [tint]) miała kontrast.
+Color readable(Color c, [double amount = 0.22]) => Color.lerp(c, Colors.black, amount)!;
+
+/// Delikatne wypełnienie w kolorze statusu (odznaka, ikona w ramce).
+Color tint(Color c, [double alpha = 0.12]) => c.withValues(alpha: alpha);

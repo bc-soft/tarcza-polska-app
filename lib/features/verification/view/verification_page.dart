@@ -3,7 +3,9 @@ import "package:flutter_bloc/flutter_bloc.dart";
 import "package:go_router/go_router.dart";
 
 import "package:tarcza_polska/app/router/app_router.dart";
+import "package:tarcza_polska/app/theme/app_theme.dart";
 import "package:tarcza_polska/app/theme/tarcza_colors.dart";
+import "package:tarcza_polska/app/theme/tarcza_typography.dart";
 import "package:tarcza_polska/core/utils/formatters.dart";
 import "package:tarcza_polska/core/widgets/widgets.dart";
 import "package:tarcza_polska/data/models/models.dart";
@@ -120,42 +122,32 @@ class _QuestionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    // Ostatnie sekundy na czerwono — widać, że trzeba się pospieszyć.
+    // Ostatnie sekundy na czerwono — widać, że trzeba się pospieszyć. W spokojnym stanie
+    // kolor musi się odcinać od szarego tła paska (`surfaceAlt`) — stąd info, nie textSecondary.
     final urgent = secondsLeft <= 15;
-    final timerColor = urgent ? TarczaPalette.accentRed : TarczaPalette.primary;
+    final timerColor = urgent ? TarczaPalette.confirmed : TarczaPalette.info;
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            color: TarczaPalette.primary.withValues(alpha: 0.06),
+            color: TarczaPalette.surfaceAlt,
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
             child: Row(
               children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: TarczaPalette.primary.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(question.type.icon, color: TarczaPalette.primary),
+                PanelIcon(
+                  icon: question.type.icon,
+                  color: TarczaPalette.primary,
+                  tinted: true,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        l10n.verificationCardLabel.toUpperCase(),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: TarczaPalette.primary,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
+                      Eyebrow(l10n.verificationCardLabel),
+                      const SizedBox(height: 4),
                       Text(
                         question.context,
                         style: theme.textTheme.bodyMedium?.copyWith(
@@ -168,31 +160,27 @@ class _QuestionCard extends StatelessWidget {
               ],
             ),
           ),
-          const Divider(),
+          const Divider(color: TarczaPalette.outline),
           // Pytanie o obiekt — może dotyczyć sąsiedniej stacji, nie tej zgłoszonej.
           if (question.poi case final poi?)
             Container(
               margin: const EdgeInsets.fromLTRB(16, 14, 16, 0),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                color: TarczaPalette.background,
-                borderRadius: BorderRadius.circular(12),
+                color: TarczaPalette.surfaceAlt,
+                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                 border: Border.all(color: TarczaPalette.outline),
               ),
               child: Row(
                 children: [
-                  Icon(poi.kind.icon, color: TarczaPalette.primary),
+                  Icon(poi.kind.icon, size: 20, color: TarczaPalette.primaryLight),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          l10n.verificationPoiLabel,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: TarczaPalette.textSecondary,
-                          ),
-                        ),
+                        Text(upper(l10n.verificationPoiLabel), style: TarczaFonts.label()),
+                        const SizedBox(height: 2),
                         Text(
                           poi.name,
                           style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
@@ -207,11 +195,7 @@ class _QuestionCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
             child: Text(
               question.question,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                height: 1.25,
-                color: TarczaPalette.heading,
-                fontWeight: FontWeight.w800,
-              ),
+              style: TarczaFonts.heading(size: 27, height: 1.15, letterSpacing: 0.3),
             ),
           ),
           Padding(
@@ -225,25 +209,18 @@ class _QuestionCard extends StatelessWidget {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        l10n.verificationExpiresIn(secondsLeft),
-                        style: TextStyle(color: timerColor, fontWeight: FontWeight.w600),
+                        upper(l10n.verificationExpiresIn(secondsLeft)),
+                        style: TarczaFonts.label(weight: 700, color: timerColor),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(99),
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween(end: progress),
-                    duration: const Duration(milliseconds: 900),
-                    builder: (context, value, _) => LinearProgressIndicator(
-                      value: value,
-                      minHeight: 8,
-                      color: timerColor,
-                      backgroundColor: TarczaPalette.outline,
-                    ),
-                  ),
+                TweenAnimationBuilder<double>(
+                  tween: Tween(end: progress),
+                  duration: const Duration(milliseconds: 900),
+                  builder: (context, value, _) =>
+                      MeterBar(value: value, color: timerColor, height: 5, animate: false),
                 ),
               ],
             ),
@@ -281,7 +258,7 @@ class _QuestionView extends StatelessWidget {
               child: Text(
                 Formatters.failure(l10n, state.failure!),
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: TarczaPalette.accentRed),
+                style: const TextStyle(color: TarczaPalette.confirmed),
               ),
             ),
           // TAK i NIE obok siebie, NIE WIEM pod nimi — równorzędne, nie sugerujemy odpowiedzi.
@@ -428,25 +405,22 @@ class _AnswerButton extends StatelessWidget {
       SizedBox(width: horizontal ? 8 : 0, height: horizontal ? 0 : 6),
       Flexible(
         child: Text(
-          title,
+          upper(title),
           textAlign: TextAlign.center,
           maxLines: 2,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, height: 1.15),
+          style: TarczaFonts.heading(size: 21, height: 1.1, letterSpacing: 0.7),
         ),
       ),
       if (caption != null && !horizontal) ...[
-        const SizedBox(height: 2),
-        Text(
-          caption!,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 1),
-        ),
+        const SizedBox(height: 4),
+        Text(upper(caption!), style: TarczaFonts.label(size: 10.5, weight: 700)),
       ],
     ];
     return SizedBox(
       height: height,
       child: OutlinedButton(
         style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white,
+          backgroundColor: TarczaPalette.surface,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         ),
         onPressed: enabled

@@ -28,6 +28,14 @@ abstract final class Formatters {
 
   static int percent(double score) => (score * 100).round();
 
+  /// Krótki identyfikator do nagłówka — jak sygnatura incydentu w panelu operatora
+  /// („01A10320”). Z UUID bierzemy ostatni człon, bo jest najbardziej rozróżniający.
+  static String? shortId(String? id) {
+    if (id == null || id.isEmpty) return null;
+    final tail = id.split("-").last;
+    return (tail.length <= 8 ? tail : tail.substring(tail.length - 8)).toUpperCase();
+  }
+
   /// Komunikat UI dla błędu domenowego.
   static String failure(AppLocalizations l10n, Object error) => switch (error) {
     NetworkFailure() => l10n.errorNetwork,

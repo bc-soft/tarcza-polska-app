@@ -2,20 +2,49 @@ import "package:flutter/material.dart";
 import "package:flutter_map/flutter_map.dart";
 import "package:latlong2/latlong.dart";
 
+import "package:tarcza_polska/app/theme/app_theme.dart";
 import "package:tarcza_polska/app/theme/tarcza_colors.dart";
 import "package:tarcza_polska/data/models/models.dart";
 
 /// Domyślny środek mapy, gdy nie znamy pozycji (Poznań).
 const LatLng defaultMapCenter = LatLng(52.4064, 16.9252);
 
-/// Kafelki OpenStreetMap (bez klucza API). `userAgentPackageName` wymagany przez politykę OSM.
-TileLayer osmTileLayer() => TileLayer(
-  urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-  userAgentPackageName: "pl.tarcza.citizen",
-  maxZoom: 19,
+/// Podkładka mapy: **Esri World Light Gray Canvas** — gotowy, czysty podkład kartograficzny
+/// zaprojektowany pod nakładki danych (jasna szarość, bez kolorów terenu, bez ikon POI).
+/// Wcześniej odbarwialiśmy OSM filtrem, ale szara wersja mapy ulicznej zostaje szarą mapą
+/// uliczną: cały detal (budynki, użytkowanie terenu) nadal walczy o uwagę ze strefami H3.
+///
+/// Podpisy są osobną warstwą (`Reference`), więc rysują się **nad** strefami — nazwy ulic
+/// pozostają czytelne także tam, gdzie leży obszar incydentu.
+const _tileBase =
+    "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/"
+    "World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}";
+const _tileLabels =
+    "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/"
+    "World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}";
+
+/// Kafelki to dekoracja i **nigdy** nie mogą przechwytywać dotknięć: `RenderImage`
+/// zgłasza trafienie na całej swojej powierzchni, więc warstwa kafelków położona nad
+/// markerami przykryłaby je dla zdarzeń wskaźnika (podpisy rysujemy właśnie na wierzchu).
+Widget _tiles(String urlTemplate, {TileBuilder? tileBuilder}) => IgnorePointer(
+  child: TileLayer(
+    urlTemplate: urlTemplate,
+    userAgentPackageName: "pl.tarcza.citizen",
+    maxZoom: 19,
+    tileBuilder: tileBuilder,
+  ),
 );
 
-/// Atrybucja wymagana przez licencję OSM.
+Widget osmTileLayer() => _tiles(
+  _tileBase,
+  // Tło kafelka w kolorze mapy — przy wczytywaniu nie błyska bielą.
+  tileBuilder: (context, tile, _) => ColoredBox(color: const Color(0xFFF2F2F2), child: tile),
+);
+
+/// Warstwa podpisów — dodawana jako ostatnia, nad strefami i markerami obszaru.
+Widget mapLabelsLayer() => _tiles(_tileLabels);
+
+/// Atrybucja wymagana przez dostawcę podkładu.
 class OsmAttribution extends StatelessWidget {
   const OsmAttribution({super.key});
 
@@ -25,8 +54,14 @@ class OsmAttribution extends StatelessWidget {
     child: Container(
       margin: const EdgeInsets.all(4),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      color: Colors.white.withValues(alpha: 0.8),
-      child: const Text("© OpenStreetMap", style: TextStyle(fontSize: 10)),
+      decoration: BoxDecoration(
+        color: TarczaPalette.surface.withValues(alpha: 0.78),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: const Text(
+        "© Esri · OpenStreetMap",
+        style: TextStyle(fontSize: 9, color: TarczaPalette.textMuted),
+      ),
     ),
   );
 }
@@ -43,7 +78,7 @@ class PinMarker extends StatelessWidget {
     icon,
     color: color,
     size: 44,
-    shadows: const [Shadow(blurRadius: 6, color: Colors.black26)],
+    shadows: const [Shadow(blurRadius: 6, color: Colors.black38, offset: Offset(0, 2))],
   );
 }
 
@@ -93,7 +128,7 @@ class HomeMarker extends StatelessWidget {
         Icon(
           Icons.location_on,
           size: size,
-          color: TarczaPalette.primaryDark,
+          color: TarczaPalette.primary,
           shadows: const [Shadow(blurRadius: 6, color: Colors.black38, offset: Offset(0, 2))],
         ),
         Positioned(
@@ -102,7 +137,7 @@ class HomeMarker extends StatelessWidget {
             width: size * 0.44,
             height: size * 0.44,
             decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-            child: Icon(Icons.home_rounded, size: size * 0.32, color: TarczaPalette.primaryDark),
+            child: Icon(Icons.home_rounded, size: size * 0.32, color: TarczaPalette.primary),
           ),
         ),
       ],
@@ -153,35 +188,44 @@ class ClusterMarker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final more = count - 1;
-    return Stack(
-      clipBehavior: Clip.none,
-      alignment: Alignment.center,
-      children: [
-        IconCircleMarker(icon: icon, color: color, size: size),
-        Positioned(
-          top: -2,
-          right: -2,
-          child: Container(
-            constraints: const BoxConstraints(minWidth: 22),
-            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-            decoration: BoxDecoration(
-              color: TarczaPalette.primaryDark,
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: Colors.white, width: 1.5),
-            ),
-            child: Text(
-              more > 999 ? "+999" : "+$more",
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 11,
-                height: 1.1,
+    // Marker ma zapas na odznakę, ale stos musi mieć rozmiar samej ikony — inaczej odznaka
+    // ląduje w rogu zapasu i wygląda, jakby nie należała do ikony. Ikona jest kołem, więc
+    // odznaka wchodzi do środka ramki (róg ramki to puste miejsce obok okręgu).
+    return Center(
+      child: SizedBox.square(
+        dimension: size,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            IconCircleMarker(icon: icon, color: color, size: size),
+            Positioned(
+              top: -1,
+              right: -9,
+              child: Container(
+                constraints: const BoxConstraints(minWidth: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(5),
+                  border: Border.all(color: TarczaPalette.outlineStrong),
+                  boxShadow: const [BoxShadow(blurRadius: 3, color: Colors.black26)],
+                ),
+                child: Text(
+                  more > 999 ? "+999" : "+$more",
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: TarczaPalette.textPrimary,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 10.5,
+                    height: 1.1,
+                  ),
+                ),
               ),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -345,7 +389,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
   Widget build(BuildContext context) {
     final p = widget.position;
     return ClipRRect(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
       child: FlutterMap(
         mapController: _controller,
         options: MapOptions(
@@ -359,6 +403,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
         ),
         children: [
           osmTileLayer(),
+          mapLabelsLayer(),
           MarkerLayer(
             markers: [
               ...widget.extraMarkers,

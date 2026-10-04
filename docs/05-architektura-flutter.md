@@ -159,7 +159,7 @@ Mobile nie liczy na H3 żadnej logiki biznesowej (zasięg, confidence) — to wy
 ```
 lib/
   main.dart
-  app/                    # MaterialApp.router, go_router, theme (styl mObywatel), DI (get_it), config
+  app/                    # MaterialApp.router, go_router, theme („command center”, motyw jasny), DI (get_it), config
   core/
     error/                # wyjątki domenowe, mapowanie error.code
     push/                 # PushService (FCM/APNs), routing z pushy

@@ -44,11 +44,10 @@ class IncidentCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    Text(
+                    DataText(
                       Formatters.relative(l10n, incident.lastActivityAt),
-                      style: Theme.of(
-                        context,
-                      ).textTheme.labelSmall?.copyWith(color: TarczaPalette.textSecondary),
+                      size: 11,
+                      color: TarczaPalette.textMuted,
                     ),
                   ],
                 ),
@@ -62,7 +61,8 @@ class IncidentCard extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.chevron_right, color: TarczaPalette.textSecondary),
+          const SizedBox(width: 4),
+          const Icon(Icons.chevron_right, size: 20, color: TarczaPalette.textMuted),
         ],
       ),
     );
@@ -88,8 +88,8 @@ class IncidentOpenContainer extends StatelessWidget {
     useRootNavigator: true,
     transitionDuration: const Duration(milliseconds: 420),
     closedElevation: elevation,
-    openColor: Theme.of(context).scaffoldBackgroundColor,
-    middleColor: Colors.white,
+    openColor: Colors.transparent,
+    middleColor: TarczaPalette.background,
     closedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radius)),
     tappable: false,
     closedBuilder: (context, open) => IncidentCard(
@@ -99,6 +99,8 @@ class IncidentOpenContainer extends StatelessWidget {
         open();
       },
     ),
-    openBuilder: (context, _) => IncidentPage(incidentId: incident.id, initial: incident),
+    openBuilder: (context, _) => PanelBackdrop(
+      child: IncidentPage(incidentId: incident.id, initial: incident),
+    ),
   );
 }

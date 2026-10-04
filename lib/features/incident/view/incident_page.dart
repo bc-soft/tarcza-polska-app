@@ -5,8 +5,11 @@ import "package:go_router/go_router.dart";
 
 import "package:tarcza_polska/app/di/injection.dart";
 import "package:tarcza_polska/app/router/app_router.dart";
+import "package:tarcza_polska/app/theme/app_theme.dart";
 import "package:tarcza_polska/app/theme/tarcza_colors.dart";
+import "package:tarcza_polska/app/theme/tarcza_typography.dart";
 import "package:tarcza_polska/core/utils/formatters.dart";
+import "package:tarcza_polska/core/utils/geometry.dart";
 import "package:tarcza_polska/core/widgets/guidance_widgets.dart";
 import "package:tarcza_polska/core/widgets/map_widgets.dart";
 import "package:tarcza_polska/core/widgets/widgets.dart";
@@ -52,7 +55,13 @@ class IncidentView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
-      appBar: TarczaAppBar(title: Text(l10n.incidentTitle)),
+      appBar: TarczaAppBar(
+        title: Text(l10n.incidentTitle),
+        eyebrow: l10n.incidentIncident,
+        eyebrowTrailing: context.select(
+          (IncidentCubit c) => Formatters.shortId(c.state.incident?.id),
+        ),
+      ),
       body: BlocBuilder<IncidentCubit, IncidentState>(
         builder: (context, state) {
           final incident = state.incident;
@@ -86,90 +95,83 @@ class _IncidentDetails extends StatelessWidget {
     final percent = Formatters.percent(incident.confidenceScore);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       children: [
+        // Nagłówek jak w panelu operatora: typ wersalikami, obok odznaki stanu.
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: DisplayHeading(incident.typeLabel, size: 31)),
+            const SizedBox(width: 12),
+            // Poziom wiarygodności ma własną kartę niżej — tu tylko stan incydentu.
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: PanelBadge(
+                label: incident.statusText(l10n),
+                color: incident.status == IncidentStatus.resolved
+                    ? TarczaPalette.success
+                    : TarczaPalette.unverified,
+                dense: true,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        DataText(
+          l10n.incidentDetectedAt(
+            Formatters.dateTime(incident.startedAt),
+            Formatters.relative(l10n, incident.startedAt),
+          ),
+          size: 11.5,
+          color: TarczaPalette.textMuted,
+        ),
+        if (incident.summary != null) ...[
+          const SizedBox(height: 14),
+          Text(incident.summary!, style: Theme.of(context).textTheme.bodyLarge),
+        ],
+        const SizedBox(height: 18),
+        // Moduł „WIARYGODNOŚĆ” — duży procent, pasek i jedno zdanie, co to znaczy.
         TarczaCard(
           accent: color,
+          title: l10n.incidentConfidence,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  IncidentAvatar(type: incident.type, level: incident.confidenceLevel, size: 52),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(incident.typeLabel, style: Theme.of(context).textTheme.titleLarge),
-                        const SizedBox(height: 4),
-                        Text(
-                          incident.statusText(l10n),
-                          style: const TextStyle(color: TarczaPalette.textSecondary),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          l10n.incidentDetectedAt(
-                            Formatters.dateTime(incident.startedAt),
-                            Formatters.relative(l10n, incident.startedAt),
-                          ),
-                          style: const TextStyle(color: TarczaPalette.textSecondary, fontSize: 13),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              if (incident.summary != null) ...[
-                const SizedBox(height: 14),
-                Text(incident.summary!, style: Theme.of(context).textTheme.bodyLarge),
-              ],
-            ],
-          ),
-        ),
-        SectionHeader(l10n.incidentConfidence),
-        TarczaCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  ConfidenceBadge(level: incident.confidenceLevel, label: incident.confidenceLabel),
-                  const Spacer(),
                   TweenAnimationBuilder<double>(
                     tween: Tween(end: incident.confidenceScore),
                     duration: const Duration(milliseconds: 700),
                     builder: (context, value, _) => Text(
                       l10n.confidencePercent(Formatters.percent(value)),
-                      style:
-                          Theme.of(
-                                context,
-                              ).textTheme.headlineSmall
-                              ?.copyWith(color: Color.lerp(color, Colors.black, 0.2)),
+                      style: TarczaFonts.metric(size: 50, color: readable(color, 0.1)),
+                    ),
+                  ),
+                  const Spacer(),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Text(
+                      incident.confidenceLabel,
+                      style: TarczaFonts.label(
+                        size: 12,
+                        weight: 700,
+                        color: readable(color, 0.25),
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              TweenAnimationBuilder<double>(
-                tween: Tween(end: incident.confidenceScore),
-                duration: const Duration(milliseconds: 700),
-                builder: (context, value, _) => ClipRRect(
-                  borderRadius: BorderRadius.circular(99),
-                  child: LinearProgressIndicator(
-                    value: value,
-                    minHeight: 10,
-                    color: color,
-                    backgroundColor: TarczaPalette.outline,
-                    semanticsLabel: l10n.incidentConfidence,
-                    semanticsValue: "$percent%",
-                  ),
-                ),
+              Semantics(
+                label: l10n.incidentConfidence,
+                value: "$percent%",
+                child: MeterBar(value: incident.confidenceScore, color: color, height: 7),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 14),
               Text(
                 incident.confidenceLevel.hint(l10n),
-                style: const TextStyle(color: TarczaPalette.textSecondary),
+                style: const TextStyle(color: TarczaPalette.textSecondary, fontSize: 13),
               ),
             ],
           ),
@@ -230,7 +232,7 @@ class _IncidentDetails extends StatelessWidget {
         const SizedBox(height: 16),
         Row(
           children: [
-            const Icon(Icons.privacy_tip_outlined, size: 18, color: TarczaPalette.textSecondary),
+            const Icon(Icons.privacy_tip_outlined, size: 16, color: TarczaPalette.textMuted),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -258,9 +260,13 @@ class _AreaPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final points = area.outlinePoints;
     return SizedBox(
-      height: 200,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
+      height: 210,
+      child: Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppTheme.radius),
+          border: Border.all(color: TarczaPalette.outline),
+        ),
         child: IgnorePointer(
           child: FlutterMap(
             options: MapOptions(
@@ -279,12 +285,13 @@ class _AreaPreview extends StatelessWidget {
               if (area case GeoPolygonArea(:final polygons))
                 PolygonLayer(
                   polygons: [
-                    for (final p in polygons)
+                    for (final p in dissolvePolygons(polygons))
                       Polygon(
                         points: p.outer,
-                        color: color.withValues(alpha: 0.3),
+                        holePointsList: p.holes.isEmpty ? null : p.holes,
+                        color: color.withValues(alpha: 0.28),
                         borderColor: color,
-                        borderStrokeWidth: 2.5,
+                        borderStrokeWidth: 2,
                       ),
                   ],
                 ),
@@ -299,6 +306,7 @@ class _AreaPreview extends StatelessWidget {
                     ),
                   ],
                 ),
+              mapLabelsLayer(),
             ],
           ),
         ),

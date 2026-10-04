@@ -68,13 +68,17 @@ class AlertView extends StatelessWidget {
             ? Theme.of(context).colorScheme.primary
             : context.statusColors.forSeverity(alert.severity);
         return Scaffold(
-          backgroundColor: alert == null ? null : Color.lerp(color, Colors.white, 0.9),
+          // Tło jak na pozostałych ekranach — kolor ważności niosą odznaka i ikona,
+          // podbarwianie całego ekranu brudziło jasną paletę.
           appBar: TarczaAppBar(
             showLogo: false,
             backgroundColor: Colors.transparent,
             systemOverlayStyle: SystemUiOverlayStyle.dark,
             automaticallyImplyLeading: false,
-            title: Text(l10n.alertFrom),
+            divider: false,
+            eyebrow: l10n.alertFrom,
+            eyebrowColor: alert == null ? TarczaPalette.primary : color,
+            title: Text(l10n.mapCommandCenter),
             actions: [
               IconButton(
                 tooltip: l10n.commonClose,
@@ -109,7 +113,6 @@ class _AlertBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final dark = Color.lerp(color, Colors.black, 0.35)!;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
       child: Column(
@@ -120,36 +123,41 @@ class _AlertBody extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                    child: Icon(alert.severity.icon, color: Colors.white, size: 40),
+                  Row(
+                    children: [
+                      PanelIcon(
+                        icon: alert.severity.icon,
+                        color: color,
+                        size: 56,
+                        tinted: true,
+                      ),
+                      const SizedBox(width: 14),
+                      PanelBadge(
+                        label: alert.severity.label(l10n),
+                        color: color,
+                        filled: alert.severity == AlertSeverity.danger,
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 20),
-                  StatusChip(
-                    label: alert.severity.label(l10n),
-                    color: color,
-                    icon: alert.severity.icon,
-                  ),
+                  DisplayHeading(alert.title, size: 32, maxLines: 4),
                   const SizedBox(height: 14),
                   Text(
-                    alert.title,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.headlineMedium?.copyWith(color: dark, fontWeight: FontWeight.w800),
+                    alert.body,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
                   ),
-                  const SizedBox(height: 14),
-                  Text(alert.body, style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 18),
-                  Text(
+                  DataText(
                     l10n.alertExpires(Formatters.clock(alert.expiresAt)),
-                    style: TextStyle(color: dark),
+                    size: 11.5,
+                    color: TarczaPalette.textMuted,
                   ),
                   SizedBox(
                     width: double.infinity,
                     child: ProceduresSection(procedures: procedures),
                   ),
+                  // Oddech między przewijaną treścią a przyciskami pod spodem.
+                  const SizedBox(height: 16),
                 ],
               ),
             ),

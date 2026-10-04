@@ -318,6 +318,21 @@ class AppLocalizationsPl extends AppLocalizations {
   }
 
   @override
+  String get statLive => 'Na żywo';
+
+  @override
+  String get mapSituational => 'Mapa sytuacyjna';
+
+  @override
+  String get mapCommandCenter => 'Tarcza Polska';
+
+  @override
+  String get incidentIncident => 'Incydent';
+
+  @override
+  String get incidentCell => 'Komórka';
+
+  @override
   String get incidentTitle => 'Szczegóły zagrożenia';
 
   @override
@@ -488,16 +503,16 @@ class AppLocalizationsPl extends AppLocalizations {
   String get sheltersTitle => 'Schrony';
 
   @override
+  String get shelterTitle => 'Schron';
+
+  @override
+  String get shelterName => 'Nazwa';
+
+  @override
   String get sheltersEmpty => 'Brak schronów w pobliżu.';
 
   @override
   String get shelterCapacity => 'Pojemność';
-
-  @override
-  String get shelterLastConfirmed => 'Ostatnie potwierdzenie';
-
-  @override
-  String get shelterConfirmations => 'Potwierdzenia';
 
   @override
   String get shelterNever => 'brak';

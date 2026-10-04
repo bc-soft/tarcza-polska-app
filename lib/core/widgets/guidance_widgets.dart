@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 
 import "package:tarcza_polska/app/theme/tarcza_colors.dart";
+import "package:tarcza_polska/app/theme/tarcza_typography.dart";
 import "package:tarcza_polska/core/utils/formatters.dart";
 import "package:tarcza_polska/core/widgets/widgets.dart";
 import "package:tarcza_polska/data/models/models.dart";
@@ -21,53 +22,99 @@ class ProceduresSection extends StatelessWidget {
         SectionHeader(context.l10n.proceduresTitle),
         for (final (i, p) in procedures.indexed) ...[
           if (i > 0) const SizedBox(height: 10),
-          TarczaCard(
-            padding: EdgeInsets.zero,
-            child: Theme(
-              // Bez linii ExpansionTile — karta ma własny obrys.
-              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-              child: ExpansionTile(
-                initiallyExpanded: i == 0,
-                leading: const Icon(Icons.checklist_rtl, color: TarczaPalette.primary),
-                title: Text(p.title, style: const TextStyle(fontWeight: FontWeight.w700)),
-                subtitle: Text(p.summary),
-                childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-                expandedCrossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  for (final (n, step) in p.steps.indexed)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: 22,
-                            height: 22,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: TarczaPalette.primary.withValues(alpha: 0.12),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Text(
-                              "${n + 1}",
-                              style: const TextStyle(
-                                color: TarczaPalette.primary,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(child: Text(step)),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
+          _ProcedureTile(procedure: p, initiallyExpanded: i == 0),
         ],
       ],
+    );
+  }
+}
+
+/// Jedna procedura. Zwinięta pokazuje tytuł i jedną linię opisu — listę ma się dać przebiec
+/// wzrokiem. Rozwinięta zastępuje przycięty opis pełnym i dokłada kroki, więc skrót
+/// w nagłówku niczego nie gubi.
+class _ProcedureTile extends StatefulWidget {
+  const _ProcedureTile({required this.procedure, required this.initiallyExpanded});
+
+  final Procedure procedure;
+  final bool initiallyExpanded;
+
+  @override
+  State<_ProcedureTile> createState() => _ProcedureTileState();
+}
+
+class _ProcedureTileState extends State<_ProcedureTile> {
+  late bool _expanded = widget.initiallyExpanded;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = widget.procedure;
+    return TarczaCard(
+      padding: EdgeInsets.zero,
+      child: Theme(
+        // Bez linii ExpansionTile — karta ma własny obrys.
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          initiallyExpanded: widget.initiallyExpanded,
+          onExpansionChanged: (value) => setState(() => _expanded = value),
+          leading: const PanelIcon(
+            icon: Icons.checklist_rtl,
+            color: TarczaPalette.primary,
+            size: 36,
+            tinted: true,
+          ),
+          iconColor: TarczaPalette.textSecondary,
+          collapsedIconColor: TarczaPalette.textMuted,
+          title: Text(upper(p.title), style: TarczaFonts.heading(size: 16)),
+          subtitle: _expanded
+              ? null
+              : Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    p.summary,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: TarczaPalette.textSecondary, fontSize: 13),
+                  ),
+                ),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+          expandedCrossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              p.summary,
+              style: const TextStyle(color: TarczaPalette.textSecondary, fontSize: 13.5),
+            ),
+            for (final (n, step) in p.steps.indexed)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 22,
+                      height: 22,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: tint(TarczaPalette.primary, 0.14),
+                        borderRadius: BorderRadius.circular(5),
+                        border: Border.all(color: TarczaPalette.primary.withValues(alpha: 0.4)),
+                      ),
+                      child: Text(
+                        "${n + 1}",
+                        style: TarczaFonts.data(
+                          size: 11,
+                          bold: true,
+                          color: TarczaPalette.primaryLight,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text(step)),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -115,14 +162,23 @@ class IncidentTimeline extends StatelessWidget {
                               width: 28,
                               height: 28,
                               decoration: BoxDecoration(
-                                color: TarczaPalette.primary.withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
+                                color: TarczaPalette.surfaceAlt,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: TarczaPalette.outlineStrong),
                               ),
-                              child: Icon(_icon(e.type), size: 16, color: TarczaPalette.primary),
+                              child: Icon(
+                                _icon(e.type),
+                                size: 15,
+                                color: TarczaPalette.primaryLight,
+                              ),
                             ),
                             if (i < entries.length - 1)
                               const Expanded(
-                                child: VerticalDivider(width: 2, thickness: 2),
+                                child: VerticalDivider(
+                                  width: 2,
+                                  thickness: 2,
+                                  color: TarczaPalette.outline,
+                                ),
                               ),
                           ],
                         ),
@@ -134,13 +190,19 @@ class IncidentTimeline extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(e.label, style: const TextStyle(fontWeight: FontWeight.w600)),
                               Text(
-                                Formatters.dateTime(e.at),
-                                style: const TextStyle(
-                                  color: TarczaPalette.textSecondary,
-                                  fontSize: 12,
+                                e.label,
+                                style: TarczaFonts.text(
+                                  size: 14,
+                                  weight: 600,
+                                  color: TarczaPalette.textPrimary,
                                 ),
+                              ),
+                              const SizedBox(height: 2),
+                              DataText(
+                                Formatters.dateTime(e.at),
+                                size: 11,
+                                color: TarczaPalette.textMuted,
                               ),
                             ],
                           ),

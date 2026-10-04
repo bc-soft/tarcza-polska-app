@@ -7,6 +7,7 @@ import "package:go_router/go_router.dart";
 
 import "package:tarcza_polska/app/di/injection.dart";
 import "package:tarcza_polska/app/router/app_router.dart";
+import "package:tarcza_polska/app/theme/app_theme.dart";
 import "package:tarcza_polska/app/theme/tarcza_colors.dart";
 import "package:tarcza_polska/core/utils/formatters.dart";
 import "package:tarcza_polska/core/widgets/map_widgets.dart";
@@ -59,7 +60,10 @@ class ShelterView extends StatelessWidget {
       builder: (context, state) {
         final shelter = state.shelter;
         return Scaffold(
-          appBar: TarczaAppBar(title: Text(shelter?.name ?? l10n.sheltersTitle)),
+          appBar: TarczaAppBar(
+            eyebrow: l10n.shelterTitle,
+            title: Text(shelter?.name ?? l10n.sheltersTitle),
+          ),
           body: shelter == null
               ? (state.loading
                     ? const Center(child: CircularProgressIndicator())
@@ -93,12 +97,13 @@ class _ShelterDetails extends StatelessWidget {
         SizedBox(
           height: 180,
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppTheme.radius),
             child: IgnorePointer(
               child: FlutterMap(
                 options: MapOptions(initialCenter: shelter.location, initialZoom: 16),
                 children: [
                   osmTileLayer(),
+                  mapLabelsLayer(),
                   MarkerLayer(
                     markers: [
                       Marker(
@@ -122,6 +127,7 @@ class _ShelterDetails extends StatelessWidget {
             children: [
               StatusChip(label: shelter.statusLabel, color: color, icon: shelter.status.icon),
               const SizedBox(height: 12),
+              InfoRow(label: l10n.shelterName, value: shelter.name),
               if (shelter.address != null)
                 InfoRow(label: l10n.shelterAddress, value: shelter.address!),
               if (shelter.distanceMeters != null)
@@ -141,13 +147,6 @@ class _ShelterDetails extends StatelessWidget {
                   label: l10n.shelterCapacity,
                   value: l10n.shelterCapacityValue(shelter.capacity!),
                 ),
-              InfoRow(
-                label: l10n.shelterLastConfirmed,
-                value: shelter.lastConfirmedAt == null
-                    ? l10n.shelterNever
-                    : Formatters.relative(l10n, shelter.lastConfirmedAt!),
-              ),
-              InfoRow(label: l10n.shelterConfirmations, value: "${shelter.confirmationCount}"),
             ],
           ),
         ),
@@ -253,8 +252,8 @@ class _ConfirmSheetState extends State<_ConfirmSheet> {
               padding: const EdgeInsets.only(bottom: 8),
               child: Material(
                 color: _status == status
-                    ? colors.forShelter(status).withValues(alpha: 0.12)
-                    : Colors.white,
+                    ? colors.forShelter(status).withValues(alpha: 0.14)
+                    : TarczaPalette.surfaceAlt,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                   side: BorderSide(

@@ -4,6 +4,7 @@ import "dart:convert";
 import "package:flutter/foundation.dart";
 import "package:flutter_local_notifications/flutter_local_notifications.dart";
 
+import "package:tarcza_polska/app/theme/tarcza_colors.dart";
 import "package:tarcza_polska/core/push/push_event.dart";
 
 /// Cienka warstwa nad `flutter_local_notifications`: zgoda na powiadomienia
@@ -22,6 +23,9 @@ class LocalNotifications {
     channelDescription: "Pytania weryfikacyjne i alerty dla Twojej okolicy",
     importance: Importance.high,
     priority: Priority.high,
+    // Sylwetka logo — Android wygasza kolorowe ikony do białej plamy.
+    icon: "ic_notification",
+    color: TarczaPalette.primary,
   );
 
   /// Tapnięcia w notyfikację (payload = `data` pusha).
@@ -33,7 +37,7 @@ class LocalNotifications {
     try {
       await _plugin.initialize(
         settings: const InitializationSettings(
-          android: AndroidInitializationSettings("@mipmap/ic_launcher"),
+          android: AndroidInitializationSettings("ic_notification"),
           iOS: DarwinInitializationSettings(
             requestAlertPermission: false,
             requestBadgePermission: false,

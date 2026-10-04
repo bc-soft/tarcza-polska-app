@@ -25,6 +25,12 @@ abstract final class AppConfig {
   /// wtedy na samym pollingu.
   static const bool enablePush = bool.fromEnvironment("ENABLE_PUSH");
 
+  /// Warstwy POI na mapie. Przy gęstych danych z backendu setki schronów i stacji
+  /// zasłaniają strefy incydentów — flagi pozwalają je wyłączyć bez ruszania kodu mapy.
+  /// Nie dotyczą listy schronów („Więcej → Schrony”) ani ekranów szczegółów.
+  static const bool showSheltersOnMap = false;
+  static const bool showFuelStationsOnMap = false;
+
   static const String appVersion = "0.1.0";
 
   /// Odświeżanie mapy, `pending` i alertów, gdy aplikacja jest na pierwszym planie.

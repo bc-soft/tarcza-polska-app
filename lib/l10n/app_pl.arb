@@ -162,6 +162,11 @@
       }
     }
   },
+  "statLive": "Na żywo",
+  "mapSituational": "Mapa sytuacyjna",
+  "mapCommandCenter": "Tarcza Polska",
+  "incidentIncident": "Incydent",
+  "incidentCell": "Komórka",
   "incidentTitle": "Szczegóły zagrożenia",
   "incidentConfidence": "Wiarygodność",
   "incidentStatus": "Status",
@@ -238,10 +243,10 @@
     }
   },
   "sheltersTitle": "Schrony",
+  "shelterTitle": "Schron",
+  "shelterName": "Nazwa",
   "sheltersEmpty": "Brak schronów w pobliżu.",
   "shelterCapacity": "Pojemność",
-  "shelterLastConfirmed": "Ostatnie potwierdzenie",
-  "shelterConfirmations": "Potwierdzenia",
   "shelterNever": "brak",
   "shelterConfirm": "Potwierdź status",
   "shelterConfirmTitle": "Jaki jest teraz stan schronu?",

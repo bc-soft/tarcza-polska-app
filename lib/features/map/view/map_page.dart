@@ -6,11 +6,21 @@ import "package:flutter_map/flutter_map.dart";
 import "package:go_router/go_router.dart";
 import "package:latlong2/latlong.dart";
 
+import "package:tarcza_polska/app/config/app_config.dart";
+import "package:tarcza_polska/app/di/injection.dart";
 import "package:tarcza_polska/app/router/app_router.dart";
+import "package:tarcza_polska/app/theme/app_theme.dart";
 import "package:tarcza_polska/app/theme/tarcza_colors.dart";
+import "package:tarcza_polska/app/theme/tarcza_typography.dart";
+import "package:tarcza_polska/core/push/local_notifications.dart";
+import "package:tarcza_polska/core/push/push_event.dart";
 import "package:tarcza_polska/core/utils/formatters.dart";
+import "package:tarcza_polska/core/utils/geometry.dart";
 import "package:tarcza_polska/core/widgets/map_widgets.dart";
 import "package:tarcza_polska/core/widgets/widgets.dart";
+import "package:tarcza_polska/data/mock/mock_backend.dart";
+import "package:tarcza_polska/data/mock/mock_repositories.dart";
+import "package:tarcza_polska/data/mock/mock_seed.dart";
 import "package:tarcza_polska/data/models/models.dart";
 import "package:tarcza_polska/features/alerts/bloc/alerts_cubit.dart";
 import "package:tarcza_polska/features/fuel_stations/view/fuel_station_page.dart";
@@ -18,6 +28,7 @@ import "package:tarcza_polska/features/map/bloc/map_bloc.dart";
 import "package:tarcza_polska/features/map/view/incident_card.dart";
 import "package:tarcza_polska/features/settings/bloc/location_cubit.dart";
 import "package:tarcza_polska/features/verification/bloc/verification_bloc.dart";
+import "package:tarcza_polska/features/verification/view/verification_page.dart";
 
 /// Ekran główny. `MapBloc` jest globalny (alert / incydent mogą przesunąć kamerę),
 /// dlatego strona nie tworzy własnego `BlocProvider`.
@@ -177,56 +188,82 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
                     child: PolygonLayer(polygons: _pulsePolygons(context, state)),
                   ),
                 ),
-                ClusteredMarkerLayer<Shelter>(
-                  items: state.shelters,
-                  pointOf: (s) => s.location,
-                  clusterColor: (group) => shelterGroupColor(context, group),
-                  clusterIcon: Icons.night_shelter,
-                  markerBuilder: (context, shelter) => GestureDetector(
-                    onTap: () => context.push(AppRoutes.shelter(shelter.id), extra: shelter),
-                    child: Semantics(
-                      label: "${shelter.name} — ${shelter.statusLabel}",
-                      child: IconCircleMarker(
-                        icon: Icons.night_shelter,
-                        color: context.statusColors.forShelter(shelter.status),
-                        size: 30,
+                // Warstwy POI potrafią zasłonić strefy incydentów — patrz `AppConfig`.
+                if (AppConfig.showSheltersOnMap)
+                  ClusteredMarkerLayer<Shelter>(
+                    items: state.shelters,
+                    pointOf: (s) => s.location,
+                    clusterColor: (group) => shelterGroupColor(context, group),
+                    clusterIcon: Icons.night_shelter,
+                    markerBuilder: (context, shelter) => GestureDetector(
+                      onTap: () => context.push(AppRoutes.shelter(shelter.id), extra: shelter),
+                      child: Semantics(
+                        label: "${shelter.name} — ${shelter.statusLabel}",
+                        child: IconCircleMarker(
+                          icon: Icons.night_shelter,
+                          color: context.statusColors.forShelter(shelter.status),
+                          size: 30,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                ClusteredMarkerLayer<FuelStation>(
-                  items: state.fuelStations,
-                  pointOf: (s) => s.location,
-                  clusterColor: (group) => group.any((s) => s.shortage)
-                      ? TarczaPalette.confirmed
-                      : TarczaPalette.unverified,
-                  clusterIcon: Icons.local_gas_station,
-                  markerBuilder: (context, station) => GestureDetector(
-                    onTap: () => context.push(AppRoutes.fuelStation(station.id), extra: station),
-                    child: Semantics(
-                      label: station.name,
-                      child: IconCircleMarker(
-                        icon: Icons.local_gas_station,
-                        color: fuelStationColor(context, station),
-                        size: 30,
+                if (AppConfig.showFuelStationsOnMap)
+                  ClusteredMarkerLayer<FuelStation>(
+                    items: state.fuelStations,
+                    pointOf: (s) => s.location,
+                    clusterColor: (group) => group.any((s) => s.shortage)
+                        ? TarczaPalette.confirmed
+                        : TarczaPalette.unverified,
+                    clusterIcon: Icons.local_gas_station,
+                    markerBuilder: (context, station) => GestureDetector(
+                      onTap: () => context.push(AppRoutes.fuelStation(station.id), extra: station),
+                      child: Semantics(
+                        label: station.name,
+                        child: IconCircleMarker(
+                          icon: Icons.local_gas_station,
+                          color: fuelStationColor(context, station),
+                          size: 30,
+                        ),
                       ),
                     ),
                   ),
-                ),
                 MarkerLayer(markers: _markers(context, state, location)),
+                // Podpisy na wierzchu — nazwy ulic muszą być czytelne także pod strefą.
+                mapLabelsLayer(),
                 const OsmAttribution(),
               ],
+            ),
+            // Scrim u góry — nagłówek musi być czytelny nad dowolnym fragmentem mapy.
+            IgnorePointer(
+              child: Container(
+                height: topInset + 96,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      TarczaPalette.background,
+                      TarczaPalette.background.withValues(alpha: 0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 14,
+              top: topInset + 6,
+              child: const _MapHeader(),
             ),
             if (state.refreshFailed)
               Positioned(
                 left: 12,
                 right: 12,
-                top: topInset + 8,
+                top: topInset + 62,
                 child: const _RefreshFailedBanner(),
               ),
             Positioned(
               right: 12,
-              top: topInset + (state.refreshFailed ? 64 : 12),
+              top: topInset + (state.refreshFailed ? 112 : 62),
               child: _MapButtons(
                 loading: state.status == MapStatus.loading,
                 onZoomIn: () => _zoomBy(1),
@@ -237,7 +274,15 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
                 onHome: location.homeAddress == null
                     ? null
                     : () => _animateTo(location.homeAddress!.location, 16),
-                onRefresh: () => context.read<MapBloc>().add(const MapRefreshRequested()),
+                onRefresh: () {
+                  // DEV: podgląd ekranu pytania weryfikacyjnego pod przyciskiem odświeżania.
+                  // Usuń ten `return` (i import `_DevVerificationPreview`), żeby przywrócić
+                  // zwykłe odświeżenie mapy — reszta funkcji zostaje nietknięta.
+                  unawaited(_openDevVerificationQuestion(context));
+                  return;
+                  // ignore: dead_code
+                  context.read<MapBloc>().add(const MapRefreshRequested());
+                },
               ),
             ),
             Align(
@@ -258,14 +303,15 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
       if (area is! GeoPolygonArea) continue;
       final color = colors.forConfidence(incident.confidenceLevel);
       final selected = incident.id == state.selectedIncidentId;
-      for (final p in area.polygons) {
+      // Sąsiadujące komórki H3 to jeden problem — rysujemy wspólny obrys, bez siatki w środku.
+      for (final p in dissolvePolygons(area.polygons)) {
         polygons.add(
           Polygon<String>(
             points: p.outer,
             holePointsList: p.holes.isEmpty ? null : p.holes,
-            color: color.withValues(alpha: 0.28),
+            color: color.withValues(alpha: 0.26),
             borderColor: color,
-            borderStrokeWidth: selected ? 4 : 2.5,
+            borderStrokeWidth: selected ? 3.5 : 2,
             hitValue: incident.id,
           ),
         );
@@ -281,7 +327,7 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
       for (final incident in state.incidents)
         if (incident.status != IncidentStatus.active)
           if (incident.area case GeoPolygonArea(:final polygons))
-            for (final p in polygons)
+            for (final p in dissolvePolygons(polygons))
               Polygon(
                 points: p.outer,
                 holePointsList: p.holes.isEmpty ? null : p.holes,
@@ -316,6 +362,57 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
   }
 }
 
+/// DEV: za kilka sekund pokazuje systemowe powiadomienie „Tarcza pyta o Twoją okolicę” —
+/// dopiero jego **kliknięcie** otwiera ekran z pytaniem, jak prawdziwy push. Pytanie żyje
+/// na własnym, izolowanym `MockBackend` (nie dotyka prawdziwego API), więc działa też na
+/// prawdziwym backendzie. Tymczasowy hak pod przycisk odświeżania mapy (`onRefresh` niżej).
+///
+/// Powiadomienie leci przez globalny `LocalNotifications`, więc tapnięcie przechodzi też
+/// przez prawdziwy `PushService` do globalnego `VerificationBloc` — ten dostanie nieznane
+/// mu `verificationId`, nie znajdzie go na serwerze i po cichu przejdzie w `failed` (nie
+/// nawiguje nigdzie, bo ekran otwiera się tylko przy `phase == asking`). Nieszkodliwe przy
+/// hacku testowym, do wywalenia razem z nim.
+Future<void> _openDevVerificationQuestion(BuildContext context) async {
+  final id = "dev-push-${DateTime.now().millisecondsSinceEpoch}";
+  final now = DateTime.now();
+  final expiresAt = now.add(const Duration(seconds: 90));
+
+  final backend = MockBackend(latency: Duration.zero);
+  backend.questions[id] = VerificationQuestion(
+    verificationId: id,
+    incidentId: "dev-incident",
+    type: IncidentType.powerOutage,
+    typeLabel: MockSeed.typeLabel(IncidentType.powerOutage),
+    question: "Czy w tej chwili masz dostęp do prądu?",
+    context: "W Twojej okolicy zgłoszono: brak prądu.",
+    sentAt: now,
+    expiresAt: expiresAt,
+  );
+
+  final local = getIt<LocalNotifications>();
+  late final StreamSubscription<PushEvent> subscription;
+  subscription = local.taps.listen((event) {
+    if (event is! VerificationPushEvent || event.verificationId != id) return;
+    subscription.cancel();
+    if (!context.mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => BlocProvider(
+          create: (_) => VerificationBloc(repository: MockVerificationRepository(backend)),
+          child: VerificationPage(verificationId: id),
+        ),
+      ),
+    );
+  });
+
+  await Future<void>.delayed(const Duration(seconds: 4));
+  await local.show(
+    title: "Tarcza pyta o Twoją okolicę",
+    body: "Czy w tej chwili masz dostęp do prądu?",
+    event: VerificationPushEvent(verificationId: id, expiresAt: expiresAt),
+  );
+}
+
 class _AlertAreasLayer extends StatelessWidget {
   const _AlertAreasLayer({required this.alerts});
 
@@ -328,9 +425,10 @@ class _AlertAreasLayer extends StatelessWidget {
       polygons: [
         for (final alert in alerts)
           if (alert.area case GeoPolygonArea(:final polygons))
-            for (final p in polygons)
+            for (final p in dissolvePolygons(polygons))
               Polygon(
                 points: p.outer,
+                holePointsList: p.holes.isEmpty ? null : p.holes,
                 color: colors.forSeverity(alert.severity).withValues(alpha: 0.06),
                 borderColor: colors.forSeverity(alert.severity),
                 borderStrokeWidth: 2,
@@ -341,24 +439,101 @@ class _AlertAreasLayer extends StatelessWidget {
   }
 }
 
+/// Nagłówek mapy w stylu panelu: logo, nadtytuł „MAPA SYTUACYJNA”, wskaźnik „na żywo”
+/// i liczba widocznych incydentów.
+class _MapHeader extends StatelessWidget {
+  const _MapHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const TarczaLogo(size: 36),
+        const SizedBox(width: 10),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const _LiveDot(),
+                const SizedBox(width: 7),
+                Text(
+                  upper(l10n.statLive),
+                  style: TarczaFonts.label(size: 9.5, weight: 700, color: TarczaPalette.success),
+                ),
+                Text(
+                  "  ·  ",
+                  style: TarczaFonts.label(size: 9.5),
+                ),
+                Text(upper(l10n.mapCommandCenter), style: TarczaFonts.label(size: 9.5)),
+              ],
+            ),
+            const SizedBox(height: 3),
+            DisplayHeading(l10n.mapSituational, size: 22, maxLines: 1),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Pulsująca kropka „na żywo” — ten sam sygnał co w panelu operatora.
+class _LiveDot extends StatefulWidget {
+  const _LiveDot();
+
+  @override
+  State<_LiveDot> createState() => _LiveDotState();
+}
+
+class _LiveDotState extends State<_LiveDot> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1200),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => FadeTransition(
+    opacity: Tween<double>(begin: 0.35, end: 1).animate(_controller),
+    child: Container(
+      width: 6,
+      height: 6,
+      decoration: const BoxDecoration(color: TarczaPalette.success, shape: BoxShape.circle),
+    ),
+  );
+}
+
 class _RefreshFailedBanner extends StatelessWidget {
   const _RefreshFailedBanner();
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
     margin: const EdgeInsets.only(right: 60),
     decoration: BoxDecoration(
-      color: const Color(0xFFFFF4E5),
-      borderRadius: BorderRadius.circular(10),
-      border: Border.all(color: TarczaPalette.likely),
+      color: TarczaPalette.surface,
+      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+      border: Border.all(color: TarczaPalette.likely.withValues(alpha: 0.5)),
+      boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black12, offset: Offset(0, 2))],
     ),
     child: Row(
       children: [
-        const Icon(Icons.wifi_off, size: 18, color: TarczaPalette.high),
+        const Icon(Icons.wifi_off, size: 16, color: TarczaPalette.likely),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(context.l10n.mapRefreshFailed, style: const TextStyle(fontSize: 13)),
+          child: Text(
+            context.l10n.mapRefreshFailed,
+            style: const TextStyle(fontSize: 12.5, color: TarczaPalette.textPrimary),
+          ),
         ),
       ],
     ),
@@ -382,56 +557,53 @@ class _MapButtons extends StatelessWidget {
   final VoidCallback? onHome;
   final VoidCallback onRefresh;
 
-  static const _shadow = [BoxShadow(blurRadius: 6, color: Colors.black26, offset: Offset(0, 2))];
+  static final _decoration = BoxDecoration(
+    color: TarczaPalette.surface.withValues(alpha: 0.95),
+    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+    border: Border.all(color: TarczaPalette.outline),
+    boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black12, offset: Offset(0, 2))],
+  );
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    Widget round(Widget child) => Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: DecoratedBox(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          boxShadow: _shadow,
-        ),
-        child: child,
-      ),
+    Widget box(Widget child) => Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: DecoratedBox(decoration: _decoration, child: child),
     );
     Widget icon(IconData icon, String tooltip, VoidCallback? onPressed) => IconButton(
       tooltip: tooltip,
-      icon: Icon(icon, color: onPressed == null ? TarczaPalette.outline : TarczaPalette.primary),
+      iconSize: 20,
+      constraints: const BoxConstraints.tightFor(width: 42, height: 42),
+      padding: EdgeInsets.zero,
+      icon: Icon(
+        icon,
+        color: onPressed == null ? TarczaPalette.textMuted : TarczaPalette.textPrimary,
+      ),
       onPressed: onPressed,
     );
     return Column(
       children: [
-        // Zoom jako jedna „pigułka” — jak w aplikacjach mapowych.
-        Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: _shadow,
-            ),
-            child: Column(
-              children: [
-                icon(Icons.add, l10n.mapZoomIn, onZoomIn),
-                const SizedBox(width: 28, child: Divider(height: 1)),
-                icon(Icons.remove, l10n.mapZoomOut, onZoomOut),
-              ],
-            ),
+        box(
+          Column(
+            children: [
+              icon(Icons.add, l10n.mapZoomIn, onZoomIn),
+              const SizedBox(width: 26, child: Divider(height: 1, color: TarczaPalette.outline)),
+              icon(Icons.remove, l10n.mapZoomOut, onZoomOut),
+            ],
           ),
         ),
-        round(icon(Icons.my_location, l10n.mapMyLocation, onMyLocation)),
-        if (onHome != null) round(icon(Icons.home_outlined, l10n.mapHome, onHome)),
-        round(
+        box(icon(Icons.my_location, l10n.mapMyLocation, onMyLocation)),
+        if (onHome != null) box(icon(Icons.home_outlined, l10n.mapHome, onHome)),
+        box(
           loading
-              ? const Padding(
-                  padding: EdgeInsets.all(14),
-                  child: SizedBox.square(
-                    dimension: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+              ? const SizedBox.square(
+                  dimension: 42,
+                  child: Center(
+                    child: SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
                   ),
                 )
               : icon(Icons.refresh, l10n.mapRefresh, onRefresh),
@@ -514,25 +686,31 @@ class _AllIncidentsButton extends StatelessWidget {
   final int count;
 
   @override
-  Widget build(BuildContext context) => Material(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(999),
-    elevation: 2,
-    child: InkWell(
-      borderRadius: BorderRadius.circular(999),
-      onTap: () => context.push(AppRoutes.incidents),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.format_list_bulleted, size: 18, color: TarczaPalette.primary),
-            const SizedBox(width: 6),
-            Text(
-              context.l10n.mapAllIncidents(count),
-              style: const TextStyle(color: TarczaPalette.primary, fontWeight: FontWeight.w700),
-            ),
-          ],
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: TarczaPalette.surface.withValues(alpha: 0.95),
+      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+      border: Border.all(color: TarczaPalette.outline),
+      boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black12, offset: Offset(0, 2))],
+    ),
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+        onTap: () => context.push(AppRoutes.incidents),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.format_list_bulleted, size: 15, color: TarczaPalette.primaryLight),
+              const SizedBox(width: 7),
+              Text(
+                upper(context.l10n.mapAllIncidents(count)),
+                style: TarczaFonts.label(weight: 700, color: TarczaPalette.textPrimary),
+              ),
+            ],
+          ),
         ),
       ),
     ),
@@ -629,51 +807,70 @@ class _ActionBanner extends StatelessWidget {
   final String? action;
 
   @override
-  Widget build(BuildContext context) => Material(
-    color: color,
-    borderRadius: BorderRadius.circular(14),
-    elevation: 3,
-    child: InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.white),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-                  ),
-                  Text(
-                    subtitle,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.92), fontSize: 13),
-                  ),
-                ],
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: TarczaPalette.surface,
+      borderRadius: BorderRadius.circular(AppTheme.radius),
+      border: Border.all(color: color.withValues(alpha: 0.45)),
+      boxShadow: const [BoxShadow(blurRadius: 14, color: Colors.black12, offset: Offset(0, 3))],
+    ),
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppTheme.radius),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
+          child: Row(
+            children: [
+              // Pasek sygnałowy — ten sam zabieg co w kartach panelu.
+              Container(width: 3, height: 34, color: color),
+              const SizedBox(width: 11),
+              Icon(icon, size: 20, color: readable(color, 0.2)),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      upper(title),
+                      style: TarczaFonts.label(
+                        size: 10.5,
+                        weight: 700,
+                        color: readable(color, 0.25),
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TarczaFonts.text(
+                        size: 13.5,
+                        weight: 600,
+                        color: TarczaPalette.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            if (action != null)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  action!,
-                  style: TextStyle(color: color, fontWeight: FontWeight.w700),
-                ),
-              )
-            else
-              const Icon(Icons.chevron_right, color: Colors.white),
-          ],
+              const SizedBox(width: 8),
+              if (action != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    upper(action!),
+                    style: TarczaFonts.label(size: 10.5, weight: 700, color: Colors.white),
+                  ),
+                )
+              else
+                const Icon(Icons.chevron_right, size: 20, color: TarczaPalette.textMuted),
+            ],
+          ),
         ),
       ),
     ),

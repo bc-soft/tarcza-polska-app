@@ -17,7 +17,7 @@ class MorePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
-      appBar: TarczaAppBar(title: Text(l10n.moreTitle)),
+      appBar: TarczaAppBar(title: Text(l10n.moreTitle), eyebrow: l10n.mapCommandCenter),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -56,9 +56,19 @@ class MorePage extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.shield_outlined, color: TarczaPalette.primary),
+                const PanelIcon(
+                  icon: Icons.shield_outlined,
+                  color: TarczaPalette.primary,
+                  size: 36,
+                  tinted: true,
+                ),
                 const SizedBox(width: 12),
-                Expanded(child: Text(l10n.moreAboutBody)),
+                Expanded(
+                  child: Text(
+                    l10n.moreAboutBody,
+                    style: const TextStyle(color: TarczaPalette.textSecondary, fontSize: 13.5),
+                  ),
+                ),
               ],
             ),
           ),
@@ -67,9 +77,10 @@ class MorePage extends StatelessWidget {
             child: GestureDetector(
               // Ukryte wejście do scenariusza demo (także poza listą).
               onLongPress: () => unawaited(context.push(AppRoutes.demo)),
-              child: const Text(
-                "Tarcza Citizen ${AppConfig.appVersion}",
-                style: TextStyle(color: TarczaPalette.textSecondary, fontSize: 12),
+              child: const DataText(
+                "TARCZA CITIZEN ${AppConfig.appVersion}",
+                size: 10.5,
+                color: TarczaPalette.textMuted,
               ),
             ),
           ),

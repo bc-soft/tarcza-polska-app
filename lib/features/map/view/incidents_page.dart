@@ -37,7 +37,7 @@ class _IncidentsPageState extends State<IncidentsPage> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
-      appBar: TarczaAppBar(title: Text(l10n.incidentsTitle)),
+      appBar: TarczaAppBar(title: Text(l10n.incidentsTitle), eyebrow: l10n.mapSituational),
       body: BlocBuilder<MapBloc, MapState>(
         builder: (context, state) {
           final incidents = _stable(state.incidents);
@@ -46,11 +46,14 @@ class _IncidentsPageState extends State<IncidentsPage> {
             child: incidents.isEmpty
                 ? ListView(
                     children: [
-                      const SizedBox(height: 80),
-                      const Icon(
-                        Icons.check_circle_outline,
-                        size: 56,
-                        color: TarczaPalette.textSecondary,
+                      const SizedBox(height: 90),
+                      const Center(
+                        child: PanelIcon(
+                          icon: Icons.check_circle_outline,
+                          size: 64,
+                          color: TarczaPalette.success,
+                          tinted: true,
+                        ),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(24),
@@ -63,9 +66,15 @@ class _IncidentsPageState extends State<IncidentsPage> {
                     itemCount: incidents.length + 1,
                     separatorBuilder: (_, index) => SizedBox(height: index == 0 ? 4 : 10),
                     itemBuilder: (context, index) => index == 0
-                        ? Text(
-                            l10n.incidentsHint,
-                            style: const TextStyle(color: TarczaPalette.textSecondary),
+                        ? Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Text(
+                              l10n.incidentsHint,
+                              style: const TextStyle(
+                                color: TarczaPalette.textSecondary,
+                                fontSize: 13,
+                              ),
+                            ),
                           )
                         : IncidentOpenContainer(
                             key: ValueKey(incidents[index - 1].id),

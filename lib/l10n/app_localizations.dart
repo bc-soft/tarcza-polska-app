@@ -584,6 +584,36 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 zagrożenie w widocznym obszarze} few{{count} zagrożenia w widocznym obszarze} many{{count} zagrożeń w widocznym obszarze} other{{count} zagrożenia w widocznym obszarze}}'**
   String mapIncidentsCount(int count);
 
+  /// No description provided for @statLive.
+  ///
+  /// In pl, this message translates to:
+  /// **'Na żywo'**
+  String get statLive;
+
+  /// No description provided for @mapSituational.
+  ///
+  /// In pl, this message translates to:
+  /// **'Mapa sytuacyjna'**
+  String get mapSituational;
+
+  /// No description provided for @mapCommandCenter.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tarcza Polska'**
+  String get mapCommandCenter;
+
+  /// No description provided for @incidentIncident.
+  ///
+  /// In pl, this message translates to:
+  /// **'Incydent'**
+  String get incidentIncident;
+
+  /// No description provided for @incidentCell.
+  ///
+  /// In pl, this message translates to:
+  /// **'Komórka'**
+  String get incidentCell;
+
   /// No description provided for @incidentTitle.
   ///
   /// In pl, this message translates to:
@@ -896,6 +926,18 @@ abstract class AppLocalizations {
   /// **'Schrony'**
   String get sheltersTitle;
 
+  /// No description provided for @shelterTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Schron'**
+  String get shelterTitle;
+
+  /// No description provided for @shelterName.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nazwa'**
+  String get shelterName;
+
   /// No description provided for @sheltersEmpty.
   ///
   /// In pl, this message translates to:
@@ -907,18 +949,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Pojemność'**
   String get shelterCapacity;
-
-  /// No description provided for @shelterLastConfirmed.
-  ///
-  /// In pl, this message translates to:
-  /// **'Ostatnie potwierdzenie'**
-  String get shelterLastConfirmed;
-
-  /// No description provided for @shelterConfirmations.
-  ///
-  /// In pl, this message translates to:
-  /// **'Potwierdzenia'**
-  String get shelterConfirmations;
 
   /// No description provided for @shelterNever.
   ///

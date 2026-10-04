@@ -148,15 +148,7 @@ class ShelterTile extends StatelessWidget {
       onTap: () => context.push(AppRoutes.shelter(shelter.id), extra: shelter),
       child: Row(
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(Icons.night_shelter_outlined, color: Color.lerp(color, Colors.black, 0.2)),
-          ),
+          PanelIcon(icon: Icons.night_shelter_outlined, color: color, tinted: true),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -205,7 +197,8 @@ class ShelterTile extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.chevron_right, color: TarczaPalette.textSecondary),
+          const SizedBox(width: 4),
+          const Icon(Icons.chevron_right, size: 20, color: TarczaPalette.textMuted),
         ],
       ),
     );

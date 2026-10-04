@@ -9,6 +9,7 @@ import "package:latlong2/latlong.dart";
 import "package:tarcza_polska/app/di/injection.dart";
 import "package:tarcza_polska/app/router/app_router.dart";
 import "package:tarcza_polska/app/theme/tarcza_colors.dart";
+import "package:tarcza_polska/app/theme/tarcza_typography.dart";
 import "package:tarcza_polska/core/error/failures.dart";
 import "package:tarcza_polska/core/utils/formatters.dart";
 import "package:tarcza_polska/core/widgets/map_widgets.dart";
@@ -118,15 +119,15 @@ class _StepHeader extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          context.l10n.onbStepOf(step, 3),
-          style: const TextStyle(color: TarczaPalette.textSecondary, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 4),
-        Text(title, style: Theme.of(context).textTheme.headlineSmall),
+        Eyebrow(context.l10n.onbStepOf(step, 3)),
+        const SizedBox(height: 6),
+        DisplayHeading(title, size: 27),
         if (hint != null) ...[
-          const SizedBox(height: 4),
-          Text(hint!, style: const TextStyle(color: TarczaPalette.textSecondary)),
+          const SizedBox(height: 6),
+          Text(
+            hint!,
+            style: const TextStyle(color: TarczaPalette.textSecondary, fontSize: 13.5),
+          ),
         ],
       ],
     ),
@@ -164,12 +165,17 @@ class _TypeStep extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(option.type.icon, size: 34, color: TarczaPalette.primary),
-                      const SizedBox(height: 8),
+                      PanelIcon(
+                        icon: option.type.icon,
+                        color: TarczaPalette.primary,
+                        size: 42,
+                        tinted: true,
+                      ),
+                      const SizedBox(height: 10),
                       Text(
-                        option.label,
+                        upper(option.label),
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.titleMedium,
+                        style: TarczaFonts.heading(size: 16, letterSpacing: 0.5),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -299,7 +305,7 @@ class _ObjectStep extends StatelessWidget {
           margin: const EdgeInsets.only(top: 12),
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: TarczaPalette.surface,
             border: Border(top: BorderSide(color: TarczaPalette.outline)),
           ),
           child: Column(
@@ -315,7 +321,12 @@ class _ObjectStep extends StatelessWidget {
               else
                 Row(
                   children: [
-                    Icon(selected.poi.kind.icon, color: TarczaPalette.primary),
+                    PanelIcon(
+                      icon: selected.poi.kind.icon,
+                      color: TarczaPalette.primary,
+                      size: 36,
+                      tinted: true,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
@@ -506,7 +517,7 @@ class _PoiMarker extends StatelessWidget {
           height: 50,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: TarczaPalette.primary.withValues(alpha: 0.2),
+            color: TarczaPalette.primary.withValues(alpha: 0.25),
           ),
         ),
         IconCircleMarker(icon: kind.icon, color: TarczaPalette.primary, size: 40),
@@ -514,7 +525,10 @@ class _PoiMarker extends StatelessWidget {
           right: 0,
           top: 0,
           child: Container(
-            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+            decoration: const BoxDecoration(
+              color: TarczaPalette.background,
+              shape: BoxShape.circle,
+            ),
             child: const Icon(Icons.check_circle, size: 18, color: TarczaPalette.success),
           ),
         ),
@@ -563,7 +577,12 @@ class _DescriptionStepState extends State<_DescriptionStep> {
                 padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
-                    Icon(state.type!.type.icon, color: TarczaPalette.primary),
+                    PanelIcon(
+                      icon: state.type!.type.icon,
+                      color: TarczaPalette.primary,
+                      size: 36,
+                      tinted: true,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
@@ -591,7 +610,8 @@ class _DescriptionStepState extends State<_DescriptionStep> {
                     ),
                     Icon(
                       state.isPoint ? state.type!.poiKind!.icon : Icons.place_outlined,
-                      color: TarczaPalette.textSecondary,
+                      size: 20,
+                      color: TarczaPalette.textMuted,
                     ),
                   ],
                 ),

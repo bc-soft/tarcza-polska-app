@@ -8,27 +8,50 @@
 4. **Nie straszyć.** Nie pokazujemy liczb ani szczegółów, które nie pomagają podjąć decyzji.
 5. **„NIE WIEM” jest legalną odpowiedzią** i ma równą wagę wizualną co TAK i NIE.
 
-## Stylistyka: w duchu mObywatela
+## Stylistyka: command center (motyw jasny)
 
-Aplikacja ma wyglądać jak „urzędowa”, godna zaufania aplikacja państwowa — wizualnie bliska **mObywatelowi**: spokojna, czytelna, bez krzykliwych kolorów poza statusami zagrożeń.
+Aplikacja ma wyglądać jak mobilna końcówka **panelu operatora Tarczy**: techniczna, spokojna,
+z czerwienią sygnałową jako jedynym mocnym akcentem. Odwzorowujemy język panelu WWW
+(Command Center) — siatka w tle, moduły z cienkim obrysem, nagłówki wersalikami, dane
+czcionką monospace — tylko w jasnej skali jasności, żeby czytało się w pełnym słońcu.
 
-> Inspiracja stylem, nie kopia: nie używamy logo mObywatela, godła ani oznaczeń sugerujących, że to oficjalna aplikacja rządowa.
+> Nie używamy godła ani oznaczeń sugerujących, że to oficjalna aplikacja rządowa.
 
 | Element | Wytyczna |
 |---|---|
-| Tło | jasne: biel na kartach, bardzo jasna szarość (`#F5F6F8`) jako tło ekranu |
-| Kolor główny | granat/niebieski „urzędowy” (propozycja `#0052A5`) — przyciski główne, aktywne zakładki, linki |
-| Akcent | czerwień biało-czerwona (`#DC143C`) oszczędnie: wyróżnienia marki, alerty `danger` |
-| Karty | białe, zaokrąglone rogi (~12–16 px), delikatny cień lub cienki obrys; jedna informacja = jedna karta (jak „dokumenty” w mObywatelu) |
-| Typografia | bezszeryfowa, duża i czytelna (system / Inter / Lato); nagłówki pogrubione, granatowe; tekst ciemnoszary |
-| Nawigacja | dolny pasek (`NavigationBar`) z 3–4 zakładkami: **Mapa**, **Zgłoś**, **Alerty**, **Więcej** (schrony, ustawienia) |
-| Ikony | proste, liniowe (Material Symbols Outlined), zawsze z podpisem |
-| Przyciski | pełnej szerokości, wysokie (min. 48–56 px), zaokrąglone; główny wypełniony granatem, drugorzędny obrysowany |
-| Listy | jak w mObywatelu: wiersz z ikoną po lewej, tytułem i podtytułem, strzałką `›` po prawej |
-| Komunikaty | pełnoekranowe ekrany sukcesu/potwierdzenia z dużą ikoną i jednym przyciskiem („Dziękujemy…”) |
-| Tryb ciemny | po MVP; na demo tylko jasny |
+| Tło | bardzo jasna szarość `#F3F5F8` z delikatną siatką (`GridBackground`, linie `#E6EAF0` co 44 px) |
+| Karty / moduły | biel `#FFFFFF`, obrys 1 px `#E1E5EC`, promień 12 px, **bez cienia** |
+| Element wewnątrz karty | `#F1F3F7` (kafelek liczby, pole formularza, pigułka), promień 8 px |
+| Kolor akcji | czerwień sygnałowa `#E11D2E` — przycisk główny, aktywna zakładka, marka; tekst i ikony czerwone w `#C2142A` (kontrast na bieli) |
+| Tekst | `#161A21` treść, `#59616F` drugorzędny, `#858E9D` etykiety wersalikowe, `#0B0E14` nagłówki |
+| Nagłówki | **Barlow Condensed ExtraBold**, zawsze WERSALIKAMI („MAPA SYTUACYJNA”, „BRAK WODY”) |
+| Tekst interfejsu | **Inter** (font zmienny, grubość osią `wght`) |
+| Dane techniczne | **IBM Plex Mono** — identyfikatory, komórki H3, czasy, odległości |
+| Nadtytuł (`Eyebrow`) | kropka sygnałowa + mała etykieta wersalikami z szeroką spacją („• COMMAND CENTER”) |
+| Odznaki statusu | prostokątne (promień 6 px), wersalikami, ikona + tekst; `confirmed` z pełnym wypełnieniem |
+| Kafelek liczby (`StatTile`) | etykieta wersalikami nad dużą liczbą — jak pasek statystyk w panelu |
+| Wskaźnik (`MeterBar`) | cienki pasek 5–7 px w kolorze confidence |
+| Mapa | podkład **Esri World Light Gray Canvas** (bez klucza API) + osobna warstwa podpisów rysowana nad strefami; kolor zostaje tylko dla statusów i stref H3 |
+| Ikony | Material Symbols Outlined w kwadratowej ramce (`PanelIcon`), zawsze z podpisem |
+| Nawigacja | dolny pasek z 4 zakładkami (**Mapa**, **Zgłoś**, **Alerty**, **Więcej**), etykiety wersalikami, aktywna na czerwono, krawędź górna `outline` |
+| Przyciski | pełnej szerokości, 52 px, promień 8 px, etykiety wersalikami; główny czerwony, drugorzędny `#F1F3F7` z obrysem |
+| Komunikaty | pełnoekranowe ekrany sukcesu z ikoną w ramce i jednym przyciskiem |
+| Tryb ciemny | nie przewidujemy — motyw jest jeden (jasny) |
 
-Implementacja: jeden `ThemeData` (Material 3, `ColorScheme.fromSeed` nadpisany powyższymi kolorami) w `lib/app/theme/`, kolory statusów jako `ThemeExtension`, komponenty wspólne w `lib/core/widgets/` (`TarczaCard`, `StatusChip`, `PrimaryButton`, `ListTileRow`).
+Implementacja: jeden `ThemeData` (Material 3, `Brightness.light`) w `lib/app/theme/`
+(`tarcza_colors.dart` — paleta, `StatusColors` oraz helpery `readable()` / `tint()`,
+`tarcza_typography.dart` — `TarczaFonts`, `app_theme.dart` — motyw). Komponenty wspólne
+w `lib/core/widgets/`: `panel_widgets.dart` (`PanelBackdrop`, `GridBackground`, `Eyebrow`,
+`DisplayHeading`, `PanelHeader`, `StatTile`, `MeterBar`, `PanelBadge`, `DataText`,
+`PanelIcon`) oraz `widgets.dart` (`TarczaCard`, `StatusChip`, `ListTileRow`,
+`PrimaryButton`, `InfoRow`).
+
+`scaffoldBackgroundColor` jest przezroczysty — tło (kolor + siatkę) rysuje `PanelBackdrop`
+w `builder` `MaterialApp`. Trasy przezroczyste (`OpenContainer`) muszą same opakować się
+w `PanelBackdrop`, inaczej prześwituje przez nie przyciemnienie trasy.
+
+Fonty leżą w `assets/fonts/` (Barlow Condensed SemiBold–Black, Inter zmienny,
+IBM Plex Mono Medium/SemiBold) — wszystkie na licencji OFL.
 
 ## Statusy confidence w UI
 
@@ -63,10 +86,13 @@ Znaczenie nie może opierać się wyłącznie na kolorze (dostępność) — zaw
 ## Mapa
 
 - Incydent z `MultiPolygon`: wypełnienie ~35% przezroczystości + obrys w kolorze confidence. Incydent z `Point`: marker.
+- Sąsiadujące komórki H3 tego samego incydentu scalamy w jeden obszar (`dissolvePolygons`) —
+  rysujemy wspólny obrys, bez siatki plastrów w środku.
 - Granica zmienia się w czasie — animuj przejścia, żeby było widać, że obszar „żyje”.
 - Marker użytkownika zawsze widoczny; przycisk „wróć do mojej pozycji” i znacznik domu (adres domowy).
 - Schrony jako osobna warstwa z ikonami w kolorze statusu.
-- Na dole mapy karta (bottom sheet) w stylu mObywatela z incydentem / pytaniem weryfikacyjnym.
+- Na dole mapy karta incydentu / pytania weryfikacyjnego: biały panel z obrysem w kolorze statusu.
+- U góry mapy nagłówek panelu: logo, „• NA ŻYWO · TARCZA POLSKA” i tytuł „MAPA SYTUACYJNA” na gradientowym rozjaśnieniu.
 
 ## Teksty
 

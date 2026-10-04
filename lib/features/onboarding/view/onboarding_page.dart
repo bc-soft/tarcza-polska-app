@@ -58,20 +58,20 @@ class OnboardingView extends StatelessWidget {
                 automaticallyImplyLeading: false,
                 title: progressIndex < 0
                     ? const SizedBox.shrink()
-                    : Text(
+                    : Eyebrow(
                         context.l10n.onbStepOf(
                           progressIndex + 1,
                           OnboardingState.progressSteps.length,
                         ),
-                        style: const TextStyle(fontSize: 15, color: TarczaPalette.textSecondary),
                       ),
                 bottom: progressIndex < 0
                     ? null
                     : PreferredSize(
                         preferredSize: const Size.fromHeight(4),
-                        child: LinearProgressIndicator(
+                        child: MeterBar(
                           value: (progressIndex + 1) / OnboardingState.progressSteps.length,
-                          backgroundColor: TarczaPalette.outline,
+                          color: TarczaPalette.primary,
+                          height: 3,
                         ),
                       ),
               ),
@@ -112,9 +112,12 @@ class OnboardingView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(l10n.onbHomeTitle, style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 6),
-            Text(l10n.onbHomeBody, style: const TextStyle(color: TarczaPalette.textSecondary)),
+            DisplayHeading(l10n.onbHomeTitle, size: 26),
+            const SizedBox(height: 8),
+            Text(
+              l10n.onbHomeBody,
+              style: const TextStyle(color: TarczaPalette.textSecondary, fontSize: 13.5),
+            ),
             const SizedBox(height: 14),
             Expanded(child: AddressPickerView(onConfirm: cubit.confirmHome)),
           ],
@@ -183,18 +186,10 @@ class _InfoStep extends StatelessWidget {
         Center(
           child:
               image ??
-              Container(
-                width: 104,
-                height: 104,
-                decoration: BoxDecoration(
-                  color: TarczaPalette.primary.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, size: 54, color: TarczaPalette.primary),
-              ),
+              PanelIcon(icon: icon, color: TarczaPalette.primary, size: 104, tinted: true),
         ),
         const SizedBox(height: 28),
-        Text(title, textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineSmall),
+        Center(child: DisplayHeading(title, maxLines: 3)),
         const SizedBox(height: 14),
         Text(
           body,
@@ -208,7 +203,7 @@ class _InfoStep extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                const Icon(Icons.lock_outline, size: 20, color: TarczaPalette.primary),
+                const Icon(Icons.lock_outline, size: 18, color: TarczaPalette.primaryLight),
                 const SizedBox(width: 10),
                 Expanded(child: Text(note!, style: Theme.of(context).textTheme.bodySmall)),
               ],

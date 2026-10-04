@@ -108,12 +108,13 @@ class _SettingsPageState extends State<SettingsPage> {
                               polygons: [
                                 Polygon(
                                   points: hexagon,
-                                  color: TarczaPalette.primary.withValues(alpha: 0.2),
-                                  borderColor: TarczaPalette.primary,
-                                  borderStrokeWidth: 2.5,
+                                  color: TarczaPalette.primary.withValues(alpha: 0.22),
+                                  borderColor: TarczaPalette.primaryLight,
+                                  borderStrokeWidth: 2,
                                 ),
                               ],
                             ),
+                          mapLabelsLayer(),
                           // Skąd jest „okolica”: dom (pinezka) albo bieżąca pozycja (kropka).
                           MarkerLayer(
                             markers: [
@@ -172,7 +173,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: Column(
                   children: [
                     SwitchListTile(
-                      secondary: const Icon(Icons.radar_outlined, color: TarczaPalette.primary),
+                      secondary: const PanelIcon(icon: Icons.radar_outlined, size: 36),
                       title: Text(l10n.settingsWatchMode),
                       subtitle: Text(l10n.settingsWatchModeSub),
                       value: state.backgroundEnabled,
@@ -195,7 +196,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     ],
                     const Divider(indent: 16),
                     SwitchListTile(
-                      secondary: const Icon(Icons.alarm_outlined, color: TarczaPalette.primary),
+                      secondary: const PanelIcon(icon: Icons.alarm_outlined, size: 36),
                       title: Text(l10n.settingsLocationReminders),
                       subtitle: Text(l10n.settingsLocationRemindersSub),
                       value: state.locationRefresh,

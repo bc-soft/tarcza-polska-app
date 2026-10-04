@@ -6,6 +6,7 @@ import "package:go_router/go_router.dart";
 import "package:tarcza_polska/app/di/injection.dart";
 import "package:tarcza_polska/app/router/app_router.dart";
 import "package:tarcza_polska/app/theme/app_theme.dart";
+import "package:tarcza_polska/core/widgets/panel_widgets.dart";
 import "package:tarcza_polska/features/alerts/bloc/alerts_cubit.dart";
 import "package:tarcza_polska/features/map/bloc/map_bloc.dart";
 import "package:tarcza_polska/features/settings/bloc/location_cubit.dart";
@@ -50,6 +51,9 @@ class _TarczaAppState extends State<TarczaApp> {
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
+      // Delikatna siatka pod całą aplikacją — tło modułów w panelu operatora.
+      // Ekrany mają przezroczysty `Scaffold`, więc widać ją wszędzie poza mapą.
+      builder: (context, child) => PanelBackdrop(child: child),
       routerConfig: _router,
       locale: const Locale("pl"),
       supportedLocales: AppLocalizations.supportedLocales,

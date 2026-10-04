@@ -2,6 +2,8 @@ import "package:flutter/material.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
 import "package:go_router/go_router.dart";
 
+import "package:tarcza_polska/app/theme/tarcza_colors.dart";
+import "package:tarcza_polska/app/theme/tarcza_typography.dart";
 import "package:tarcza_polska/core/utils/formatters.dart";
 import "package:tarcza_polska/features/alerts/bloc/alerts_cubit.dart";
 import "package:tarcza_polska/features/shell/view/app_coordinator.dart";
@@ -21,46 +23,52 @@ class AppShell extends StatelessWidget {
     return AppCoordinator(
       child: Scaffold(
         body: shell,
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: shell.currentIndex,
-          onDestinationSelected: (index) {
-            if (index == alertsTabIndex) {
-              // Otwarcie zakładki = alerty obejrzane (zeruje odznakę).
-              final cubit = context.read<AlertsCubit>();
-              cubit.markSeen(cubit.state.alerts.map((a) => a.id));
-            }
-            shell.goBranch(index, initialLocation: index == shell.currentIndex);
-          },
-          destinations: [
-            NavigationDestination(
-              icon: const Icon(Icons.map_outlined),
-              selectedIcon: const Icon(Icons.map),
-              label: l10n.navMap,
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.add_circle_outline),
-              selectedIcon: const Icon(Icons.add_circle),
-              label: l10n.navReport,
-            ),
-            NavigationDestination(
-              icon: Badge(
-                isLabelVisible: unseen > 0,
-                label: Text("$unseen"),
-                child: const Icon(Icons.notifications_outlined),
+        // Na jasnym tle pasek potrzebuje krawędzi — inaczej zlewa się z treścią.
+        bottomNavigationBar: DecoratedBox(
+          decoration: const BoxDecoration(
+            border: Border(top: BorderSide(color: TarczaPalette.outline)),
+          ),
+          child: NavigationBar(
+            selectedIndex: shell.currentIndex,
+            onDestinationSelected: (index) {
+              if (index == alertsTabIndex) {
+                // Otwarcie zakładki = alerty obejrzane (zeruje odznakę).
+                final cubit = context.read<AlertsCubit>();
+                cubit.markSeen(cubit.state.alerts.map((a) => a.id));
+              }
+              shell.goBranch(index, initialLocation: index == shell.currentIndex);
+            },
+            destinations: [
+              NavigationDestination(
+                icon: const Icon(Icons.map_outlined),
+                selectedIcon: const Icon(Icons.map),
+                label: upper(l10n.navMap),
               ),
-              selectedIcon: Badge(
-                isLabelVisible: unseen > 0,
-                label: Text("$unseen"),
-                child: const Icon(Icons.notifications),
+              NavigationDestination(
+                icon: const Icon(Icons.add_circle_outline),
+                selectedIcon: const Icon(Icons.add_circle),
+                label: upper(l10n.navReport),
               ),
-              label: l10n.navAlerts,
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.menu),
-              selectedIcon: const Icon(Icons.menu_open),
-              label: l10n.navMore,
-            ),
-          ],
+              NavigationDestination(
+                icon: Badge(
+                  isLabelVisible: unseen > 0,
+                  label: Text("$unseen"),
+                  child: const Icon(Icons.notifications_outlined),
+                ),
+                selectedIcon: Badge(
+                  isLabelVisible: unseen > 0,
+                  label: Text("$unseen"),
+                  child: const Icon(Icons.notifications),
+                ),
+                label: upper(l10n.navAlerts),
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.menu),
+                selectedIcon: const Icon(Icons.menu_open),
+                label: upper(l10n.navMore),
+              ),
+            ],
+          ),
         ),
       ),
     );

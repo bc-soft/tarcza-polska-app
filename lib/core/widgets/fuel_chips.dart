@@ -1,5 +1,7 @@
 import "package:flutter/material.dart";
 
+import "package:tarcza_polska/app/theme/tarcza_colors.dart";
+import "package:tarcza_polska/app/theme/tarcza_typography.dart";
 import "package:tarcza_polska/core/utils/formatters.dart";
 import "package:tarcza_polska/core/widgets/visuals.dart";
 import "package:tarcza_polska/data/models/models.dart";
@@ -32,7 +34,20 @@ class FuelChips extends StatelessWidget {
           FilterChip(
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             visualDensity: VisualDensity.compact,
-            label: Text(type.displayLabel(l10n, labels[type])),
+            showCheckmark: false,
+            label: Text(upper(type.displayLabel(l10n, labels[type]))),
+            labelStyle: TarczaFonts.label(
+              weight: 700,
+              color: selected.contains(type)
+                  ? TarczaPalette.primaryLight
+                  : TarczaPalette.textSecondary,
+            ),
+            selectedColor: TarczaPalette.primary.withValues(alpha: 0.16),
+            side: BorderSide(
+              color: selected.contains(type)
+                  ? TarczaPalette.primary.withValues(alpha: 0.6)
+                  : TarczaPalette.outline,
+            ),
             selected: selected.contains(type),
             onSelected: (_) => onToggle(type),
           ),
