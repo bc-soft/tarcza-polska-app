@@ -47,7 +47,7 @@ Push `location_refresh` okresowo zachęca do otwarcia aplikacji; przy otwarciu w
 | Ekran alertu | pełnoekranowy alert z komunikatem operatora |
 | Ustawienia | zmiana adresu domowego, powiadomienia, (dev) tryb mock / scenariusz demo |
 
-Stylistyka ekranów: w duchu mObywatela (patrz `07-ux-i-komunikaty.md`).
+Stylistyka ekranów: „command center” w motywie jasnym, odwzorowanie panelu operatora (patrz `07-ux-i-komunikaty.md`).
 
 ## Poza MVP (nie robimy teraz)
 

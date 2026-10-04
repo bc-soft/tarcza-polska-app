@@ -1,0 +1,456 @@
+{
+  "@@locale": "pl",
+  "appTitle": "Tarcza",
+  "navMap": "Mapa",
+  "navReport": "Zgłoś",
+  "navAlerts": "Alerty",
+  "navMore": "Więcej",
+  "commonRetry": "Spróbuj ponownie",
+  "commonCancel": "Anuluj",
+  "commonClose": "Zamknij",
+  "commonContinue": "Dalej",
+  "commonBack": "Wstecz",
+  "commonSkip": "Pomiń",
+  "commonNotNow": "Nie teraz",
+  "commonSave": "Zapisz",
+  "commonOk": "OK",
+  "errorNetwork": "Brak połączenia z internetem. Sprawdź sieć i spróbuj ponownie.",
+  "errorGeneric": "Coś poszło nie tak. Spróbuj ponownie.",
+  "errorNotFound": "Nie znaleziono — informacja mogła już wygasnąć.",
+  "timeJustNow": "przed chwilą",
+  "timeMinutesAgo": "{count} min temu",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timeHoursAgo": "{count} godz. temu",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timeDaysAgo": "{count, plural, =1{wczoraj} other{{count} dni temu}}",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "distanceMeters": "{meters} m",
+  "@distanceMeters": {
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
+  "distanceKm": "{km} km",
+  "@distanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "confidencePercent": "{percent}%",
+  "@confidencePercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "communityAgreement": "Problem zgłasza {percent}% odpowiadających",
+  "@communityAgreement": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "communityReports": "{count, plural, =1{1 zgłoszenie} few{{count} zgłoszenia} many{{count} zgłoszeń} other{{count} zgłoszenia}}",
+  "@communityReports": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "communityAnswers": "{count, plural, =0{brak odpowiedzi} =1{1 odpowiedź} few{{count} odpowiedzi} many{{count} odpowiedzi} other{{count} odpowiedzi}}",
+  "@communityAnswers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "communityNoAnswers": "Czekamy na odpowiedzi mieszkańców",
+  "statusDetected": "Wykryte",
+  "statusVerifying": "Trwa weryfikacja",
+  "statusActive": "Zasięg ustalony",
+  "statusResolved": "Zakończone",
+  "shelterOpen": "Otwarty",
+  "shelterFull": "Pełny",
+  "shelterClosed": "Zamknięty",
+  "shelterUnknown": "Brak danych",
+  "severityInfo": "Informacja",
+  "severityWarning": "Ostrzeżenie",
+  "severityDanger": "Zagrożenie",
+  "confidenceHintUnverified": "Pojedyncze zgłoszenie — traktuj ostrożnie.",
+  "confidenceHintLikely": "Wiele niezależnych zgłoszeń z obszaru.",
+  "confidenceHintHigh": "Potwierdzone przez wielu mieszkańców.",
+  "confidenceHintConfirmed": "Potwierdzone przez społeczność i źródło oficjalne.",
+  "onbWelcomeTitle": "Tarcza — siła jest w nas",
+  "onbWelcomeBody": "Jedna osoba widzi fragment sytuacji. Razem widzimy całość. Zgłaszaj problemy w okolicy, potwierdzaj zgłoszenia innych i otrzymuj lokalne alerty.",
+  "onbWelcomeAnon": "Bez konta i bez danych osobowych — aplikacja rejestruje anonimowe urządzenie.",
+  "onbStart": "Zaczynamy",
+  "onbNotificationsTitle": "Powiadomienia",
+  "onbNotificationsBody": "Tarcza czasem zapyta Cię o sytuację w okolicy (np. „Czy masz prąd?”) i wyśle alert, gdy zagrożenie zostanie potwierdzone. Odpowiedź zajmuje jedno tapnięcie.",
+  "onbNotificationsAllow": "Zezwól na powiadomienia",
+  "onbHomeTitle": "Twój adres domowy",
+  "onbHomeBody": "To Twoja pozycja bazowa — dzięki niej dostaniesz pytania i alerty dla okolicy, w której spędzasz najwięcej czasu. Adres zostaje w telefonie, do Tarczy trafiają tylko współrzędne.",
+  "onbHomeHint": "np. Dąbrowskiego 42, Poznań",
+  "onbHomeSearch": "Znajdź adres",
+  "onbHomeSearching": "Szukamy adresu…",
+  "onbHomeNotFound": "Nie znaleźliśmy tego adresu. Dodaj miasto albo ustaw pinezkę na mapie.",
+  "onbHomeAdjust": "Dotknij mapy, aby poprawić położenie pinezki.",
+  "onbHomeConfirm": "Potwierdź adres",
+  "onbHomeUseDemo": "Użyj adresu demo (Poznań, Jeżyce)",
+  "onbHomePinLabel": "Pinezka na mapie",
+  "onbLocationTitle": "Lokalizacja podczas używania",
+  "onbLocationBody": "Gdy otworzysz aplikację poza domem, Tarcza zaktualizuje Twoją okolicę na podstawie GPS — z dokładnością do ok. 150 m i bez zapisywania historii.",
+  "onbLocationAllow": "Zezwól na lokalizację",
+  "onbLocationSkip": "Korzystaj tylko z adresu domowego",
+  "onbWatchTitle": "Tryb czuwania",
+  "onbWatchBody": "Włącz tryb czuwania, aby dostawać alerty i pytania tam, gdzie właśnie jesteś — nie tylko w domu. Tarcza nie zapisuje historii Twoich lokalizacji.",
+  "onbWatchDetail": "Wymaga zgody na lokalizację „zawsze”. Możesz go wyłączyć w ustawieniach jednym przełącznikiem.",
+  "onbWatchEnable": "Włącz",
+  "onbFinishing": "Przygotowujemy Tarczę…",
+  "onbRegisterError": "Nie udało się połączyć z Tarczą. Sprawdź połączenie i spróbuj ponownie.",
+  "onbStepOf": "Krok {step} z {total}",
+  "@onbStepOf": {
+    "placeholders": {
+      "step": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "mapMyLocation": "Moja pozycja",
+  "mapHome": "Dom",
+  "mapRefresh": "Odśwież mapę",
+  "mapNoIncidents": "Brak aktywnych zagrożeń w widocznym obszarze.",
+  "mapPendingQuestion": "Tarcza pyta o Twoją okolicę",
+  "mapPendingAnswer": "Odpowiedz",
+  "mapRefreshFailed": "Nie udało się odświeżyć mapy. Pokazujemy ostatni stan.",
+  "mapAreaUndetermined": "Zasięg jeszcze niewyznaczony",
+  "mapActiveAlert": "Aktywny alert w Twojej okolicy",
+  "mapLocationUpdated": "Zaktualizowano Twoją okolicę.",
+  "mapIncidentsCount": "{count, plural, =1{1 zagrożenie w widocznym obszarze} few{{count} zagrożenia w widocznym obszarze} many{{count} zagrożeń w widocznym obszarze} other{{count} zagrożenia w widocznym obszarze}}",
+  "@mapIncidentsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statLive": "Na żywo",
+  "mapSituational": "Mapa sytuacyjna",
+  "mapCommandCenter": "Tarcza Polska",
+  "incidentIncident": "Incydent",
+  "incidentCell": "Komórka",
+  "incidentTitle": "Szczegóły zagrożenia",
+  "incidentConfidence": "Wiarygodność",
+  "incidentStatus": "Status",
+  "incidentCommunity": "Społeczność",
+  "incidentStarted": "Wykryto",
+  "incidentLastActivity": "Ostatnia aktywność",
+  "incidentLastConfirmed": "Ostatnie potwierdzenie",
+  "incidentArea": "Zasięg",
+  "incidentAreaPolygon": "Obszar wyznaczony na podstawie odpowiedzi mieszkańców. Może się zmieniać.",
+  "incidentAreaPoint": "Zasięg nie jest jeszcze wyznaczony — system dopytuje mieszkańców.",
+  "incidentShowOnMap": "Pokaż na mapie",
+  "incidentNearestShelter": "Najbliższy schron",
+  "incidentReportToo": "Też to widzę — zgłoś",
+  "incidentPrivacyNote": "Widzisz dane zagregowane. Nie pokazujemy lokalizacji pojedynczych zgłoszeń.",
+  "reportTitle": "Nowe zgłoszenie",
+  "reportStepType": "Co się dzieje?",
+  "reportStepTypeHint": "Wybierz rodzaj problemu.",
+  "reportStepLocation": "Gdzie?",
+  "reportStepLocationHint": "Domyślnie Twoja pozycja. Dotknij mapy, aby przesunąć pinezkę.",
+  "reportUseMyLocation": "Moja pozycja",
+  "reportUseHome": "Adres domowy",
+  "reportStepDescription": "Opis (opcjonalnie)",
+  "reportDescriptionHint": "np. Cała ulica bez światła od 14:30",
+  "reportSend": "Wyślij zgłoszenie",
+  "reportSuccessTitle": "Dziękujemy",
+  "reportSuccessBody": "Dziękujemy, sprawdzamy to z innymi mieszkańcami.",
+  "reportSuccessPending": "Łączymy Twoje zgłoszenie z innymi z okolicy…",
+  "reportSuccessShowMap": "Pokaż na mapie",
+  "reportAnother": "Nowe zgłoszenie",
+  "reportRateLimited": "Wysłano zbyt wiele zgłoszeń w krótkim czasie. Spróbuj ponownie za kilka minut.",
+  "reportDescriptionTooLong": "Opis może mieć maksymalnie 1000 znaków.",
+  "reportNoLocation": "Nie znamy Twojej pozycji — dotknij mapy, aby wskazać miejsce.",
+  "reportSuccessJoined": "Zgłoszenie dołączono do zagrożenia „{type}” ({confidence}).",
+  "@reportSuccessJoined": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "confidence": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationTitle": "Pytanie od Tarczy",
+  "verificationYes": "TAK",
+  "verificationNo": "NIE",
+  "verificationUnknown": "NIE WIEM",
+  "verificationExpired": "Czas na odpowiedź minął. Dziękujemy — zapytamy ponownie, jeśli Twoja odpowiedź będzie potrzebna.",
+  "verificationAlreadyAnswered": "Twoja odpowiedź jest już zapisana. Dziękujemy!",
+  "verificationWhy": "Twoja odpowiedź pomaga ustalić, gdzie dokładnie występuje problem. „NIE WIEM” też pomaga.",
+  "verificationLater": "Odpowiem później",
+  "verificationDone": "Gotowe",
+  "verificationLoadError": "Nie udało się pobrać pytania.",
+  "verificationExpiresIn": "Pytanie wygaśnie za {seconds} s",
+  "@verificationExpiresIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "alertsTitle": "Alerty",
+  "alertsEmpty": "Brak aktywnych alertów dla Twojej okolicy.",
+  "alertsEmptyHint": "Jeśli w Twoim obszarze zostanie potwierdzone zagrożenie, zobaczysz tu komunikat.",
+  "alertShowOnMap": "Pokaż na mapie",
+  "alertNearestShelter": "Najbliższy schron",
+  "alertFrom": "Komunikat dla Twojego obszaru",
+  "alertExpires": "Ważny do {time}",
+  "@alertExpires": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "sheltersTitle": "Schrony",
+  "shelterTitle": "Schron",
+  "shelterName": "Nazwa",
+  "sheltersEmpty": "Brak schronów w pobliżu.",
+  "shelterCapacity": "Pojemność",
+  "shelterNever": "brak",
+  "shelterConfirm": "Potwierdź status",
+  "shelterConfirmTitle": "Jaki jest teraz stan schronu?",
+  "shelterConfirmComment": "Komentarz (opcjonalnie)",
+  "shelterConfirmCommentHint": "np. Wejście od podwórza",
+  "shelterConfirmSend": "Wyślij potwierdzenie",
+  "shelterConfirmed": "Dziękujemy za potwierdzenie statusu.",
+  "shelterAddress": "Adres",
+  "shelterNearestBadge": "Najbliższy",
+  "shelterCapacityValue": "{count} osób",
+  "@shelterCapacityValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shelterDistance": "{distance} od Ciebie",
+  "@shelterDistance": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "moreTitle": "Więcej",
+  "moreShelters": "Schrony",
+  "moreSheltersSub": "Najbliższe schrony i ich status",
+  "moreSettings": "Ustawienia",
+  "moreSettingsSub": "Adres domowy, lokalizacja, powiadomienia",
+  "moreDemo": "Scenariusz demo",
+  "moreDemoSub": "Sterowanie symulacją awarii (tryb mock)",
+  "moreAbout": "O Tarczy",
+  "moreAboutBody": "Tarcza przekształca tysiące pojedynczych obserwacji mieszkańców w jeden wspólny, zweryfikowany obraz sytuacji — aby wykrywać zagrożenia, określać ich rzeczywisty zasięg i dostarczać właściwą informację właściwym osobom. Aplikacja demonstracyjna, nie jest oficjalną aplikacją rządową.",
+  "settingsTitle": "Ustawienia",
+  "settingsHome": "Adres domowy",
+  "settingsHomeChange": "Zmień adres",
+  "settingsHomeMissing": "Nie ustawiono",
+  "settingsNeighbourhood": "Twoja okolica",
+  "settingsNeighbourhoodHint": "Tarcza zna tylko obszar ok. 175 m, w którym jesteś — nie dokładny punkt.",
+  "settingsLocationSource": "Ostatnia aktualizacja okolicy",
+  "settingsSourceHome": "adres domowy",
+  "settingsSourceGps": "GPS przy otwarciu",
+  "settingsSourceBackground": "tryb czuwania",
+  "settingsNeverSent": "jeszcze nie wysłano",
+  "settingsUseHomeNow": "Wróć do adresu domowego",
+  "settingsUpdateNow": "Zaktualizuj okolicę teraz",
+  "settingsWatchMode": "Tryb czuwania",
+  "settingsWatchModeSub": "Aktualizuj okolicę w tle (zgoda „zawsze”)",
+  "settingsWatchDenied": "Tryb czuwania wymaga zgody na lokalizację „zawsze”. Zmień ją w ustawieniach systemu.",
+  "settingsOpenSystemSettings": "Ustawienia systemu",
+  "settingsNotifications": "Powiadomienia",
+  "settingsNotificationsSub": "Pytania weryfikacyjne i alerty",
+  "settingsNotificationsAllow": "Zezwól",
+  "settingsLocationReminders": "Przypomnienia o lokalizacji",
+  "settingsLocationRemindersSub": "Rzadkie przypomnienia, aby otworzyć Tarczę poza domem",
+  "settingsDeveloper": "Dla deweloperów",
+  "settingsMode": "Tryb danych",
+  "settingsModeMock": "Mock (bez backendu)",
+  "settingsResetApp": "Zresetuj aplikację",
+  "settingsResetConfirm": "Usunąć dane lokalne i wrócić do onboardingu?",
+  "settingsLocationUpdated": "Okolica zaktualizowana.",
+  "settingsLocationNoGps": "Brak dostępu do GPS — używamy adresu domowego.",
+  "settingsLocationSection": "Lokalizacja",
+  "settingsAddressTitle": "Adres domowy",
+  "demoTitle": "Scenariusz demo",
+  "demoCurrentStep": "Bieżący krok",
+  "demoNext": "Następny krok",
+  "demoAutoplay": "Odtwarzaj automatycznie",
+  "demoAutoplaySub": "Krok co 8 s; przy pytaniu czeka na odpowiedź",
+  "demoReset": "Od początku",
+  "demoShowOnMap": "Pokaż obszar demo na mapie",
+  "demoOnlyMock": "Scenariusz działa tylko w trybie mock (USE_MOCKS=true). Na prawdziwym backendzie użyj make simulate (docs/09).",
+  "demoFinished": "Scenariusz zakończony.",
+  "settingsModeRemote": "Backend: {url}",
+  "@settingsModeRemote": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsLastSent": "{source}, {time}",
+  "@settingsLastSent": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "onbHomeEnterHint": "Wpisz adres i wyszukaj albo dotknij mapy, aby wskazać dom.",
+  "shelterDistanceLabel": "Odległość",
+  "commonClear": "Wyczyść",
+  "reportRateLimitedFor": "Wysłano zbyt wiele zgłoszeń w krótkim czasie. Spróbuj ponownie za {minutes} min.",
+  "@reportRateLimitedFor": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "incidentDetectedAt": "Wykryto {date} ({ago})",
+  "@incidentDetectedAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "ago": {
+        "type": "String"
+      }
+    }
+  },
+  "mapZoomIn": "Przybliż",
+  "mapZoomOut": "Oddal",
+  "mapAllIncidents": "Wszystkie ({count})",
+  "@mapAllIncidents": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "incidentsTitle": "Problemy w okolicy",
+  "incidentsEmpty": "Brak aktywnych problemów w widocznym obszarze mapy.",
+  "incidentsHint": "Problemy w obszarze widocznym na mapie, od najbardziej wiarygodnych.",
+  "reportTypePowerOutageDesc": "Brak zasilania w domu, budynku lub na ulicy",
+  "reportTypePowerOutageHint": "np. Cała ulica bez światła od 14:30, sąsiednie bloki też",
+  "reportTypeWaterOutageDesc": "Z kranów nie leci woda albo jest jej bardzo mało",
+  "reportTypeWaterOutageHint": "np. Brak wody w całym budynku od rana",
+  "reportTypeFuelShortageDesc": "Stacja nie ma paliwa lub są bardzo długie kolejki",
+  "reportTypeFuelShortageHint": "np. Stacja przy rondzie — brak benzyny, kolejka ok. 30 aut",
+  "reportTypeRoadBlockedDesc": "Droga jest zablokowana albo nie da się przejechać",
+  "reportTypeRoadBlockedHint": "np. Powalone drzewo blokuje oba pasy",
+  "reportTypeShelterIssueDesc": "Schron jest zamknięty, pełny albo niedostępny",
+  "reportTypeShelterIssueHint": "np. Wejście do schronu zamknięte, brak informacji",
+  "reportTypeOtherThreatDesc": "Inna sytuacja zagrażająca mieszkańcom",
+  "reportTypeOtherThreatHint": "Opisz krótko, co widzisz i gdzie dokładnie",
+  "verificationPowerYes": "Mam prąd",
+  "verificationPowerNo": "Nie mam prądu",
+  "verificationWaterYes": "Mam wodę",
+  "verificationWaterNo": "Nie mam wody",
+  "verificationFuelYes": "Paliwo jest",
+  "verificationFuelNo": "Brak paliwa",
+  "verificationRoadYes": "Przejezdna",
+  "verificationRoadNo": "Nieprzejezdna",
+  "verificationShelterYes": "Schron dostępny",
+  "verificationShelterNo": "Niedostępny",
+  "previewTitle": "Podgląd ekranów",
+  "previewSub": "Ekrany ze stałymi danymi — bez backendu",
+  "previewHint": "Stałe dane demo (awaria prądu na Jeżycach, 96%). Nic nie trafia do backendu.",
+  "previewVerification": "Pytanie weryfikacyjne",
+  "previewScreens": "Ekrany",
+  "previewQuestionPower": "Brak prądu",
+  "previewQuestionWater": "Brak wody",
+  "previewQuestionGeneric": "Pytanie ogólne (TAK / NIE)",
+  "verificationCardLabel": "Pytanie o Twoją okolicę",
+  "fuelPb95": "Benzyna 95",
+  "fuelPb98": "Benzyna 98",
+  "fuelDiesel": "Diesel",
+  "fuelLpg": "LPG",
+  "occupancyPlenty": "Dużo miejsc",
+  "occupancyLimited": "Mało miejsc",
+  "occupancyFull": "Pełny",
+  "occupancyUnknown": "Brak danych o miejscach",
+  "fuelStationTitle": "Stacja paliw",
+  "fuelStationFuels": "Dostępność paliw",
+  "fuelStationShortage": "Brak części paliw",
+  "fuelStationOk": "Paliwa dostępne",
+  "fuelStationNoData": "Brak danych o paliwach",
+  "fuelStationConfirm": "Potwierdź stan na stacji",
+  "fuelStationConfirmTitle": "Które paliwa są teraz dostępne?",
+  "fuelStationConfirmHint": "Zaznacz paliwa, które można teraz zatankować. Jeśli czegoś brakuje, użyj „Zgłoś brak paliwa”.",
+  "fuelStationConfirmed": "Dziękujemy za potwierdzenie stanu paliw.",
+  "fuelStationAddress": "Adres",
+  "fuelStationLastConfirmed": "Ostatnie potwierdzenie",
+  "shelterOccupancy": "Zapełnienie",
+  "shelterAvailability": "Tryb otwarcia",
+  "shelterConfirmOccupancy": "Ile jest miejsc?",
+  "reportObjectFuelTitle": "Która stacja?",
+  "reportObjectShelterTitle": "Który schron?",
+  "reportObjectHint": "Zaznaczyliśmy najbliższy obiekt — zmień, jeśli chodzi o inny.",
+  "reportObjectNone": "Nie znaleźliśmy takich obiektów w pobliżu Twojej pozycji.",
+  "reportFuelTypesTitle": "Czego brakuje?",
+  "reportFuelTypesRequired": "Zaznacz co najmniej jedno paliwo.",
+  "verificationPoiLabel": "Pytanie dotyczy obiektu",
+  "incidentPoiTitle": "Dotyczy obiektu",
+  "incidentMissingFuels": "Brakuje: {fuels}",
+  "@incidentMissingFuels": {
+    "placeholders": {
+      "fuels": {
+        "type": "String"
+      }
+    }
+  },
+  "incidentAreaObject": "Zgłoszenie dotyczy jednego obiektu — bez strefy na mapie.",
+  "proceduresTitle": "Co robić",
+  "timelineTitle": "Historia",
+  "previewQuestionFuel": "Brak paliwa (pytanie o stację)",
+  "fuelStationConfirmSend": "Potwierdź dostępne paliwa",
+  "fuelStationReport": "Zgłoś brak paliwa",
+  "shelterReport": "Zgłoś problem ze schronem",
+  "reportObjectMapHint": "Zaznaczyliśmy najbliższy obiekt — dotknij innego na mapie, aby zmienić.",
+  "reportObjectChangeHint": "Dotknij innego obiektu na mapie, aby zmienić wybór."
+}

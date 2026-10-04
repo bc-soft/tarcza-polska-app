@@ -1,0 +1,12 @@
+swagger_parser:
+  schema_path: docs/openapi.json
+  output_directory: lib/data/remote/api
+  name: tarcza_api
+  json_serializer: freezed
+  use_freezed3: true
+  root_client: true
+  root_client_name: TarczaApi
+  include_paths:
+    - "/api/v1/**"          # endpointy /api/command/* są dla panelu operatora, nie generujemy ich
+  unknown_enum_value: true  # nowe wartości enumów z backendu nie wywalą parsowania
+  fallback_union: unknown   # nieznany `kind` na mapie nie wywraca parsowania całej kolekcji

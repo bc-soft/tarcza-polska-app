@@ -30,7 +30,7 @@ UI (widgets)  →  BLoC / Cubit  →  Repository (interfejs)  →  Mock* | Remot
 | Lokalizacja (GPS) | `geolocator` | pozycja przy otwarciu + strumień w tle na Androidzie (foreground service) |
 | Lokalizacja w tle iOS | własny `MethodChannel` (Swift, `CLLocationManager`) | Significant Location Change — `geolocator` tego nie obsługuje, a działa po zamknięciu aplikacji |
 | Zadania okresowe (Android) | `workmanager` | zapasowa aktualizacja pozycji co 15 min |
-| Adres domowy → współrzędne | `geocoding` | geokodowanie systemowe; **[DO UZGODNIENIA]** czy backend da własny endpoint geokodowania |
+| Adres domowy → współrzędne | `geocoding` | geokodowanie systemowe (ustalone — backend nie daje endpointu) |
 | Push | `firebase_core` + `firebase_messaging` | Android: FCM; iOS: APNs przez FCM |
 | Powiadomienia na pierwszym planie | `flutter_local_notifications` | wyświetlenie pusha, gdy aplikacja jest otwarta |
 | Bezpieczne przechowywanie | `flutter_secure_storage` | token JWT urządzenia |
@@ -87,7 +87,7 @@ Do czasu uzupełnienia spec przez backend:
 2. Metody bez schematu odpowiedzi opakowujemy w `Remote*Repository` (`fromJson` na `dynamic`) albo dopisujemy ręczny interfejs Retrofit z typowanymi zwrotkami.
 3. Po aktualizacji spec (agent backendu aktualizuje model danych) regenerujemy klienta i usuwamy ręczne DTO.
 
-**[DO UZGODNIENIA]** z backendem: dodanie schematów odpowiedzi (`IncidentView`, `MapFeatureCollection`, `VerificationQuestion`, `AlertView`, `ShelterView`, `DeviceProfile`, `ErrorResponse`) do `openapi.json`.
+**Stan na spec 1.1.0:** schematy odpowiedzi są w `openapi.json`, ręczne DTO odpowiedzi zostały usunięte; repozytoria mapują wygenerowane modele w `lib/data/remote/mappers.dart`. `MapFeature.properties` to `oneOf` z dyskryminatorem `kind` (`swagger_parser` → sealed union, `fallback_union: unknown` dla nowych `kind`). Ręcznie zostaje tylko koperta błędów `ErrorResponse` (`lib/data/remote/dto/`).
 
 ### Dio: interceptory
 
@@ -108,9 +108,9 @@ Typy pushy (`data.type`):
 
 | `data.type` | Pola | Akcja |
 |---|---|---|
-| `verification` | `verificationId`, `incidentId`, `type` | ekran pytania weryfikacyjnego |
+| `verification` | `verificationId`, `incidentId`, `incidentType`, `expiresAt` | ekran pytania weryfikacyjnego (wygasłe z pusha pomijamy) |
 | `alert` | `alertId` | ekran alertu |
-| `location_refresh` | — | otwarcie aplikacji → aktualizacja lokalizacji. **[DO UZGODNIENIA]** z backendem, patrz `08-bezpieczenstwo-prywatnosc.md` |
+| `location_refresh` | — | otwarcie aplikacji → aktualizacja lokalizacji. Wysyła backend, patrz `08-bezpieczenstwo-prywatnosc.md` |
 
 Aplikacja musi działać także bez pushy (backend lokalnie tylko loguje pushe, gdy brak `FIREBASE_CREDENTIALS`): polling `GET /verifications/pending` i `GET /alerts` przy starcie, wznowieniu i co 30 s na ekranie mapy.
 
@@ -140,7 +140,7 @@ BackgroundLocationService (interfejs, core/location/)
 - Konfiguracja natywna: iOS `Info.plist` (`NSLocationWhenInUseUsageDescription`, `NSLocationAlwaysAndWhenInUseUsageDescription`, `UIBackgroundModes: location, remote-notification`); Android `AndroidManifest.xml` (`ACCESS_COARSE_LOCATION`, `ACCESS_FINE_LOCATION`, `ACCESS_BACKGROUND_LOCATION`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_LOCATION`, `POST_NOTIFICATIONS`).
 - Tryb czuwania jest **po fazie core** (patrz `10-roadmapa-priorytety.md`) — demo musi działać bez niego.
 
-**[DO UZGODNIENIA]** z backendem (agent backend aktualizuje model danych): czy adres domowy jest osobnym polem (`homeLocation`) obok `lastLocation`, czy oba nadpisują jedną pozycję. Do tego czasu oba trafiają w `PUT /devices/me/location`.
+Ustalone (spec 1.1.0): adres domowy i GPS nadpisują jedną pozycję w `PUT /devices/me/location`; rozróżnia je pole `source: home | gps | background`.
 
 ## H3
 
@@ -159,7 +159,7 @@ Mobile nie liczy na H3 żadnej logiki biznesowej (zasięg, confidence) — to wy
 ```
 lib/
   main.dart
-  app/                    # MaterialApp.router, go_router, theme (styl mObywatel), DI (get_it), config
+  app/                    # MaterialApp.router, go_router, theme („command center”, motyw jasny), DI (get_it), config
   core/
     error/                # wyjątki domenowe, mapowanie error.code
     push/                 # PushService (FCM/APNs), routing z pushy

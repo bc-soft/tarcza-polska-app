@@ -3,7 +3,7 @@
 ## Fazy
 
 ### Faza 1 — Fundament
-- theme w stylu mObywatela, nawigacja, DI (`get_it`), klient Retrofit z `openapi.json`,
+- theme w stylistyce panelu operatora („command center”, motyw jasny), nawigacja, DI (`get_it`), klient Retrofit z `openapi.json`,
 - onboarding: rejestracja urządzenia, adres domowy, lokalizacja,
 - mapa (`GET /map`), ekran zgłoszenia.
 

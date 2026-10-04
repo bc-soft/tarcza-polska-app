@@ -19,7 +19,7 @@ Anonimowa instalacja aplikacji (brak kont).
 | `h3Cell` | komórka H3 res 9 ostatniej pozycji |
 | `locationUpdatedAt` | czas ostatniej aktualizacji |
 
-**[DO UZGODNIENIA]**: pole na adres domowy (`homeLocation` / `homeAddress`) — patrz `08-bezpieczenstwo-prywatnosc.md`. Lokalnie adres domowy (tekst + współrzędne) trzymamy w `shared_preferences`.
+Adres domowy (ustalone, spec 1.1.0): brak osobnego pola — dom trafia w `PUT /devices/me/location` z `source: "home"`, profil zwraca `locationSource` i `preferences.locationRefresh`. Lokalnie adres domowy (tekst + współrzędne) trzymamy w `shared_preferences`.
 
 ## Report (aplikacja **tworzy**)
 
